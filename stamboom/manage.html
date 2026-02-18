@@ -74,6 +74,7 @@
     </main>
 
     <!-- ======================= SCRIPT ======================= -->
+    <script src="../js/idGenerator.js"></script>
     <script>
         // Haal bestaande stamboom data op uit localStorage
         let stamboomData = JSON.parse(localStorage.getItem('stamboomData') || '[]');
@@ -96,10 +97,20 @@
             }
         }
 
+        // Relatie automatisch toevoegen als ontbreekt
+        function ensureRelationship(person) {
+            if (!person.Relatie) {
+                if (!person.VaderID && !person.MoederID) person.Relatie = 'Hoofd-ID';
+                else if (person.VaderID || person.MoederID) person.Relatie = 'Kind';
+                else person.Relatie = '';
+            }
+        }
+
         // Render functie
         function renderTable(filteredData) {
             tableBody.innerHTML = '';
             filteredData.forEach(p => {
+                ensureRelationship(p);
                 const tr = document.createElement('tr');
                 tr.className = getRowClass(p);
 
@@ -133,7 +144,7 @@
             const term = searchInput.value.toLowerCase();
             const filtered = stamboomData.filter(p =>
                 p.ID.toLowerCase() === term ||
-                p.Voepnaam?.toLowerCase() === term ||
+                p.Roepnaam?.toLowerCase() === term ||
                 p.Doopnaam?.toLowerCase() === term
             );
             if (filtered.length === 0) {
@@ -147,6 +158,20 @@
 
         // Init render (toon eerste persoon als voorbeeld)
         if (stamboomData.length > 0) renderTable([stamboomData[0]]);
+
+        // -----------------------------
+        // Automatisch ID toevoegen bij nieuwe personen zonder ID
+        stamboomData.forEach(p => {
+            if (!p.ID) {
+                try {
+                    p.ID = idGenerator(p.Doopnaam, p.Roepnaam, p.Achternaam, p.Geslacht || 'X');
+                } catch(err) {
+                    console.warn('Kon ID niet genereren voor:', p, err);
+                    p.ID = 'X000000'; // fallback
+                }
+            }
+        });
+        localStorage.setItem('stamboomData', JSON.stringify(stamboomData));
     </script>
 </body>
 
