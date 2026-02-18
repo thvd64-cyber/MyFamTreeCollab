@@ -1,15 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Import</title>
+    <title>Stamboom - Import</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 
-    <h1>Import pagina</h1>
-    <a href="index.html">Terug naar Home</a>
+    <!-- ============================= -->
+    <!-- Blauwe navigatiebalk (root)   -->
+    <!-- ============================= -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="../index.html">Home</a>
+            <a href="../create.html">Create</a>
+            <a href="../manage.html">Manage</a>
+            <a href="../view.html">Tree View</a>
+            <a href="import.html">Import</a>
+        </div>
+    </nav>
 
-    <script src="../js/script.js"></script>
+    <!-- ============================= -->
+    <!-- Import Sectie                 -->
+    <!-- ============================= -->
+
+    <div class="container">
+        <h2>Importeer Stamboom CSV</h2>
+
+        <p>
+            Selecteer een CSV bestand met de juiste kolomstructuur.
+        </p>
+
+        <input type="file" id="csvFile" accept=".csv">
+        <br><br>
+        <button id="importBtn">Importeer CSV</button>
+
+        <br><br>
+        <p id="importStatus"></p>
+    </div>
+
+    <!-- ============================= -->
+    <!-- JavaScript                    -->
+    <!-- ============================= -->
+    <script src="../js/import.js"></script>
+
 </body>
 </html>
