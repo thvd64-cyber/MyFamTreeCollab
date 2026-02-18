@@ -19,6 +19,7 @@
         th, td { border: 1px solid #999; padding: 5px; text-align: left; }
         th { background-color: #eee; }
         input, select, textarea { width: 100%; }
+        .btn { padding: 6px 12px; margin: 5px; cursor: pointer; }
     </style>
 </head>
 
@@ -42,6 +43,8 @@
         <!-- Zoekbalk -->
         <input type="text" id="searchPerson" placeholder="Voer ID of naam in">
         <button id="loadBtn">Laad Persoon</button>
+        <button id="refreshBtn" class="btn">Refresh</button>
+        <button id="saveBtn" class="btn">Opslaan</button>
 
         <!-- Tabel voor Manage -->
         <table id="manageTable">
@@ -58,9 +61,9 @@
                     <th>Geboorteplaats</th>
                     <th>Overlijdensdatum</th>
                     <th>Overlijdensplaats</th>
-                    <th>Vader ID</th>
-                    <th>Moeder ID</th>
-                    <th>Partner ID</th>
+                    <th>VaderID</th>
+                    <th>MoederID</th>
+                    <th>PartnerID</th>
                     <th>Huwelijksdatum</th>
                     <th>Huwelijksplaats</th>
                     <th>Opmerkingen</th>
@@ -82,6 +85,8 @@
         const tableBody = document.querySelector('#manageTable tbody');
         const loadBtn = document.getElementById('loadBtn');
         const searchInput = document.getElementById('searchPerson');
+        const saveBtn = document.getElementById('saveBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
 
         // Functie om de juiste klasse voor kleurcodering te bepalen
         function getRowClass(p) {
@@ -128,7 +133,6 @@
                         input.value = p[f] || '';
                         input.addEventListener('change', e => {
                             p[f] = e.target.value;
-                            localStorage.setItem('stamboomData', JSON.stringify(stamboomData));
                         });
                         td.appendChild(input);
                     }
@@ -154,24 +158,59 @@
             }
         }
 
+        // Save functie voor alle wijzigingen
+        function saveData() {
+            tableBody.querySelectorAll('tr').forEach(tr => {
+                const tds = tr.querySelectorAll('td');
+                const fields = ['Relatie','ID','Doopnaam','Roepnaam','Prefix','Achternaam','Geslacht',
+                    'Geboortedatum','Geboorteplaats','Overlijdensdatum','Overlijdensplaats',
+                    'VaderID','MoederID','PartnerID','Huwelijksdatum','Huwelijksplaats','Opmerkingen','Adres','ContactInfo','URL'];
+                let p = {};
+                tds.forEach((td, i) => {
+                    if (fields[i] === 'ID' || fields[i] === 'Relatie') {
+                        p[fields[i]] = td.textContent;
+                    } else {
+                        p[fields[i]] = td.querySelector('input').value;
+                    }
+                });
+                // ID genereren als ontbreekt
+                if (!p.ID) {
+                    try {
+                        p.ID = idGenerator(p.Doopnaam, p.Roepnaam, p.Achternaam, p.Geslacht || 'X');
+                    } catch (err) {
+                        p.ID = 'X000000';
+                    }
+                }
+                // Relatie check
+                ensureRelationship(p);
+                // Check of ID al bestaat
+                const idx = stamboomData.findIndex(x => x.ID === p.ID);
+                if (idx !== -1) {
+                    stamboomData[idx] = p; // Update bestaande persoon
+                } else {
+                    stamboomData.push(p); // Voeg nieuwe persoon toe
+                }
+            });
+            localStorage.setItem('stamboomData', JSON.stringify(stamboomData));
+            alert('Wijzigingen opgeslagen!');
+        }
+
+        // Refresh functie
+        function refreshTable() {
+            const term = searchInput.value.toLowerCase();
+            if (!term && stamboomData.length > 0) {
+                renderTable([stamboomData[0]]);
+            } else {
+                loadPerson();
+            }
+        }
+
         loadBtn.addEventListener('click', loadPerson);
+        saveBtn.addEventListener('click', saveData);
+        refreshBtn.addEventListener('click', refreshTable);
 
         // Init render (toon eerste persoon als voorbeeld)
         if (stamboomData.length > 0) renderTable([stamboomData[0]]);
-
-        // -----------------------------
-        // Automatisch ID toevoegen bij nieuwe personen zonder ID
-        stamboomData.forEach(p => {
-            if (!p.ID) {
-                try {
-                    p.ID = idGenerator(p.Doopnaam, p.Roepnaam, p.Achternaam, p.Geslacht || 'X');
-                } catch(err) {
-                    console.warn('Kon ID niet genereren voor:', p, err);
-                    p.ID = 'X000000'; // fallback
-                }
-            }
-        });
-        localStorage.setItem('stamboomData', JSON.stringify(stamboomData));
     </script>
 </body>
 
