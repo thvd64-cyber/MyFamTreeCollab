@@ -1,68 +1,91 @@
-// 1. Haal bestaande stamboom data op of start met lege array
+// =======================================
+// create.js
+// Beheer van de create-pagina: toevoegen van eerste persoon
+// =======================================
+
+// Haal bestaande stamboomdata op of start met lege array
 let stamboomData = JSON.parse(localStorage.getItem('stamboomData') || '[]');
 
-// 2. Elementen uit de HTML
-const form = document.getElementById('addPersonForm');       // het formulier
-const preview = document.getElementById('stamboomPreview');  // div voor preview
+// Elementen
+const form = document.getElementById('addPersonForm');
+const preview = document.getElementById('stamboomPreview');
 
-// 3. Functie om een unieke ID te maken
-function generateID() {
-    return 'p' + Date.now(); // gebruikt timestamp voor uniek ID
-}
+// Functie om ID te genereren (optioneel, aparte idGenerator.js wordt gebruikt)
+// function generateID() {
+//     return 'p' + Date.now();
+// }
 
-// 4. Voeg persoon toe bij submit
+// =======================
+// Voeg persoon toe bij submit
+// =======================
 form.addEventListener('submit', function(e){
-    e.preventDefault(); // voorkomt dat de pagina refresh bij submit
+    e.preventDefault();
 
-    // 5. Maak persoon-object
+    const doopnaam = document.getElementById('doopnaam').value;
+    const roepnaam = document.getElementById('roepnaam').value;
+    const prefix = document.getElementById('prefix').value;
+    const achternaam = document.getElementById('achternaam').value;
+    const geboorte = document.getElementById('geboorte').value;
+    const geslacht = document.getElementById('geslacht').value;
+
+    // Genereer automatisch unieke ID via idGenerator.js
+    const uniekeID = genereerCode(doopnaam, roepnaam, achternaam, geslacht);
+
     const person = {
-        ID: generateID(),
-        voornaam: document.getElementById('voornaam').value,
-        roepnaam: document.getElementById('roepnaam').value,
-        prefix: document.getElementById('prefix').value,
-        achternaam: document.getElementById('achternaam').value,
-        geboorte: document.getElementById('geboorte').value, // calendar picker
-        geslacht: document.getElementById('geslacht').value,
-        ouderID: null,
-        partnerID: null
+        ID: uniekeID,           // unieke code als ID
+        Relatie: 'Hoofd-ID',    // standaard eerste persoon
+        Doopnaam: doopnaam,
+        Roepnaam: roepnaam,
+        Prefix: prefix,
+        Achternaam: achternaam,
+        Geslacht: geslacht,
+        Geboortedatum: geboorte,
+        Geboorteplaats: '',
+        Overlijdensdatum: '',
+        Overlijdensplaats: '',
+        VaderID: null,
+        MoederID: null,
+        PartnerID: null,
+        Huwelijksdatum: '',
+        Huwelijksplaats: '',
+        Opmerkingen: '',
+        Adres: '',
+        ContactInfo: '',
+        URL: ''
     };
 
-    // 6. RootPerson check
-    if(stamboomData.length === 0){
-        const rootPerson = person;
-        stamboomData = [rootPerson]; // eerste persoon wordt root
-    } else {
-        stamboomData.push(person); // extra personen toevoegen
-    }
+    // Voeg toe aan stamboomdata
+    stamboomData.push(person);
 
-    // 7. Opslaan in localStorage
+    // Sla op in localStorage
     localStorage.setItem('stamboomData', JSON.stringify(stamboomData));
 
-    // 8. Render preview
+    // Render preview
     renderStamboom();
 
-    // 9. Reset formulier
+    // Reset formulier
     form.reset();
 });
 
-// 10. Render stamboom preview
+// =======================
+// Render stamboom preview
+// =======================
 function renderStamboom(){
-    preview.innerHTML = ''; // leegmaken van oude preview
+    preview.innerHTML = '';
     if(stamboomData.length === 0){
         preview.innerHTML = '<p>Geen leden toegevoegd. Voeg de eerste persoon toe.</p>';
         return;
     }
+
     stamboomData.forEach(p => {
         const div = document.createElement('div');
         div.className = 'node';
-
-        // Alleen het jaar tonen uit de kalender datum
-        let geboortejaar = p.geboorte ? p.geboorte.split('-')[0] : '';
-
-        div.textContent = `${p.voornaam} "${p.roepnaam}" ${p.prefix} ${p.achternaam} (${geboortejaar})`;
+        div.textContent = `${p.Doopnaam} ${p.Roepnaam} ${p.Prefix} ${p.Achternaam} (${p.Geboortedatum || ''}) - ID: ${p.ID}`;
         preview.appendChild(div);
     });
 }
 
-// 11. Init render
+// =======================
+// Init render bij laden pagina
+// =======================
 renderStamboom();
