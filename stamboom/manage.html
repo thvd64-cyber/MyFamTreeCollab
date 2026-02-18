@@ -1,69 +1,153 @@
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stamboom Manage</title>
+    <title>Manage Stamboom - MyFamTreeCollab</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
-        /* Basis styling */
-        body { font-family: Arial, sans-serif; padding: 20px; background: #f8f8f8; }
-        h1 { color: #333; }
-        input, select, button { padding: 6px 10px; margin: 2px; }
+        /* Kleurcodes per relatie */
+        .ouders { background-color: #008080; color: white; }       /* Teal blauw */
+        .hoofd-id { background-color: #FFD700; }                  /* Geel */
+        .partner { background-color: #d3d3d3; }                   /* Lichtgrijs */
+        .kind { background-color: #90EE90; }                      /* Lichtgroen */
+        .ex-partner { background-color: #A9A9A9; }               /* Donkergrijs */
+        .broerzus { background-color: #FFFDD0; }                  /* Crème */
+        .partner-kind { background-color: #D8BFD8; }              /* Lichtpaars */
         table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-        th, td { border: 1px solid #ccc; padding: 5px; text-align: left; }
-        th { background: #eee; }
-        /* Kleuren voor relatie types */
-        .HoofdID { background-color: #ffeb3b; }        /* Geel */
-        .Ouder { background-color: #008080; color: #fff;} /* Teal blauw */
-        .PartnerHuidig { background-color: #d3d3d3; } /* Licht grijs */
-        .Kind { background-color: #90ee90; }          /* Licht groen */
-        .KindPartner { background-color: #dda0dd; }   /* Licht paars */
-        .ExPartner { background-color: #555555; color:#fff;} /* Donker grijs */
-        .BroerZus { background-color: #fffacd; }      /* Crème */
-        .BroerZusPartner { background-color: #dda0dd; } /* Licht paars */
+        th, td { border: 1px solid #999; padding: 5px; text-align: left; }
+        th { background-color: #eee; }
+        input, select, textarea { width: 100%; }
     </style>
 </head>
+
 <body>
-    <h1>Manage Stamboom</h1>
 
-    <!-- Zoekbalk om persoon te selecteren op naam of ID -->
-    <label>Zoek persoon (naam of ID):</label>
-    <input type="text" id="searchInput" placeholder="Voornaam, achternaam of ID">
-    <button id="searchBtn">Zoek</button>
+    <!-- ======================= NAVBAR ======================= -->
+    <div id="navbar"></div>
+    <script>
+        fetch('../navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar').innerHTML = data;
+            });
+    </script>
 
-    <!-- Tabel voor stamboom data -->
-    <table id="stamboomTable">
-        <thead>
-            <tr>
-                <!-- Kolommen zoals besproken -->
-                <th>Relatie</th>
-                <th>ID</th>
-                <th>Doopnaam</th>
-                <th>Roepnaam</th>
-                <th>Prefix</th>
-                <th>Achternaam</th>
-                <th>Geslacht</th>
-                <th>Geboortedatum</th>
-                <th>Geboorteplaats</th>
-                <th>Overlijdensdatum</th>
-                <th>Overlijdensplaats</th>
-                <th>Vader ID</th>
-                <th>Moeder ID</th>
-                <th>Partner ID</th>
-                <th>Huwelijksdatum</th>
-                <th>Huwelijksplaats</th>
-                <th>Opmerkingen</th>
-                <th>Adres</th>
-                <th>ContactInfo</th>
-                <th>URL</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody">
-            <!-- Hier worden de rijen dynamisch toegevoegd -->
-        </tbody>
-    </table>
+    <!-- ======================= MAIN CONTENT ======================= -->
+    <main>
+        <h2>Manage Stamboom</h2>
+        <p>Laad een persoon via ID of naam om de tweede graad familie te beheren.</p>
 
-    <script src="../js/manage.js"></script>
+        <!-- Zoekbalk -->
+        <input type="text" id="searchPerson" placeholder="Voer ID of naam in">
+        <button id="loadBtn">Laad Persoon</button>
+
+        <!-- Tabel voor Manage -->
+        <table id="manageTable">
+            <thead>
+                <tr>
+                    <th>Relatie</th>
+                    <th>ID</th>
+                    <th>Doopnaam</th>
+                    <th>Roepnaam</th>
+                    <th>Prefix</th>
+                    <th>Achternaam</th>
+                    <th>Geslacht</th>
+                    <th>Geboortedatum</th>
+                    <th>Geboorteplaats</th>
+                    <th>Overlijdensdatum</th>
+                    <th>Overlijdensplaats</th>
+                    <th>Vader ID</th>
+                    <th>Moeder ID</th>
+                    <th>Partner ID</th>
+                    <th>Huwelijksdatum</th>
+                    <th>Huwelijksplaats</th>
+                    <th>Opmerkingen</th>
+                    <th>Adres</th>
+                    <th>ContactInfo</th>
+                    <th>URL</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </main>
+
+    <!-- ======================= SCRIPT ======================= -->
+    <script>
+        // Haal bestaande stamboom data op uit localStorage
+        let stamboomData = JSON.parse(localStorage.getItem('stamboomData') || '[]');
+
+        const tableBody = document.querySelector('#manageTable tbody');
+        const loadBtn = document.getElementById('loadBtn');
+        const searchInput = document.getElementById('searchPerson');
+
+        // Functie om de juiste klasse voor kleurcodering te bepalen
+        function getRowClass(p) {
+            switch (p.Relatie) {
+                case 'Ouder': return 'ouders';
+                case 'Hoofd-ID': return 'hoofd-id';
+                case 'Partner': return 'partner';
+                case 'Kind': return 'kind';
+                case 'Ex-Partner': return 'ex-partner';
+                case 'Broer/Zus': return 'broerzus';
+                case 'Partner-Kind': return 'partner-kind';
+                default: return '';
+            }
+        }
+
+        // Render functie
+        function renderTable(filteredData) {
+            tableBody.innerHTML = '';
+            filteredData.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = getRowClass(p);
+
+                // Loop door de velden
+                const fields = ['Relatie','ID','Doopnaam','Roepnaam','Prefix','Achternaam','Geslacht',
+                    'Geboortedatum','Geboorteplaats','Overlijdensdatum','Overlijdensplaats',
+                    'VaderID','MoederID','PartnerID','Huwelijksdatum','Huwelijksplaats','Opmerkingen','Adres','ContactInfo','URL'];
+
+                fields.forEach(f => {
+                    const td = document.createElement('td');
+                    if (f === 'ID' || f === 'Relatie') {
+                        td.textContent = p[f] || '';
+                    } else {
+                        const input = document.createElement('input');
+                        input.value = p[f] || '';
+                        input.addEventListener('change', e => {
+                            p[f] = e.target.value;
+                            localStorage.setItem('stamboomData', JSON.stringify(stamboomData));
+                        });
+                        td.appendChild(input);
+                    }
+                    tr.appendChild(td);
+                });
+
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // Functie om persoon te zoeken op ID of naam
+        function loadPerson() {
+            const term = searchInput.value.toLowerCase();
+            const filtered = stamboomData.filter(p =>
+                p.ID.toLowerCase() === term ||
+                p.Voepnaam?.toLowerCase() === term ||
+                p.Doopnaam?.toLowerCase() === term
+            );
+            if (filtered.length === 0) {
+                alert('Persoon niet gevonden');
+            } else {
+                renderTable(filtered);
+            }
+        }
+
+        loadBtn.addEventListener('click', loadPerson);
+
+        // Init render (toon eerste persoon als voorbeeld)
+        if (stamboomData.length > 0) renderTable([stamboomData[0]]);
+    </script>
 </body>
+
 </html>
