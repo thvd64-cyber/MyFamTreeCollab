@@ -1,90 +1,143 @@
-// 1. Haal alle stamboom data op uit localStorage
+// =======================================
+// manage.js
+// Beheer van stamboom: toevoegen en tonen van personen tot tweede graad
+// =======================================
+
+// Haal bestaande stamboomdata op of start met lege array
 let stamboomData = JSON.parse(localStorage.getItem('stamboomData') || '[]');
 
-// 2. Selecteer HTML elementen
-const searchInput = document.getElementById('searchInput'); // zoekbalk
-const searchBtn = document.getElementById('searchBtn');     // zoek knop
-const tableBody = document.getElementById('tableBody');     // tbody van de tabel
-
-// 3. Functie om relatie te berekenen op basis van IDs
-function bepaalRelatie(root, person) {
-    if(person.ID === root.ID) return 'HoofdID'; // huidige root persoon
-    if(person.ID === root.partnerID) return 'PartnerHuidig'; // partner van root
-    if(person.ID === root.vaderID || person.ID === root.moederID) return 'Ouder'; // ouders
-    if(person.vaderID === root.ID || person.moederID === root.ID) return 'Kind'; // kinderen
-    if((person.vaderID === root.partnerID || person.moederID === root.partnerID) && person.ID !== root.partnerID) return 'ExPartner'; // ex-partners
-    // broers/zussen = zelfde ouders
-    if(person.vaderID === root.vaderID && person.moederID === root.moederID && person.ID !== root.ID) return 'BroerZus';
-    return ''; // anders onbekend
-}
-
-// 4. Functie om tabel te renderen voor een geselecteerde root persoon
-function renderTabel(root) {
-    tableBody.innerHTML = ''; // oude tabel legen
-
-    // Voeg root toe als eerste rij
-    stamboomData.forEach(p => {
-        let relatie = bepaalRelatie(root, p); // relatie bepalen
-        let row = document.createElement('tr'); // nieuwe tabelrij
-        row.className = relatie; // CSS kleur op basis van relatie
-
-        // Kolommen: relatie en ID readonly, andere editable
-        row.innerHTML = `
-            <td>${relatie}</td>
-            <td>${p.ID}</td>
-            <td contenteditable="true">${p.doopnaam || ''}</td>
-            <td contenteditable="true">${p.roepnaam || ''}</td>
-            <td contenteditable="true">${p.prefix || ''}</td>
-            <td contenteditable="true">${p.achternaam || ''}</td>
-            <td contenteditable="true">${p.geslacht || ''}</td>
-            <td contenteditable="true">${p.geboorte || ''}</td>
-            <td contenteditable="true">${p.geboorteplaats || ''}</td>
-            <td contenteditable="true">${p.overlijden || ''}</td>
-            <td contenteditable="true">${p.overlijdensplaats || ''}</td>
-            <td contenteditable="true">${p.vaderID || ''}</td>
-            <td contenteditable="true">${p.moederID || ''}</td>
-            <td contenteditable="true">${p.partnerID || ''}</td>
-            <td contenteditable="true">${p.huwelijksdatum || ''}</td>
-            <td contenteditable="true">${p.huwelijksplaats || ''}</td>
-            <td contenteditable="true">${p.opmerkingen || ''}</td>
-            <td contenteditable="true">${p.adres || ''}</td>
-            <td contenteditable="true">${p.contactInfo || ''}</td>
-            <td contenteditable="true">${p.url || ''}</td>
-        `;
-        tableBody.appendChild(row);
-    });
-
-    // 5. Event listener: wijzigingen automatisch opslaan bij blur
-    tableBody.querySelectorAll('tr').forEach((row, index) => {
-        row.querySelectorAll('td[contenteditable="true"]').forEach((cell, cellIndex) => {
-            cell.addEventListener('blur', () => {
-                const kolommen = [
-                    'doopnaam','roepnaam','prefix','achternaam','geslacht','geboorte','geboorteplaats',
-                    'overlijden','overlijdensplaats','vaderID','moederID','partnerID',
-                    'huwelijksdatum','huwelijksplaats','opmerkingen','adres','contactInfo','url'
-                ];
-                stamboomData[index][kolommen[cellIndex]] = cell.textContent; // opslaan in array
-                localStorage.setItem('stamboomData', JSON.stringify(stamboomData)); // opslaan
-            });
-        });
-    });
-}
-
-// 6. Zoek knop functionaliteit
-searchBtn.addEventListener('click', () => {
-    const query = searchInput.value.toLowerCase();
-    const root = stamboomData.find(p => 
-        p.ID.toLowerCase() === query ||
-        (p.voornaam && p.voornaam.toLowerCase().includes(query)) ||
-        (p.achternaam && p.achternaam.toLowerCase().includes(query))
-    );
-    if(root){
-        renderTabel(root);
-    } else {
-        alert('Persoon niet gevonden!');
+// Voeg Relatie toe aan bestaande data als ontbrekend (bijv. bij upload of create)
+stamboomData.forEach(p => {
+    if (!p.Relatie) {
+        p.Relatie = (stamboomData.indexOf(p) === 0) ? 'Hoofd-ID' : 'Kind';
     }
 });
 
-// 7. Init: render tabel voor eerste persoon als default
-if(stamboomData.length > 0) renderTabel(stamboomData[0]);
+// Sla eventueel bijgewerkte data terug op
+localStorage.setItem('stamboomData', JSON.stringify(stamboomData));
 
+// Elementen
+const form = document.getElementById('addPersonForm');
+const tableContainer = document.getElementById('stamboomTable');
+
+// =======================
+// Voeg persoon toe bij submit
+// =======================
+form.addEventListener('submit', function(e){
+    e.preventDefault();
+
+    const doopnaam = document.getElementById('doopnaam').value;
+    const roepnaam = document.getElementById('roepnaam').value;
+    const prefix = document.getElementById('prefix').value;
+    const achternaam = document.getElementById('achternaam').value;
+    const geboorte = document.getElementById('geboortedatum').value;
+    const geslacht = document.getElementById('geslacht').value;
+    const relatie = document.getElementById('relatie').value || 'Kind';
+    const vaderID = document.getElementById('vaderID').value || null;
+    const moederID = document.getElementById('moederID').value || null;
+
+    // Nieuwe ID genereren via idGenerator.js
+    const uniekeID = genereerCode(doopnaam, roepnaam, achternaam, geslacht);
+
+    const person = {
+        ID: uniekeID,
+        Relatie: relatie,
+        Doopnaam: doopnaam,
+        Roepnaam: roepnaam,
+        Prefix: prefix,
+        Achternaam: achternaam,
+        Geslacht: geslacht,
+        Geboortedatum: geboorte,
+        Geboorteplaats: '',
+        Overlijdensdatum: '',
+        Overlijdensplaats: '',
+        VaderID: vaderID,
+        MoederID: moederID,
+        PartnerID: null,
+        Huwelijksdatum: '',
+        Huwelijksplaats: '',
+        Opmerkingen: '',
+        Adres: '',
+        ContactInfo: '',
+        URL: ''
+    };
+
+    // Voeg toe aan stamboomData
+    stamboomData.push(person);
+
+    // Sla alles op in localStorage
+    localStorage.setItem('stamboomData', JSON.stringify(stamboomData));
+
+    // Update tabel
+    renderTable();
+
+    // Reset formulier
+    form.reset();
+});
+
+// =======================
+// Render tabel met kleurcodering
+// =======================
+function renderTable() {
+    tableContainer.innerHTML = '';
+
+    if(stamboomData.length === 0){
+        tableContainer.innerHTML = '<p>Geen personen toegevoegd.</p>';
+        return;
+    }
+
+    const table = document.createElement('table');
+    table.className = 'stamboom-table';
+
+    // Header
+    const header = document.createElement('tr');
+    const headers = [
+        'Relatie', 'ID', 'Doopnaam', 'Roepnaam', 'Prefix', 'Achternaam', 'Geslacht',
+        'Geboortedatum', 'Geboorteplaats', 'Overlijdensdatum', 'Overlijdensplaats',
+        'Vader ID', 'Moeder ID', 'Partner ID', 'Huwelijksdatum', 'Huwelijksplaats',
+        'Opmerkingen', 'Adres', 'ContactInfo', 'URL'
+    ];
+    headers.forEach(h => {
+        const th = document.createElement('th');
+        th.textContent = h;
+        header.appendChild(th);
+    });
+    table.appendChild(header);
+
+    // Rijen
+    stamboomData.forEach(p => {
+        const tr = document.createElement('tr');
+
+        // Kleurcodering op basis van relatie
+        switch(p.Relatie){
+            case 'Ouder': tr.style.backgroundColor = 'teal'; break;
+            case 'Hoofd-ID': tr.style.backgroundColor = 'yellow'; break;
+            case 'Partner': tr.style.backgroundColor = 'lightgray'; break;
+            case 'Kind': tr.style.backgroundColor = 'lightgreen'; break;
+            case 'Ex-partner': tr.style.backgroundColor = 'darkgray'; break;
+            case 'Broer/Zus': tr.style.backgroundColor = 'cream'; break;
+            default: tr.style.backgroundColor = 'white'; break;
+        }
+
+        const cells = [
+            p.Relatie, p.ID, p.Doopnaam, p.Roepnaam, p.Prefix, p.Achternaam, p.Geslacht,
+            p.Geboortedatum, p.Geboorteplaats, p.Overlijdensdatum, p.Overlijdensplaats,
+            p.VaderID, p.MoederID, p.PartnerID, p.Huwelijksdatum, p.Huwelijksplaats,
+            p.Opmerkingen, p.Adres, p.ContactInfo, p.URL
+        ];
+        cells.forEach(c => {
+            const td = document.createElement('td');
+            td.textContent = c || '';
+            tr.appendChild(td);
+        });
+
+        table.appendChild(tr);
+    });
+
+    tableContainer.appendChild(table);
+}
+
+// =======================
+// Init render bij laden pagina
+// =======================
+renderTable();
