@@ -1,9 +1,9 @@
 // =======================================
 // export.js
 // Exporteer stamboomData naar CSV
+// Slaat op in dezelfde gekozen locatie
 // =======================================
 
-// Alle bekende kolommen (vaste volgorde)
 const headers = [
     "ID",
     "Doopnaam",
@@ -26,7 +26,9 @@ const headers = [
     "URL"
 ];
 
-document.getElementById("exportBtn").addEventListener("click", function () {
+let fileHandle = null;
+
+document.getElementById("exportBtn").addEventListener("click", async function () {
 
     const status = document.getElementById("exportStatus");
 
@@ -39,33 +41,36 @@ document.getElementById("exportBtn").addEventListener("click", function () {
     }
 
     let csvContent = "";
-
-    // Header rij
     csvContent += headers.join(",") + "\n";
 
-    // Data rijen
     data.forEach(person => {
-
-        const row = headers.map(header => {
-            return person[header] ? person[header] : "";
-        });
-
+        const row = headers.map(header => person[header] ? person[header] : "");
         csvContent += row.join(",") + "\n";
     });
 
-    // Maak downloadbaar bestand
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
+    try {
 
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "stamboom_export.csv";
+        // Als nog geen locatie gekozen → laat gebruiker kiezen
+        if (!fileHandle) {
+            fileHandle = await window.showSaveFilePicker({
+                suggestedName: "stamboom_export.csv",
+                types: [{
+                    description: "CSV bestand",
+                    accept: { "text/csv": [".csv"] }
+                }]
+            });
+        }
 
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+        const writable = await fileHandle.createWritable();
+        await writable.write(csvContent);
+        await writable.close();
 
-    status.innerHTML = "✅ CSV succesvol geëxporteerd.";
-    status.style.color = "green";
+        status.innerHTML = "✅ CSV succesvol geëxporteerd.";
+        status.style.color = "green";
+
+    } catch (error) {
+
+        status.innerHTML = "❌ Export geannuleerd of mislukt.";
+        status.style.color = "red";
+    }
 });
-
