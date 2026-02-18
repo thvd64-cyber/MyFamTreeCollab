@@ -1,1 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Family Tree - Export</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+    <!-- ============================= -->
+    <!-- Navigation Bar                -->
+    <!-- ============================= -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="../index-en.html">Home</a>
+            <a href="../stamboom/create-en.html">Create</a>
+            <a href="../stamboom/manage-en.html">Manage</a>
+            <a href="../stamboom/view-en.html">Tree View</a>
+            <a href="import-en.html">Import</a>
+            <a href="export-en.html" class="active">Export</a>
+        </div>
+    </nav>
+
+    <!-- ============================= -->
+    <!-- Export Section                -->
+    <!-- ============================= -->
+
+    <div class="container">
+        <h2>Export Family Tree to CSV</h2>
+
+        <p>
+            Click the button below to download all stored people as a CSV file.
+        </p>
+
+        <button id="exportBtn">Export CSV</button>
+
+        <br><br>
+
+        <p id="exportStatus"></p>
+    </div>
+
+    <script>
+        const exportBtn = document.getElementById('exportBtn');
+        const exportStatus = document.getElementById('exportStatus');
+
+        exportBtn.addEventListener('click', function() {
+            let data = JSON.parse(localStorage.getItem('stamboomData') || '[]');
+
+            if (data.length === 0) {
+                exportStatus.textContent = "⚠️ No people found to export.";
+                return;
+            }
+
+            // CSV columns
+            const columns = ["ID","Doopnaam","Roepnaam","Prefix","Achternaam","Geslacht","Geboortedatum","Geboorteplaats","Overlijdensdatum","Overlijdensplaats","Vader","MoederID","PartnerID","Huwelijksdatum","Huwelijksplaats","Opmerkingen","Adres","ContactInfo","URL"];
+            
+            // Build CSV content
+            let csvContent = columns.join(",") + "\n";
+            data.forEach(person => {
+                const row = columns.map(col => {
+                    let value = person[col] || "";
+                    if (value.includes(",")) value = `"${value}"`;
+                    return value;
+                }).join(",");
+                csvContent += row + "\n";
+            });
+
+            // Filename with timestamp
+            const now = new Date();
+            const timestamp = now.toISOString().replace(/[:.]/g,"-");
+            const filename = `FamilyTree_${timestamp}.csv`;
+
+            // Download CSV
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.style.display = "none";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            exportStatus.textContent = `✅ Export successful: ${data.length} people in ${filename}`;
+        });
+    </script>
+
+</body>
+</html>
 
