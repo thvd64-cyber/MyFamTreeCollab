@@ -1,7 +1,8 @@
 // =======================================
 // export.js
 // Exporteer stamboomData naar CSV
-// Slaat op in dezelfde gekozen locatie
+// Gebruikt import naam + datumtijd
+// Overschrijft nooit bestanden
 // =======================================
 
 const headers = [
@@ -26,12 +27,9 @@ const headers = [
     "URL"
 ];
 
-let fileHandle = null;
-
 document.getElementById("exportBtn").addEventListener("click", async function () {
 
     const status = document.getElementById("exportStatus");
-
     const data = JSON.parse(localStorage.getItem("stamboomData") || "[]");
 
     if (data.length === 0) {
@@ -40,8 +38,34 @@ document.getElementById("exportBtn").addEventListener("click", async function ()
         return;
     }
 
-    let csvContent = "";
-    csvContent += headers.join(",") + "\n";
+    // ===============================
+    // Bestandsnaam bepalen
+    // ===============================
+
+    let baseName = localStorage.getItem("importFileName");
+
+    if (baseName) {
+        baseName = baseName.replace(".csv", "");
+    } else {
+        baseName = "stamboom_export";
+    }
+
+    const now = new Date();
+    const dateTime =
+        now.getFullYear() + "-" +
+        String(now.getMonth() + 1).padStart(2, "0") + "-" +
+        String(now.getDate()).padStart(2, "0") + "_" +
+        String(now.getHours()).padStart(2, "0") + "-" +
+        String(now.getMinutes()).padStart(2, "0") + "-" +
+        String(now.getSeconds()).padStart(2, "0");
+
+    const fileName = `${baseName}_${dateTime}.csv`;
+
+    // ===============================
+    // CSV opbouwen
+    // ===============================
+
+    let csvContent = headers.join(",") + "\n";
 
     data.forEach(person => {
         const row = headers.map(header => person[header] ? person[header] : "");
@@ -50,22 +74,19 @@ document.getElementById("exportBtn").addEventListener("click", async function ()
 
     try {
 
-        // Als nog geen locatie gekozen → laat gebruiker kiezen
-        if (!fileHandle) {
-            fileHandle = await window.showSaveFilePicker({
-                suggestedName: "stamboom_export.csv",
-                types: [{
-                    description: "CSV bestand",
-                    accept: { "text/csv": [".csv"] }
-                }]
-            });
-        }
+        const fileHandle = await window.showSaveFilePicker({
+            suggestedName: fileName,
+            types: [{
+                description: "CSV bestand",
+                accept: { "text/csv": [".csv"] }
+            }]
+        });
 
         const writable = await fileHandle.createWritable();
         await writable.write(csvContent);
         await writable.close();
 
-        status.innerHTML = "✅ CSV succesvol geëxporteerd.";
+        status.innerHTML = "✅ CSV succesvol geëxporteerd als " + fileName;
         status.style.color = "green";
 
     } catch (error) {
