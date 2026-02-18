@@ -1,104 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MyFamTreeCollab</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
 
-<div class="topbar">
-    <div class="topbar-content">
-        <div class="top-left">
-            <a href="#">Login</a>
-        </div>
-       <div class="top-right">
-    <a href="index.html">NL</a> | <a href="index-en.html" class="active">EN</a>
-</div>
-    </div>
-</div>
+    <!-- ======================= NAVBAR (geïmporteerd) ======================= -->
+    <div id="navbar"></div> <!-- Placeholder voor navbar -->
 
-<header>
-    <h1>MyFamTreeCollab</h1>
-    <nav>
-        <ul class="menu">
-           <li class="dropdown">
-                <a href="#">Home ▼</a>
-                <ul class="submenu">
-                    <li><a href="home/create-en.html">Create</a></li>
-                    <li><a href="home/import-en.html">Import</a></li>
-                    <li><a href="home/export-en.html">Export</a></li>
-                    <li><a href="home/print-en.html">Print</a></li>
-                    <li><a href="home/about-en.html">About</a></li>
-                </ul>
-            </li>
+    <script>
+        // Laad navbar.html vanuit de root folder
+        fetch('navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar').innerHTML = data;
+            });
+    </script>
 
-            <li class="dropdown">
-                <a href="#">Family Tree ▼</a>
-                <ul class="submenu">
-                    <li><a href="stamboom/view-en.html">View</a></li>
-                    <li><a href="stamboom/manage-en.html">Manage</a></li>
-                    <li><a href="stamboom/stats-en.html">Stats</a></li>
-                </ul>
-            </li>
+    <!-- ======================= MAIN CONTENT ======================= -->
+    <main id="home">
+        <section>
+            <h2>Welcome to the MyFamTreeCollab website</h2>
+            <p>Discover your family tree, subscriptions, and resources easily using the navigation above.</p>
+        </section>
 
-            <li class="dropdown">
-                <a href="#">Subscriptions ▼</a>
-                <ul class="submenu">
-                    <li><a href="abonnementen/overview-en.html">Overview</a></li>
-                    <li><a href="abonnementen/compare-en.html">Compare</a></li>
-                    <li><a href="abonnementen/pricing-en.html">Pricing</a></li>
-                    <li><a href="abonnementen/benefits-en.html">Benefits</a></li>
-                </ul>
-            </li>
+        <section>
+            <h2>Start Your Family Tree</h2>
+            <p>Begin today with exploring and managing your family history.</p>
+            <a href="stamboom/index-en.html" class="btn">Start Now</a>
+        </section>
 
-            <li class="dropdown">
-                <a href="#">Resources ▼</a>
-                <ul class="submenu">
-                    <li><a href="bronnen/manuals-en.html">Manuals</a></li>
-                    <li><a href="bronnen/articles-en.html">Articles</a></li>
-                    <li><a href="bronnen/tutorials-en.html">Tutorials</a></li>
-                    <li><a href="bronnen/external-en.html">External</a></li>
-                </ul>
-            </li>
+        <section>
+            <h2>News & Updates</h2>
+            <p>Check the latest features and tips for managing your family tree.</p>
+        </section>
+    </main>
 
-            <li class="dropdown">
-                <a href="#">Community ▼</a>
-                <ul class="submenu">
-                    <li><a href="gemeenschap/forum-en.html">Forum</a></li>
-                    <li><a href="gemeenschap/discussions-en.html">Discussions</a></li>
-                    <li><a href="gemeenschap/groups-en.html">Groups</a></li>
-                    <li><a href="gemeenschap/events-en.html">Events</a></li>
-                    <li><a href="gemeenschap/contact-en.html">Contact</a></li>
-                </ul>
-            </li>
-        </ul>
-    </nav>
-</header>
+    <!-- ======================= FOOTER ======================= -->
+    <footer>
+        <p>&copy; 2026 MyFamTreeCollab website</p>
+    </footer>
 
-<main id="home">
-    <section>
-        <h2>Welcome to the MyFamTreeCollab website</h2>
-        <p>Discover your family tree, subscriptions, and resources easily using the navigation above.</p>
-    </section>
-
-    <section>
-        <h2>Start Your Family Tree</h2>
-        <p>Begin today with exploring and managing your family history.</p>
-        <a href="stamboom/index-en.html" class="btn">Start Now</a>
-    </section>
-
-    <section>
-        <h2>News & Updates</h2>
-        <p>Check the latest features and tips for managing your family tree.</p>
-    </section>
-</main>
-
-<footer>
-    <p>&copy; 2026 MyFamTreeCollab website</p>
-</footer>
-
-<script src="js/script.js"></script>
+    <script src="js/script.js"></script>
 </body>
+
 </html>
