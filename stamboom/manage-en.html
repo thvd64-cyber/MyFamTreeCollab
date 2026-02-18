@@ -1,1 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Family Tree - MyFamTreeCollab</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        /* Color codes per relationship */
+        .ouders { background-color: #008080; color: white; }       /* Teal */
+        .hoofd-id { background-color: #FFD700; }                  /* Yellow */
+        .partner { background-color: #d3d3d3; }                   /* Light gray */
+        .kind { background-color: #90EE90; }                      /* Light green */
+        .ex-partner { background-color: #A9A9A9; }               /* Dark gray */
+        .broerzus { background-color: #FFFDD0; }                  /* Cream */
+        .partner-kind { background-color: #D8BFD8; }              /* Light purple */
+
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #999; padding: 5px; text-align: left; }
+        th { background-color: #eee; }
+        input, select, textarea { width: 100%; }
+        .btn { padding: 6px 12px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <div id="navbar"></div>
+    <script>
+        fetch('../navbar.html')
+            .then(response => response.text())
+            .then(data => document.getElementById('navbar').innerHTML = data);
+    </script>
+
+    <!-- MAIN -->
+    <main>
+        <h2>Manage Family Tree</h2>
+        <p>Load a person by ID or name to manage their second-degree family members.</p>
+
+        <input type="text" id="searchPerson" placeholder="Enter ID or name">
+        <button id="loadBtn">Load Person</button>
+        <button id="refreshBtn" class="btn">Refresh</button>
+        <button id="saveBtn" class="btn">Save</button>
+        <button id="addBtn" class="btn">+ Add Person</button>
+
+        <table id="manageTable">
+            <thead>
+                <tr>
+                    <th>Relationship</th>
+                    <th>ID</th>
+                    <th>Baptism Name</th>
+                    <th>Given Name</th>
+                    <th>Prefix</th>
+                    <th>Last Name</th>
+                    <th>Gender</th>
+                    <th>Birth Date</th>
+                    <th>Birth Place</th>
+                    <th>Death Date</th>
+                    <th>Death Place</th>
+                    <th>Father ID</th>
+                    <th>Mother ID</th>
+                    <th>Partner ID</th>
+                    <th>Marriage Date</th>
+                    <th>Marriage Place</th>
+                    <th>Notes</th>
+                    <th>Address</th>
+                    <th>Contact Info</th>
+                    <th>URL</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </main>
+
+    <!-- SCRIPT -->
+    <script src="../js/idGenerator.js"></script>
+    <script>
+        let stamboomData = JSON.parse(localStorage.getItem('stamboomData') || '[]');
+        const tableBody = document.querySelector('#manageTable tbody');
+        const loadBtn = document.getElementById('loadBtn');
+        const searchInput = document.getElementById('searchPerson');
+        const saveBtn = document.getElementById('saveBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const addBtn = document.getElementById('addBtn');
+
+        function getRowClass(p) {
+            switch (p.Relationship) {
+                case 'Parent': return 'ouders';
+                case 'Head-ID': return 'hoofd-id';
+                case 'Partner': return 'partner';
+                case 'Child': return 'kind';
+                case 'Ex-Partner': return 'ex-partner';
+                case 'Sibling': return 'broerzus';
+                case 'Partner-Child': return 'partner-kind';
+                default: return '';
+            }
+        }
+
+        function ensureRelationship(person) {
+            if (!person.Relationship) {
+                if (!person.FatherID && !person.MotherID) person.Relationship = 'Head-ID';
+                else if (person.FatherID || person.MotherID) person.Relationship = 'Child';
+                else person.Relationship = '';
+            }
+        }
+
+        function renderTable(filteredData) {
+            tableBody.innerHTML = '';
+            filteredData.forEach(p => {
+                ensureRelationship(p);
+                const tr = document.createElement('tr');
+                tr.className = getRowClass(p);
+
+                const fields = ['Relationship','ID','BaptismName','GivenName','Prefix','LastName','Gender',
+                    'BirthDate','BirthPlace','DeathDate','DeathPlace',
+                    'FatherID','MotherID','PartnerID','MarriageDate','MarriagePlace','Notes','Address','ContactInfo','URL'];
+
+                fields.forEach(f => {
+                    const td = document.createElement('td');
+                    if (f === 'ID' || f === 'Relationship') {
+                        td.textContent = p[f] || '';
+                    } else {
+                        const input = document.createElement('input');
+                        input.value = p[f] || '';
+                        input.addEventListener('change', e => { p[f] = e.target.value; });
+                        td.appendChild(input);
+                    }
+                    tr.appendChild(td);
+                });
+
+                tableBody.appendChild(tr);
+            });
+        }
+
+        function loadPerson() {
+            const term = searchInput.value.toLowerCase();
+            const filtered = stamboomData.filter(p =>
+                p.ID.toLowerCase() === term ||
+                p.GivenName?.toLowerCase() === term ||
+                p.BaptismName?.toLowerCase() === term
+            );
+            if (filtered.length === 0) alert('Person not found');
+            else renderTable(filtered);
+        }
+
+        function saveData() {
+            tableBody.querySelectorAll('tr').forEach(tr => {
+                const tds = tr.querySelectorAll('td');
+                const fields = ['Relationship','ID','BaptismName','GivenName','Prefix','LastName','Gender',
+                    'BirthDate','BirthPlace','DeathDate','DeathPlace',
+                    'FatherID','MotherID','PartnerID','MarriageDate','MarriagePlace','Notes','Address','ContactInfo','URL'];
+                let p = {};
+                tds.forEach((td, i) => {
+                    if (fields[i] === 'ID' || fields[i] === 'Relationship') p[fields[i]] = td.textContent;
+                    else p[fields[i]] = td.querySelector('input').value;
+                });
+                if (!p.ID) { 
+                    try { p.ID = idGenerator(p.BaptismName, p.GivenName, p.LastName, p.Gender || 'X'); }
+                    catch { p.ID = 'X000000'; }
+                }
+                ensureRelationship(p);
+                const idx = stamboomData.findIndex(x => x.ID === p.ID);
+                if (idx !== -1) stamboomData[idx] = p;
+                else stamboomData.push(p);
+            });
+            localStorage.setItem('stamboomData', JSON.stringify(stamboomData));
+            alert('Changes saved!');
+        }
+
+        function refreshTable() {
+            const term = searchInput.value.toLowerCase();
+            if (!term && stamboomData.length > 0) renderTable([stamboomData[0]]);
+            else loadPerson();
+        }
+
+        function addNewPerson() {
+            const emptyPerson = { Relationship:'Head-ID', ID:'', BaptismName:'', GivenName:'', Prefix:'', LastName:'', Gender:'', 
+                BirthDate:'', BirthPlace:'', DeathDate:'', DeathPlace:'',
+                FatherID:'', MotherID:'', PartnerID:'', MarriageDate:'', MarriagePlace:'', Notes:'', Address:'', ContactInfo:'', URL:'' };
+            renderTable([emptyPerson].concat(stamboomData));
+        }
+
+        loadBtn.addEventListener('click', loadPerson);
+        saveBtn.addEventListener('click', saveData);
+        refreshBtn.addEventListener('click', refreshTable);
+        addBtn.addEventListener('click', addNewPerson);
+
+        if (stamboomData.length > 0) renderTable([stamboomData[0]]);
+    </script>
+</body>
+
+</html>
 
