@@ -1,1 +1,48 @@
+// Haal data op of start met lege array
+let stamboomData = JSON.parse(localStorage.getItem('stamboomData') || '[]');
+
+// Elementen
+const form = document.getElementById('addPersonForm');
+const preview = document.getElementById('stamboomPreview');
+
+// Functie om ID te genereren
+function generateID() {
+    return 'p' + Date.now();
+}
+
+// Voeg persoon toe
+form.addEventListener('submit', function(e){
+    e.preventDefault();
+    const person = {
+        ID: generateID(),
+        voornaam: document.getElementById('voornaam').value,
+        achternaam: document.getElementById('achternaam').value,
+        geboorte: document.getElementById('geboorte').value,
+        geslacht: document.getElementById('geslacht').value,
+        ouderID: null,
+        partnerID: null
+    };
+    stamboomData.push(person);
+    localStorage.setItem('stamboomData', JSON.stringify(stamboomData));
+    renderStamboom();
+    form.reset();
+});
+
+// Render stamboom preview
+function renderStamboom(){
+    preview.innerHTML = '';
+    if(stamboomData.length === 0){
+        preview.innerHTML = '<p>Geen leden toegevoegd. Voeg de eerste persoon toe.</p>';
+        return;
+    }
+    stamboomData.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'node';
+        div.textContent = `${p.voornaam} ${p.achternaam} (${p.geboorte || ''})`;
+        preview.appendChild(div);
+    });
+}
+
+// Init render
+renderStamboom();
 
