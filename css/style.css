@@ -1,103 +1,120 @@
+/* =======================
+   BODY STYLING
+   ======================= */
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #fdfdfd;
-    color: #333;
+    font-family: Arial, sans-serif; /* basislettertype voor de hele pagina */
+    margin: 0;                      /* verwijdert standaardmarges van browser */
+    padding: 0;                     /* verwijdert standaardpadding */
+    background-color: #fdfdfd;      /* lichte achtergrondkleur */
+    color: #333;                    /* standaard tekstkleur */
 }
 
+/* =======================
+   HEADER STYLING
+   ======================= */
 header {
-    background-color: #004080;
-    color: white;
-    padding: 1rem;
+    background-color: #004080;      /* blauwe balk voor header */
+    color: white;                   /* tekstkleur in header */
+    padding: 1rem;                  /* ruimte binnen header */
+    display: flex;                  /* flexbox layout voor header inhoud */
+    justify-content: space-between; /* verdeelt items links/rechts */
+    align-items: center;            /* verticale uitlijning midden */
 }
 
+/* =======================
+   NAVIGATIE (HOOFD MENU)
+   ======================= */
 nav ul {
-    list-style: none;
-    display: flex;
-    gap: 1rem;
-    padding: 0;
+    list-style: none;   /* verwijdert standaard opsommingstekens */
+    display: flex;      /* horizontale opstelling van menu-items */
+    gap: 1rem;          /* ruimte tussen menu-items */
+    padding: 0;         /* verwijdert standaard padding */
 }
 
 nav a {
-    color: white;
-    text-decoration: none;
+    color: white;       /* linkkleur in nav */
+    text-decoration: none; /* verwijdert onderlijnen */
 }
 
+/* =======================
+   MAIN CONTENT
+   ======================= */
 main {
-    padding: 2rem;
+    padding: 2rem;      /* ruimte rondom hoofdinhoud */
 }
 
+/* =======================
+   BUTTONS
+   ======================= */
 .btn {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    background-color: #0080ff;
-    color: white;
-    text-decoration: none;
-    border-radius: 4px;
+    display: inline-block;           /* blok-element, maar inline naast andere elementen */
+    padding: 0.5rem 1rem;            /* binnenruimte rond tekst */
+    background-color: #0080ff;       /* blauwe achtergrond */
+    color: white;                    /* tekstkleur wit */
+    text-decoration: none;           /* geen onderlijning */
+    border-radius: 4px;              /* afgeronde hoeken */
 }
-/* Dropdown menu styling */
+
+/* =======================
+   DROPDOWN MENU
+   ======================= */
 .menu {
-    list-style: none;
+    list-style: none;  /* geen opsommingstekens */
     margin: 0;
     padding: 0;
-    display: flex;
-    gap: 1rem;
+    display: flex;     /* horizontale layout */
+    gap: 1rem;         /* ruimte tussen hoofdmenu-items */
 }
 
 .menu > li {
-    position: relative;
+    position: relative; /* nodig voor submenu positionering */
 }
 
 .menu a {
     color: white;
     text-decoration: none;
-    padding: 0.5rem 1rem;
-    display: block;
+    padding: 0.5rem 1rem; /* klikbare ruimte rond tekst */
+    display: block;       /* volledige breedte klikbaar */
 }
 
 .menu li.dropdown > a {
-    cursor: pointer;
+    cursor: pointer;      /* cursor verandert naar hand bij hover */
 }
 
-/* Submenu */
+/* =======================
+   SUBMENU / DROPDOWN ITEMS
+   ======================= */
 .submenu {
-    display: none;
-    position: absolute;
-    top: 100%;
+    display: none;        /* standaard verborgen */
+    position: absolute;   /* zwevend boven pagina-layout */
+    top: 100%;            /* direct onder ouder-item */
     left: 0;
-    background-color: #004080;
+    background-color: #004080; /* blauwe achtergrond */
     list-style: none;
     padding: 0;
     margin: 0;
-    min-width: 150px;
-    border-radius: 4px;
-    z-index: 1000;
+    min-width: 150px;     /* minimaal breedte van submenu */
+    border-radius: 4px;   /* afgeronde hoeken */
+    z-index: 1000;        /* boven andere elementen */
 }
 
 .submenu li a {
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 1rem; /* klikbare ruimte */
 }
 
+/* TOONT SUBMENU BIJ HOVER */
 .menu li:hover > .submenu {
     display: block;
 }
-/* Header styling */
-header {
-    background-color: #004080; /* blauwe balk */
-    color: white;
-    padding: 1rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
 
-/* Hoofd navigatie */
+/* =======================
+   HEADER NAV MENU (flex versie)
+   ======================= */
 nav ul.menu {
     list-style: none;
     margin: 0;
     padding: 0;
-    display: flex;
+    display: flex;        /* horizontale items */
     gap: 1rem;
 }
 
@@ -116,7 +133,6 @@ nav li.dropdown > a {
     cursor: pointer;
 }
 
-/* Submenu / dropdown */
 nav ul.submenu {
     display: none;
     position: absolute;
@@ -135,5 +151,33 @@ nav ul.submenu li a {
     padding: 0.5rem 1rem;
 }
 
-/* D*
+/* =======================
+   TOPBAR (boven header)
+   ======================= */
+.topbar {
+    background-color: #f0f0f0; /* lichtgrijze balk */
+    height: 35px;               /* dunne hoogte */
+    display: flex;               /* horizontale layout */
+    align-items: center;         /* verticale uitlijning midden */
+    font-size: 14px;             /* iets kleinere tekst */
+}
 
+.topbar-content {
+    width: 95%;                  /* ruimte binnen de balk */
+    margin: 0 auto;              /* centreert inhoud */
+    display: flex;
+    justify-content: space-between; /* links/rechts uitlijnen */
+}
+
+.top-left a,
+.top-right a {
+    text-decoration: none;
+    color: #333;                /* donkere tekst voor topbar */
+    margin-left: 10px;           /* ruimte tussen links */
+    font-weight: 500;            /* iets vetgedrukt */
+}
+
+.top-left a:hover,
+.top-right a:hover {
+    text-decoration: underline;  /* hover effect */
+}
