@@ -9,7 +9,7 @@
 
 <header>
     <h1>Voorbeeld CSV-bestand</h1>
-    <p>Gebruik dit bestand om stamboom data te importeren in MyFamTreeCollab. Alle kolomnamen worden herkend, taal maakt niet uit.</p>
+    <p>Gebruik dit bestand om stamboom data te importeren in MyFamTreeCollab. Alle kolomnamen worden herkend, taal maakt niet uit. ID’s volgen de idGenerator-logica.</p>
 </header>
 
 <main>
@@ -22,28 +22,27 @@
 </footer>
 
 <script>
-    const downloadBtn = document.getElementById('downloadBtn');
-    const status = document.getElementById('status');
+const downloadBtn = document.getElementById('downloadBtn');
+const status = document.getElementById('status');
 
-    downloadBtn.addEventListener('click', () => {
-        // CSV content
-        const csvContent = `ID,Doopnaam,Roepnaam,Prefix,Achternaam,Geslacht,Geboortedatum,Geboorteplaats,Overlijdensdatum,Overlijdensplaats,Vader,MoederID,PartnerID,Huwelijksdatum,Huwelijksplaats,Opmerkingen,Adres,ContactInfo,URL
-XHJ000001,Jan,Jan,de,Vermeer,M,1980-01-01,Amsterdam,,,,,,QKL000001,2005-06-12,Amsterdam,"Voorbeeldopmerking","Damstraat 1, 1012AB Amsterdam","jan@voorbeeld.nl","https://example.com/jan"
-XHJ000002,Marie,Marieke,,Jansen,F,1982-02-14,Utrecht,,,,,,XHJ000001,2005-06-12,Utrecht,"Voorbeeldopmerking","Grachtstraat 5, 3512BC Utrecht","marie@voorbeeld.nl","https://example.com/marie"
-XHJ000003,Pieter,Piet,,Vermeer,M,2008-03-20,Amsterdam,,,,,,XHJ000001,XHJ000002,,"","",,"",""`;
+downloadBtn.addEventListener('click', () => {
+    // CSV content met alle 20 kolommen en ID’s volgens idGenerator-logica
+    const csvContent = `ID,Relatie,Doopnaam,Roepnaam,Prefix,Achternaam,Geslacht,Geboortedatum,Geboorteplaats,Overlijdensdatum,Overlijdensplaats,VaderID,MoederID,PartnerID,Huwelijksdatum,Huwelijksplaats,Opmerkingen,Adres,ContactInfo,URL
+JJVMMHoofdID,Hoofd-ID,Jan,Jan,de,Vermeer,M,1980-01-01,Amsterdam,,,,,,,"2005-06-12",Amsterdam,"Voorbeeldopmerking","Damstraat 1, 1012AB Amsterdam","jan@voorbeeld.nl","https://example.com/jan"
+MMFJKKind,Kind,Marie,Marieke,,Jansen,F,1982-02-14,Utrecht,,,,,,JJVMMHoofdID,2005-06-12,Utrecht,"Voorbeeldopmerking","Grachtstraat 5, 3512BC Utrecht","marie@voorbeeld.nl","https://example.com/marie"
+PPMVKKind,Kind,Pieter,Piet,,Vermeer,M,2008-03-20,Amsterdam,,,,,JJVMMHoofdID,MMFJKKind,,,"","","",""`;
 
-        // Maak blob en download link
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "Stamboom_template.csv";
-        link.style.display = "none";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "Stamboom_template.csv";
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
-        status.textContent = "✅ CSV voorbeeld succesvol gedownload!";
-    });
+    status.textContent = "✅ CSV voorbeeld succesvol gedownload!";
+});
 </script>
 
 </body>
