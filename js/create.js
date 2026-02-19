@@ -3,20 +3,17 @@
 // Beheer van de create-pagina: toevoegen van eerste persoon
 // =======================================
 
-// Haal bestaande stamboomdata op of start met lege array
-let stamboomData = JSON.parse(localStorage.getItem('stamboomData') || '[]');
+// Gebruik sessionStorage zodat data verdwijnt bij sluiten van het tabblad
+let stamboomData = JSON.parse(sessionStorage.getItem('stamboomData') || '[]');
 
-// Elementen
 const form = document.getElementById('addPersonForm');
 const statusMessage = document.getElementById('statusMessage');
 
 // =======================
-// Eenvoudige ID-generator
+// ID-generator
 // =======================
 function genereerCode(doopnaam, roepnaam, achternaam, geslacht) {
-    // Eerste letters van doopnaam, roepnaam, achternaam + eerste letter van geslacht + timestamp
-    const code = (doopnaam[0] || '') + (roepnaam[0] || '') + (achternaam[0] || '') + (geslacht[0] || '') + Date.now();
-    return code.toUpperCase();
+    return (doopnaam[0] || '') + (roepnaam[0] || '') + (achternaam[0] || '') + (geslacht[0] || 'X') + Date.now();
 }
 
 // =======================
@@ -25,7 +22,6 @@ function genereerCode(doopnaam, roepnaam, achternaam, geslacht) {
 form.addEventListener('submit', function(e) {
     e.preventDefault();
 
-    // Lees form input
     const doopnaam = document.getElementById('doopnaam').value.trim();
     const roepnaam = document.getElementById('roepnaam').value.trim();
     const prefix = document.getElementById('prefix').value.trim();
@@ -33,13 +29,12 @@ form.addEventListener('submit', function(e) {
     const geboorte = document.getElementById('geboorte').value;
     const geslacht = document.getElementById('geslacht').value;
 
-    // Genereer unieke ID
     const uniekeID = genereerCode(doopnaam, roepnaam, achternaam, geslacht);
 
-    // Bouw persoon object
+    // Vul alle kolommen, lege velden met '' of null
     const person = {
         ID: uniekeID,
-        Relatie: 'Hoofd-ID',       // eerste persoon
+        Relatie: 'Hoofd-ID',
         Doopnaam: doopnaam,
         Roepnaam: roepnaam,
         Prefix: prefix,
@@ -60,24 +55,19 @@ form.addEventListener('submit', function(e) {
         URL: ''
     };
 
-    // Voeg toe aan stamboomdata en sla op
     stamboomData.push(person);
-    localStorage.setItem('stamboomData', JSON.stringify(stamboomData));
+    sessionStorage.setItem('stamboomData', JSON.stringify(stamboomData));
 
-    // Reset form
     form.reset();
 
-    // Toon statusmelding
+    // Statusmelding
     statusMessage.style.display = 'block';
     statusMessage.style.backgroundColor = '#d4edda';
     statusMessage.style.color = '#155724';
     statusMessage.textContent = `${doopnaam} is toegevoegd!`;
 
-    // Verberg statusmelding na 3 seconden
-    setTimeout(() => {
-        statusMessage.style.display = 'none';
-    }, 3000);
+    setTimeout(() => { statusMessage.style.display = 'none'; }, 3000);
 
-    // Optioneel: direct doorsturen naar Manage-pagina
+    // Optioneel: automatisch naar Manage-pagina
     // window.location.href = '../manage/manage.html';
 });
