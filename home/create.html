@@ -24,7 +24,14 @@
     <script>
         fetch('../navbar.html')
             .then(response => response.text())
-            .then(data => document.getElementById('navbar').innerHTML = data);
+            .then(data => {
+                document.getElementById('navbar').innerHTML = data;
+
+                // Style alleen deze pagina: maak tekst wit
+                const navbar = document.getElementById('navbar');
+                navbar.style.color = '#fff';
+                navbar.querySelectorAll('a').forEach(link => link.style.color = '#fff');
+            });
     </script>
 
     <!-- Introductie -->
