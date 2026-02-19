@@ -8,7 +8,6 @@ let stamboomData = JSON.parse(localStorage.getItem('stamboomData') || '[]');
 
 // Elementen
 const form = document.getElementById('addPersonForm');
-const preview = document.getElementById('stamboomPreview');
 
 // Functie om ID te genereren (optioneel, aparte idGenerator.js wordt gebruikt)
 // function generateID() {
@@ -60,32 +59,6 @@ form.addEventListener('submit', function(e){
     // Sla op in localStorage
     localStorage.setItem('stamboomData', JSON.stringify(stamboomData));
 
-    // Render preview
-    renderStamboom();
-
     // Reset formulier
     form.reset();
 });
-
-// =======================
-// Render stamboom preview
-// =======================
-function renderStamboom(){
-    preview.innerHTML = '';
-    if(stamboomData.length === 0){
-        preview.innerHTML = '<p>Geen leden toegevoegd. Voeg de eerste persoon toe.</p>';
-        return;
-    }
-
-    stamboomData.forEach(p => {
-        const div = document.createElement('div');
-        div.className = 'node';
-        div.textContent = `${p.Doopnaam} ${p.Roepnaam} ${p.Prefix} ${p.Achternaam} (${p.Geboortedatum || ''}) - ID: ${p.ID}`;
-        preview.appendChild(div);
-    });
-}
-
-// =======================
-// Init render bij laden pagina
-// =======================
-renderStamboom();
