@@ -4,6 +4,15 @@
 const fileInput = document.getElementById('csvFileInput');
 const status = document.getElementById('importStatus');
 
+// ID-generator (zelfde logica als Create.js)
+function genereerCode(doopnaam, roepnaam, achternaam, geslacht) {
+    return (doopnaam[0] || '') + 
+           (roepnaam[0] || '') + 
+           (achternaam[0] || '') + 
+           (geslacht[0] || 'X') + 
+           Date.now();
+}
+
 // Functie om CSV te lezen en te importeren
 fileInput.addEventListener('change', function(e) {
     const file = e.target.files[0];
@@ -18,53 +27,62 @@ fileInput.addEventListener('change', function(e) {
         const importedData = [];
 
         lines.forEach((line, index) => {
-            // Sla de eerste regel over als het headers zijn (optioneel)
-            // Omdat we taal en headers negeren, gewoon elke rij als data behandelen
             const fields = line.split(",");
 
-            // Zorg dat elke rij precies 19 velden heeft
-            while (fields.length < 19) fields.push("");
-            fields.length = 19; // Snijd overtollige velden af
+            // Zorg dat elke rij precies 20 velden heeft
+            while (fields.length < 20) fields.push("");
+            fields.length = 20;
 
             const person = {
                 ID: fields[0].trim(),
-                Doopnaam: fields[1].trim(),
-                Roepnaam: fields[2].trim(),
-                Prefix: fields[3].trim(),
-                Achternaam: fields[4].trim(),
-                Geslacht: fields[5].trim(),
-                Geboortedatum: fields[6].trim(),
-                Geboorteplaats: fields[7].trim(),
-                Overlijdensdatum: fields[8].trim(),
-                Overlijdensplaats: fields[9].trim(),
-                Vader: fields[10].trim(),
-                MoederID: fields[11].trim(),
-                PartnerID: fields[12].trim(),
-                Huwelijksdatum: fields[13].trim(),
-                Huwelijksplaats: fields[14].trim(),
-                Opmerkingen: fields[15].trim(),
-                Adres: fields[16].trim(),
-                ContactInfo: fields[17].trim(),
-                URL: fields[18].trim()
+                Relatie: fields[1].trim(),
+                Doopnaam: fields[2].trim(),
+                Roepnaam: fields[3].trim(),
+                Prefix: fields[4].trim(),
+                Achternaam: fields[5].trim(),
+                Geslacht: fields[6].trim(),
+                Geboortedatum: fields[7].trim(),
+                Geboorteplaats: fields[8].trim(),
+                Overlijdensdatum: fields[9].trim(),
+                Overlijdensplaats: fields[10].trim(),
+                VaderID: fields[11].trim(),
+                MoederID: fields[12].trim(),
+                PartnerID: fields[13].trim(),
+                Huwelijksdatum: fields[14].trim(),
+                Huwelijksplaats: fields[15].trim(),
+                Opmerkingen: fields[16].trim(),
+                Adres: fields[17].trim(),
+                ContactInfo: fields[18].trim(),
+                URL: fields[19].trim()
             };
 
             importedData.push(person);
         });
 
-        // Opslaan in localStorage
+        // Opslaan in sessionStorage
         if (importedData.length > 0) {
-            // Bestaande data behouden en nieuwe rijen toevoegen
-            const existingData = JSON.parse(localStorage.getItem('stamboomData') || '[]');
+            const existingData = JSON.parse(sessionStorage.getItem('stamboomData') || '[]');
 
-            // Voeg alleen nieuwe ID’s toe, bestaande ID’s niet overschrijven
             importedData.forEach(p => {
+
+                // Genereer ID indien ontbreekt
+                if (!p.ID) {
+                    p.ID = genereerCode(p.Doopnaam, p.Roepnaam, p.Achternaam, p.Geslacht || 'X');
+                }
+
+                // Vul Relatie automatisch indien leeg
+                if (!p.Relatie) {
+                    p.Relatie = existingData.length === 0 ? 'Hoofd-ID' : 'Kind';
+                }
+
+                // Voeg alleen nieuwe ID’s toe
                 if (!existingData.some(e => e.ID === p.ID)) {
                     existingData.push(p);
                 }
             });
 
-            localStorage.setItem('stamboomData', JSON.stringify(existingData));
-            status.textContent = `✅ CSV geladen: ${importedData.length} personen toegevoegd.`;
+            sessionStorage.setItem('stamboomData', JSON.stringify(existingData));
+            status.textContent = `✅ CSV geladen: ${importedData.length} personen verwerkt.`;
         } else {
             status.textContent = "⚠️ Geen data gevonden in CSV.";
         }
