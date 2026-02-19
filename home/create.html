@@ -14,8 +14,6 @@
         input, select { width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #ccc; }
         button { padding: 10px 20px; background: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
         button:hover { background: #0056b3; }
-        #stamboomPreview { margin-top: 20px; }
-        .node { display: inline-block; padding: 10px 15px; background: #fff; border: 1px solid #007bff; border-radius: 6px; margin: 5px; }
     </style>
 </head>
 <body>
@@ -47,8 +45,7 @@
         <button type="submit">Voeg toe</button>
     </form>
 
-    <h2>Stamboom Preview</h2>
-    <div id="stamboomPreview"></div>
+    <div id="statusMessage" style="display:none; margin-top:15px; padding:12px; border-radius:6px;"></div>
 
     <script src="../js/create.js"></script>
 </body>
