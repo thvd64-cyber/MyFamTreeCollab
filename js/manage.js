@@ -80,6 +80,7 @@ function sortByHierarchy(data, hoofdID) {
 // =======================
 function renderTable(data) {
     tableBody.innerHTML = '';
+    clearTable();
     data.forEach(p => {
         const tr = document.createElement('tr');
         tr.className = getRowClass(p);
@@ -100,11 +101,21 @@ function renderTable(data) {
         tableBody.appendChild(tr);
     });
 }
+function clearTable() {
+    tableBody.innerHTML = '';
+}
+
+function reloadStamboomData() {
+    stamboomData = JSON.parse(localStorage.getItem('stamboomData') || '[]');
+}
 
 // =======================
 // Zoek persoon
 // =======================
 function loadPerson() {
+        clearTable();
+    reloadStamboomData();
+    
     const term = searchInput.value.toLowerCase();
     const hoofd = stamboomData.find(p =>
         p.ID?.toLowerCase() === term ||
