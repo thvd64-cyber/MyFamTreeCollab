@@ -8,14 +8,23 @@
 </head>
 <body>
 
-<!-- ======================= NAVBAR LOAD ======================= -->
+<!-- ======================= NAVBAR ======================= -->
 <div id="navbar-placeholder"></div>
+<script>
+fetch('/MyFamTreeCollab/navbar.html')
+    .then(resp => resp.text())
+    .then(data => {
+        document.getElementById('navbar-placeholder').innerHTML = data;
+    });
+</script>
 
-<header>
-    <h1>Import CSV</h1>
+<!-- ======================= PAGINA-TITEL ======================= -->
+<section class="page-title">
+    <h2>Import CSV</h2>
     <p>Gebruik een CSV-bestand om personen toe te voegen aan uw stamboom. Taal en kolomnamen worden genegeerd.</p>
-</header>
+</section>
 
+<!-- ======================= MAIN CONTENT ======================= -->
 <main>
     <section>
         <label for="csvFileInput">Selecteer CSV-bestand:</label>
@@ -33,19 +42,12 @@
     </section>
 </main>
 
+<!-- ======================= FOOTER ======================= -->
 <footer>
     <p>&copy; 2026 MyFamTreeCollab website</p>
 </footer>
 
-<script>
-/* Laadt de centrale navbar */
-fetch('/MyFamTreeCollab/navbar.html')
-    .then(response => response.text())
-    .then(data => {
-        document.getElementById('navbar-placeholder').innerHTML = data;
-    });
-</script>
-
+<!-- ======================= IMPORT JS ======================= -->
 <script src="../js/import.js"></script>
 </body>
 </html>
