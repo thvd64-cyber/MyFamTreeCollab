@@ -2,18 +2,30 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>CSV Example - MyFamTreeCollab</title>
+    <title>CSV Template - MyFamTreeCollab</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 
 <header>
-    <h1>CSV Example File</h1>
-    <p>Use this file to import family tree data into MyFamTreeCollab. All column names are recognized, language does not matter.</p>
+    <h1>CSV Template</h1>
+    <p>Use this downloadable CSV to import family tree data into MyFamTreeCollab. 
+       All column names are recognized and the template fully complies with the current schema. 
+       IDs follow the idGenerator logic.</p>
 </header>
 
 <main>
-    <button id="downloadBtn">Download CSV Example</button>
+    <!-- Hard-coded example record only for visual reference -->
+    <section>
+        <h2>Example Record (visual reference only)</h2>
+        <p>
+            ID: JJVMMHoofdID | Given Name: Jan | Preferred Name: Jan | Gender: M | Birth Date: 1980-01-01 | 
+            Birth Place: Amsterdam | PartnerID: (empty)
+        </p>
+    </section>
+
+    <!-- Download button -->
+    <button id="downloadBtn">Download CSV Template</button>
     <p id="status"></p>
 </main>
 
@@ -22,26 +34,33 @@
 </footer>
 
 <script>
-    const downloadBtn = document.getElementById('downloadBtn');
-    const status = document.getElementById('status');
+const downloadBtn = document.getElementById('downloadBtn');
+const status = document.getElementById('status');
 
-    downloadBtn.addEventListener('click', () => {
-        const csvContent = `ID,BaptismName,Nickname,Prefix,LastName,Gender,BirthDate,BirthPlace,DeathDate,DeathPlace,Father,MotherID,PartnerID,MarriageDate,MarriagePlace,Notes,Address,ContactInfo,URL
-XHJ000001,John,John,de,Vermeer,M,1980-01-01,Amsterdam,,,,,,QKL000001,2005-06-12,Amsterdam,"Example note","Damstraat 1, 1012AB Amsterdam","john@example.com","https://example.com/john"
-XHJ000002,Mary,Mary,,Jansen,F,1982-02-14,Utrecht,,,,,,XHJ000001,2005-06-12,Utrecht,"Example note","Grachtstraat 5, 3512BC Utrecht","mary@example.com","https://example.com/mary"
-XHJ000003,Peter,Peter,,Vermeer,M,2008-03-20,Amsterdam,,,,,,XHJ000001,XHJ000002,,"","",,"",""`;
+// Function to generate CSV with headers + 2 empty rows
+downloadBtn.addEventListener('click', () => {
+    if (!window.StamboomSchema) {
+        status.textContent = "❌ Error: StamboomSchema not loaded.";
+        return;
+    }
 
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "FamilyTree_template.csv";
-        link.style.display = "none";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    // Get headers from schema
+    const headers = StamboomSchema.header();
+    // Generate 2 empty rows
+    const emptyRow = Array(StamboomSchema.count()).fill("").join(",");
+    const csvContent = `${headers}\n${emptyRow}\n${emptyRow}`;
 
-        status.textContent = "✅ CSV example successfully downloaded!";
-    });
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "FamilyTree_template.csv";
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    status.textContent = "✅ CSV template successfully downloaded!";
+});
 </script>
 
 </body>
