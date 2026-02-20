@@ -15,7 +15,6 @@
 </header>
 
 <main>
-    <!-- Hard-coded example record only for visual reference -->
     <section>
         <h2>Example Record (visual reference only)</h2>
         <p>
@@ -24,7 +23,6 @@
         </p>
     </section>
 
-    <!-- Download button -->
     <button id="downloadBtn">Download CSV Template</button>
     <p id="status"></p>
 </main>
@@ -37,24 +35,20 @@
 const downloadBtn = document.getElementById('downloadBtn');
 const status = document.getElementById('status');
 
-// Function to generate CSV with headers + 2 empty rows
 downloadBtn.addEventListener('click', () => {
     if (!window.StamboomSchema) {
         status.textContent = "❌ Error: StamboomSchema not loaded.";
         return;
     }
 
-    // Get headers from schema
     const headers = StamboomSchema.header();
-    // Generate 2 empty rows
     const emptyRow = Array(StamboomSchema.count()).fill("").join(",");
-    const csvContent = `${headers}\n${emptyRow}\n${emptyRow}`;
+    const csvContent = "\uFEFF" + `${headers}\n${emptyRow}\n${emptyRow}`; // BOM toegevoegd voor Excel
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = "FamilyTree_template.csv";
-    link.style.display = "none";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
