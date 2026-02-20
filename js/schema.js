@@ -1,4 +1,4 @@
-// schema.js 1
+// schema.js
 (function () {
     'use strict';
 
@@ -28,6 +28,10 @@
         return FIELDS.join(",");
     }
 
+    function validateHeader(headerLine) {
+        return headerLine.trim() === getHeader();
+    }
+
     function createEmptyPersoon() {
         const obj = {};
         FIELDS.forEach(field => obj[field] = "");
@@ -43,6 +47,14 @@
 
     function csvRowToObject(row) {
         const values = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+
+        if (values.length !== FIELDS.length) {
+            console.error(
+                `CSV kolom mismatch: verwacht ${FIELDS.length}, kreeg ${values.length}`
+            );
+            return null;
+        }
+
         const obj = {};
 
         FIELDS.forEach((field, index) => {
@@ -61,6 +73,7 @@
     window.StamboomSchema = {
         fields: FIELDS,
         header: getHeader,
+        validateHeader: validateHeader,
         empty: createEmptyPersoon,
         toCSV: objectToCSVRow,
         fromCSV: csvRowToObject,
