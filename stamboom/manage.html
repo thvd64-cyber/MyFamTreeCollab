@@ -6,6 +6,9 @@
     <title>Manage Stamboom - MyFamTreeCollab</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f8f8f8; }
+        main .container { background: #fff; padding: 20px; border-radius: 8px; max-width: 1100px; margin: 20px auto; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
         /* Kleurcodes per relatie */
         .ouders { background-color: #008080; color: white; }
         .hoofd-id { background-color: #FFD700; }
@@ -20,21 +23,37 @@
         th { background-color: #eee; }
         input { width: 100%; }
         .btn { padding: 6px 12px; margin: 5px; cursor: pointer; }
+
+        /* Page title styling */
+        .page-title { max-width: 1100px; margin: 40px auto 20px auto; padding: 0 20px; }
+        .page-title h2 { margin-bottom: 10px; font-size: 1.8rem; font-weight: 600; }
+        .page-title p { color: #555; font-size: 1rem; line-height: 1.5; }
     </style>
 </head>
 <body>
-    <!-- NAVBAR -->
-    <div id="navbar"></div>
-    <script>
-        fetch('../navbar.html')
-            .then(r => r.text())
-            .then(html => document.getElementById('navbar').innerHTML = html);
-    </script>
 
-    <main>
-        <h2>Manage Stamboom</h2>
-        <p>Laad een persoon via ID of naam om familie te beheren.</p>
+<!-- ======================= NAVBAR ======================= -->
+<div id="navbar-placeholder"></div>
+<script>
+fetch('../navbar.html')
+    .then(response => response.text())
+    .then(data => {
+        document.getElementById('navbar-placeholder').innerHTML = data;
+        // Optioneel: pagina-specifieke navbar styling
+        const navbar = document.getElementById('navbar-placeholder');
+        navbar.querySelectorAll('a').forEach(link => link.style.color = '#fff');
+    });
+</script>
 
+<!-- ======================= PAGE TITLE ======================= -->
+<section class="page-title">
+    <h2>Manage Stamboom</h2>
+    <p>Laad een persoon via ID of naam om familie te beheren.</p>
+</section>
+
+<!-- ======================= MAIN CONTENT ======================= -->
+<main>
+    <div class="container">
         <input type="text" id="searchPerson" placeholder="Voer ID of naam in">
         <button id="loadBtn" class="btn">Laad Persoon</button>
         <button id="refreshBtn" class="btn">Refresh</button>
@@ -45,10 +64,13 @@
             <thead><tr></tr></thead>
             <tbody></tbody>
         </table>
-    </main>
+    </div>
+</main>
 
-    <script src="../js/schema.js"></script>
-    <script src="../js/idGenerator.js"></script>
-    <script src="../js/manage.js"></script>
+<!-- ======================= PAGE-SPECIFIC JS ======================= -->
+<script src="../js/schema.js"></script>
+<script src="../js/idGenerator.js"></script>
+<script src="../js/manage.js"></script>
+
 </body>
 </html>
