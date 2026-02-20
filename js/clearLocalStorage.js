@@ -1,8 +1,8 @@
 // ===============================
-// Clear localStorage bij "Voeg toe" knop
+// Clear localStorage bij "Bestand kiezen" knop
 // ===============================
 (function() {
-    const prefixes = ["import_", "create_", "export_"]; // keys met deze prefixes
+    const prefixes = ["import_", "create_", "export_"]; // keys die we willen verwijderen
     const extraKeys = ["ID"]; // losse keys zoals ID
 
     function clearAppLocalStorage() {
@@ -23,12 +23,12 @@
         }
     }
 
-    // Koppel de functie aan de "Voeg toe" knop
-    const voegToeButton = document.querySelector("#voegToeBtn");
-    if(voegToeButton) {
-        voegToeButton.addEventListener("click", clearAppLocalStorage);
-        console.log(`LocalStorage auto-clear actief op "Voeg toe" knop.`);
+    // Koppel de functie aan de "Bestand kiezen" knop
+    const bestandKiezenButton = document.querySelector("#bestandKiezenBtn");
+    if(bestandKiezenButton) {
+        bestandKiezenButton.addEventListener("click", clearAppLocalStorage);
+        console.log(`LocalStorage auto-clear actief op "Bestand kiezen" knop.`);
     } else {
-        console.warn('Knop "Voeg toe" niet gevonden.');
+        console.warn('Knop "Bestand kiezen" niet gevonden.');
     }
 })();
