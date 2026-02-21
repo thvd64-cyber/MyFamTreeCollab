@@ -1,3 +1,30 @@
+// ================================
+// Admin Menu Visibility – lines 1-15
+// ================================
+
+// Functie check of admin modus aan staat
+function isAdmin() {
+    return localStorage.getItem("ft_admin_mode") === "true";
+}
+
+// Admin menu tonen/verbergen
+function updateAdminMenu() {
+    const dropdown = document.querySelector("li.dropdown");
+    if (!dropdown) return;
+
+    if (isAdmin()) {
+        dropdown.style.display = "block";
+    } else {
+        dropdown.style.display = "none";
+    }
+}
+
+// Run bij DOM ready
+document.addEventListener("DOMContentLoaded", updateAdminMenu);
+
+// Optioneel: activeer admin via geheime code
+// localStorage.setItem("ft_admin_mode", "true"); location.reload();
+
 /* ==========================================
    LSD.js – Local Storage Delete Manager
    Scope: ft_ and famTreeData keys only
