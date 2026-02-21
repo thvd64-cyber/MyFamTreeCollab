@@ -210,13 +210,31 @@ function generateMissingIDs() {
     }
 }
 
-// =======================
-// Opslaan
-// =======================
 function saveData() {
-    generateMissingIDs();
+    // Alle tijdelijke rijen ophalen
+    const tempRows = tableBody.querySelectorAll('tr.temp-row');
+    tempRows.forEach(tr => {
+        const newPerson = window.StamboomSchema.empty();
+        fields.forEach((f, i) => {
+            if(f !== 'ID' && f !== 'Relatie'){
+                const input = tr.cells[i].querySelector('input');
+                newPerson[f] = input ? input.value : '';
+            }
+        });
+
+        // Genereer ID voor nieuwe persoon
+        newPerson.ID = idGenerator(newPerson.Doopnaam, newPerson.Roepnaam, newPerson.Achternaam, newPerson.Geslacht || '');
+
+        // Voeg toe aan stamboomData
+        stamboomData.unshift(newPerson);
+    });
+
+    // Sla alles op in localStorage
     localStorage.setItem('stamboomData', JSON.stringify(stamboomData));
     alert('Wijzigingen opgeslagen!');
+
+    // Refresh tabel: leeg en eventueel later familie van hoofdpersoon tonen
+    clearTable();
 }
 // =======================
 // Voeg tijdelijke lege persoon toe
