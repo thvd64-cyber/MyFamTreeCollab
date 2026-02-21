@@ -218,30 +218,44 @@ function saveData() {
     localStorage.setItem('stamboomData', JSON.stringify(stamboomData));
     alert('Wijzigingen opgeslagen!');
 }
-
 // =======================
-// Voeg lege persoon toe
+// Voeg tijdelijke lege persoon toe
 // =======================
 function addNewPerson() {
-
-    // Controle: maximaal 10 tijdelijke personen tegelijk
-    const tempCount = stamboomData.filter(p => !p.ID).length; // telt alleen personen zonder ID
-    if (tempCount >= 10) {
-        alert('⚠️ Je kunt maximaal 10 personen tegelijk toevoegen. Gebruik opslaan en refresh om de volgende 10 personen toe te voegen.');
-        return; // stopt de functie
+    // Controle: maximaal 10 tijdelijke rijen tegelijk in tabel
+    const currentTempRows = tableBody.querySelectorAll('tr.temp-row').length;
+    if(currentTempRows >= 10){
+        alert('⚠️ Je kunt maximaal 10 personen tegelijk toevoegen. Gebruik opslaan en refresh voor de volgende 10.');
+        return;
     }
 
-    // Nieuw leeg persoon-object maken via schema
+    // Maak tijdelijk leeg object (alle velden leeg, geen ID)
     const empty = window.StamboomSchema.empty();
-    empty.Relatie = '';             // geen styling class
-    empty.Geslacht = '';            // geen default waarde
+    empty.Relatie = '';
+    empty.Geslacht = '';
     
-    // Nieuwe persoon vooraan plaatsen in array
-    stamboomData.unshift(empty);
+    // Maak tijdelijke tr-element
+    const tr = document.createElement('tr');
+    tr.className = 'temp-row'; // markeer als tijdelijke rij
 
-    // Alleen deze persoon tonen in de tabel
-    renderTable([empty]);
+    // Vul rijen met inputvelden
+    fields.forEach(f => {
+        const td = document.createElement('td');
+        if(f === 'ID' || f === 'Relatie'){
+            td.textContent = ''; // tijdelijk leeg
+        } else {
+            const input = document.createElement('input');
+            input.value = '';
+            input.addEventListener('change', e => empty[f] = e.target.value);
+            td.appendChild(input);
+        }
+        tr.appendChild(td);
+    });
+
+    // Voeg tijdelijk toe aan tabel (nog niet in stamboomData)
+    tableBody.appendChild(tr);
 }
+
 // =======================
 // Event listeners
 // =======================
