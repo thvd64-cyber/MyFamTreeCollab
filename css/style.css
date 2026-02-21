@@ -150,18 +150,18 @@ table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 1.5rem;
-    background-color: #ffffff;
+    background-color: #ffffff; /* standaard wit, nieuwe rijen wit */
 }
 
 table th {
-    background-color: #004080;
+    background-color: #004080; /* donkerblauw header */
     color: white;
     font-weight: 600;
 }
 
 table th,
 table td {
-    border: 1px solid #d9d9d9;
+    border: 1px solid #d9d9d9; /* lichtgrijze scheiding */
     padding: 0.6rem 0.8rem;
     text-align: left;
     vertical-align: top;
@@ -169,11 +169,18 @@ table td {
 }
 
 table tr:nth-child(even) {
-    background-color: #f7f9fc;
+    background-color: #f7f9fc; /* lichte afwisseling voor even rijen */
 }
 
 table tr:hover {
-    background-color: #eef4fb;
+    background-color: #eef4fb; /* lichtblauw bij hover */
+}
+
+/* =======================
+   SELECTED ROW
+   ======================= */
+table tr.selected {
+    background-color: #dbeeff; /* zachte lichtblauwe kleur voor selectie */
 }
 
 
