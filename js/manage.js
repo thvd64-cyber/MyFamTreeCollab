@@ -1,20 +1,18 @@
 'use strict';
 
+// =======================
+// Configuratie & DOM
+// =======================
 let stamboomData = JSON.parse(localStorage.getItem('stamboomData') || '[]');
 const tableBody = document.querySelector('#manageTable tbody');
 const theadRow = document.querySelector('#manageTable thead tr');
 const loadBtn = document.getElementById('loadBtn');
 const searchInput = document.getElementById('searchPerson');
 const saveBtn = document.getElementById('saveBtn');
-const refreshBtn = document.getElementById('refreshBtn');
 const addBtn = document.getElementById('addBtn');
 
-// =======================
 // Kolommen dynamisch vanuit schema
-// =======================
 const fields = ['Relatie'].concat(window.StamboomSchema.fields);
-
-// Table header genereren
 theadRow.innerHTML = '';
 fields.forEach(f => {
     const th = document.createElement('th');
@@ -23,7 +21,7 @@ fields.forEach(f => {
 });
 
 // =======================
-// Kleurcodes
+// Helper: row class
 // =======================
 function getRowClass(p) {
     switch(p.Relatie){
@@ -39,7 +37,7 @@ function getRowClass(p) {
 }
 
 // =======================
-// Hiërarchische volgorde
+// Helper: sorteer hiërarchie
 // =======================
 function sortByHierarchy(data, hoofdID) {
     const result = [];
@@ -47,9 +45,10 @@ function sortByHierarchy(data, hoofdID) {
     if(!hoofd) return result;
 
     // Ouders
-    data.filter(p => p.ID === hoofd.VaderID || p.ID === hoofd.MoederID).forEach(p => result.push(p));
+    data.filter(p => p.ID === hoofd.VaderID || p.ID === hoofd.MoederID)
+        .forEach(p => result.push(p));
 
-    // Hoofd-ID
+    // Hoofd
     result.push(hoofd);
 
     // Partner
@@ -58,7 +57,7 @@ function sortByHierarchy(data, hoofdID) {
         if(partner) result.push(partner);
     }
 
-    // Kinderen van hoofd
+    // Kinderen en partner-kind
     const children = data.filter(p => p.VaderID === hoofd.ID || p.MoederID === hoofd.ID);
     children.forEach(c => {
         result.push(c);
@@ -80,7 +79,6 @@ function sortByHierarchy(data, hoofdID) {
 // =======================
 function renderTable(data) {
     tableBody.innerHTML = '';
-    clearTable();
     data.forEach(p => {
         const tr = document.createElement('tr');
         tr.className = getRowClass(p);
@@ -97,34 +95,92 @@ function renderTable(data) {
             }
             tr.appendChild(td);
         });
-
         tableBody.appendChild(tr);
     });
 }
+
+// =======================
+// Clear table
+// =======================
 function clearTable() {
     tableBody.innerHTML = '';
-}
-
-function reloadStamboomData() {
-    stamboomData = JSON.parse(localStorage.getItem('stamboomData') || '[]');
 }
 
 // =======================
 // Zoek persoon
 // =======================
 function loadPerson() {
-        clearTable();
-    reloadStamboomData();
-    
-    const term = searchInput.value.toLowerCase();
-    const hoofd = stamboomData.find(p =>
-        p.ID?.toLowerCase() === term ||
-        p.Doopnaam?.toLowerCase() === term ||
-        p.Achternaam?.toLowerCase() === term
+    clearTable();
+    if(stamboomData.length === 0) return alert('Geen data beschikbaar.');
+
+    const term = searchInput.value.trim();
+    if(term.length < 3) return alert('Voer minimaal 3 letters/cijfers in.');
+
+    const matches = stamboomData.filter(p =>
+        (p.ID && p.ID.toLowerCase().includes(term.toLowerCase())) ||
+        (p.Doopnaam && p.Doopnaam.toLowerCase().includes(term.toLowerCase())) ||
+        (p.Achternaam && p.Achternaam.toLowerCase().includes(term.toLowerCase()))
     );
-    if(!hoofd) return alert('Persoon niet gevonden');
-    const hierData = sortByHierarchy(stamboomData, hoofd.ID);
-    renderTable(hierData);
+
+    if(matches.length === 0){
+        alert('Geen persoon gevonden');
+        return;
+    }
+
+    // 1 match: direct render
+    if(matches.length === 1){
+        const hierData = sortByHierarchy(stamboomData, matches[0].ID);
+        renderTable(hierData);
+        return;
+    }
+
+    // Meerdere matches → popup modal
+    showPersonSelectionPopup(matches);
+}
+
+// =======================
+// Popup selectie voor meerdere matches
+// =======================
+function showPersonSelectionPopup(matches){
+    // Maak modal
+    let modal = document.createElement('div');
+    modal.className = 'modal-popup';
+    modal.style.position = 'fixed';
+    modal.style.top = '50%';
+    modal.style.left = '50%';
+    modal.style.transform = 'translate(-50%, -50%)';
+    modal.style.background = '#fff';
+    modal.style.padding = '20px';
+    modal.style.border = '1px solid #333';
+    modal.style.zIndex = '1000';
+    modal.style.maxHeight = '400px';
+    modal.style.overflowY = 'auto';
+
+    const title = document.createElement('h3');
+    title.textContent = 'Kies de juiste persoon';
+    modal.appendChild(title);
+
+    const list = document.createElement('ul');
+    matches.forEach(p => {
+        const li = document.createElement('li');
+        li.style.cursor = 'pointer';
+        li.textContent = `${p.Doopnaam || ''} ${p.Prefix || ''} ${p.Achternaam || ''} (${p.Geboortedatum || ''})`;
+        li.addEventListener('click', () => {
+            const hierData = sortByHierarchy(stamboomData, p.ID);
+            renderTable(hierData);
+            document.body.removeChild(modal);
+        });
+        list.appendChild(li);
+    });
+    modal.appendChild(list);
+
+    // Sluit knop
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Sluiten';
+    closeBtn.addEventListener('click', () => document.body.removeChild(modal));
+    modal.appendChild(closeBtn);
+
+    document.body.appendChild(modal);
 }
 
 // =======================
@@ -169,7 +225,7 @@ function addNewPerson() {
     const empty = window.StamboomSchema.empty();
     empty.Relatie = 'Hoofd-ID';
     stamboomData.unshift(empty);
-    renderTable([empty].concat(stamboomData));
+    renderTable([empty]);
 }
 
 // =======================
@@ -177,8 +233,7 @@ function addNewPerson() {
 // =======================
 loadBtn.addEventListener('click', loadPerson);
 saveBtn.addEventListener('click', saveData);
-refreshBtn.addEventListener('click', () => renderTable(stamboomData));
 addBtn.addEventListener('click', addNewPerson);
 
-// Init render
-if(stamboomData.length) renderTable(stamboomData);
+// === Pagina start ===
+clearTable(); // tabel leeg bij openen
