@@ -224,48 +224,25 @@ function saveData() {
 // =======================
 function addNewPerson() {
 
-    // Controle: maximaal 10 personen tegelijk tonen
-    if (stamboomData.length >= 10) {
-        alert('Maximaal 10 personen tegelijk toegestaan.');
-        return;
+    // Controle: maximaal 10 tijdelijke personen tegelijk
+    const tempCount = stamboomData.filter(p => p.ID && p.ID.startsWith('TEMP_')).length;
+    if (tempCount >= 10) {
+        alert('⚠️ Je kunt maximaal 10 personen tegelijk toevoegen. Gebruik opslaan en refresh om de volgende 10 personen toe te voegen.');
+        return; // stopt de functie
     }
-    // → voorkomt onbeperkte groei
-    // → beschermt tegen dubbele lege invoer
-    // → houdt UI overzichtelijk
-    // → performance controle
 
     // Nieuw leeg persoon-object maken via schema
     const empty = window.StamboomSchema.empty();
-    // → zorgt voor consistente veldstructuur
-    // → voorkomt undefined properties
+    empty.Relatie = '';             // geen styling class
+    empty.Geslacht = '';            // geen default waarde
+    empty.ID = 'TEMP_' + Date.now(); // tijdelijke unieke ID
 
-    // Relatie leeg zetten
-    empty.Relatie = '';
-    // → geen styling class
-    // → neutrale nieuwe invoer
-
-    // Geslacht leeg zetten
-    empty.Geslacht = '';
-    // → geen default waarde
-    // → correcte ID generatie later
-
-    // Tijdelijke unieke ID genereren
-    empty.ID = 'TEMP_' + Date.now();
-    // → gegarandeerd uniek
-    // → voorkomt dubbele matches
-    // → onderscheid nieuwe records
-
-    // Nieuwe persoon vooraan plaatsen
+    // Nieuwe persoon vooraan plaatsen in array
     stamboomData.unshift(empty);
-    // → nieuwste bovenaan
-    // → direct beschikbaar in array
 
-    // Alleen deze persoon tonen
+    // Alleen deze persoon tonen in de tabel
     renderTable([empty]);
-    // → tabel wordt eerst leeggemaakt
-    // → voorkomt duplicatie
 }
-
 // =======================
 // Event listeners
 // =======================
