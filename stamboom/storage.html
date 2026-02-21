@@ -7,8 +7,10 @@
     <link rel="stylesheet" href="../css/style.css">
 
     <style>
+        /* ================= STORAGE STYLING ================= */
         .storage-container {
             padding: 20px;
+            overflow-x: auto; /* responsive scroll voor smalle schermen */
         }
 
         .storage-info {
@@ -42,55 +44,22 @@
             margin-top: 15px;
             padding: 8px 12px;
             cursor: pointer;
+            background-color: #d9534f;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .btn-reset:hover {
+            background-color: #c9302c;
         }
     </style>
 </head>
-
 <body>
 
-<!-- ======================= TOPBAR ======================= -->
-<div class="topbar">
-    <div class="topbar-content">
-        <div class="top-left">
-            <a href="#">Login</a>
-        </div>
-        <div class="top-right">
-            <a href="#" class="lang-link" data-lang="nl">NL</a> |
-            <a href="#" class="lang-link" data-lang="en">EN</a>
-        </div>
-    </div>
-</div>
-
-<!-- ======================= HEADER ======================= -->
-<header>
-    <h1>MyFamTreeCollab</h1>
-
-    <!-- ======================= NAVIGATION ======================= -->
-    <nav>
-        <ul class="menu">
-            <li class="dropdown">
-                <a href="#" class="menu-title">Home ▼</a>
-                <ul class="submenu">
-                    <li><a href="/MyFamTreeCollab/home/create.html">Create</a></li>
-                    <li><a href="/MyFamTreeCollab/home/import.html">Import</a></li>
-                    <li><a href="/MyFamTreeCollab/home/export.html">Export</a></li>
-                    <li><a href="/MyFamTreeCollab/home/print.html">Print</a></li>
-                    <li><a href="/MyFamTreeCollab/home/about.html">About</a></li>
-                </ul>
-            </li>
-
-            <li class="dropdown">
-                <a href="#" class="menu-title">Stamboom ▼</a>
-                <ul class="submenu">
-                    <li><a href="/MyFamTreeCollab/stamboom/view.html">View</a></li>
-                    <li><a href="/MyFamTreeCollab/stamboom/manage.html">Manage</a></li>
-                    <li><a href="/MyFamTreeCollab/stamboom/stats.html">Stats</a></li>
-                    <li><a href="/MyFamTreeCollab/stamboom/storage.html">Storage</a></li>
-                </ul>
-            </li>
-        </ul>
-    </nav>
-</header>
+<!-- ======================= INCLUDE GLOBAL NAVBAR ======================= -->
+<!-- Hier neem je de topbar en navbar op vanuit je globale template -->
+<div id="global-navbar"></div>
 
 <!-- ======================= CONTENT ======================= -->
 <div class="storage-container">
@@ -111,14 +80,21 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
+    // === Optioneel: laad de globale navbar automatisch ===
+    fetch('/MyFamTreeCollab/components/navbar.html')
+        .then(resp => resp.text())
+        .then(html => {
+            document.getElementById('global-navbar').innerHTML = html;
+        });
+
     const container = document.getElementById('storageContainer');
     const info = document.getElementById('storageInfo');
     const resetBtn = document.getElementById('resetBtn');
 
+    const columns = ['ID', 'Doopnaam', 'Achternaam']; // consistente kolomvolgorde
+
     function renderTable() {
-
         const data = StamboomStorage.get();
-
         container.innerHTML = "";
 
         info.innerHTML = 
@@ -130,37 +106,32 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const columns = Object.keys(data[0]);
-
         const table = document.createElement('table');
 
+        // Header
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
-
         columns.forEach(col => {
             const th = document.createElement('th');
             th.textContent = col;
             headerRow.appendChild(th);
         });
-
         thead.appendChild(headerRow);
         table.appendChild(thead);
 
+        // Body
         const tbody = document.createElement('tbody');
-
         data.forEach(person => {
             const row = document.createElement('tr');
-
             columns.forEach(col => {
                 const td = document.createElement('td');
                 td.textContent = person[col] ?? '';
                 row.appendChild(td);
             });
-
             tbody.appendChild(row);
         });
-
         table.appendChild(tbody);
+
         container.appendChild(table);
     }
 
