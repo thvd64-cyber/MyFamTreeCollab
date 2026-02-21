@@ -3,112 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Storage Overzicht - MyFamTreeCollab</title>
+    <title>📦 Storage Overzicht - MyFamTreeCollab</title>
     <link rel="stylesheet" href="../css/style.css">
-
     <style>
-        /* ================= STORAGE STYLING ================= */
-        .storage-container {
-            padding: 20px;
-            overflow-x: auto; /* responsive scroll voor smalle schermen */
-        }
+        /* ===== Body & Container ===== */
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f8f8f8; }
+        .main-container { max-width: 1100px; margin: 20px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
-        .storage-info {
-            margin-bottom: 15px;
-            font-weight: bold;
-        }
+        /* ===== Storage Table ===== */
+        .storage-info { font-weight: bold; margin-bottom: 15px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        .empty { font-style: italic; color: #777; margin-top: 20px; }
+        .btn-reset { padding: 8px 12px; cursor: pointer; background-color: #d9534f; color: #fff; border: none; border-radius: 4px; margin-top: 15px; }
+        .btn-reset:hover { background-color: #c9302c; }
 
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        th, td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f4f4f4;
-        }
-
-        .empty {
-            margin-top: 20px;
-            font-style: italic;
-            color: #777;
-        }
-
-        .btn-reset {
-            margin-top: 15px;
-            padding: 8px 12px;
-            cursor: pointer;
-            background-color: #d9534f;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-        }
-
-        .btn-reset:hover {
-            background-color: #c9302c;
+        /* ===== Responsive ===== */
+        @media(max-width: 768px) {
+            table, th, td { font-size: 0.9rem; }
         }
     </style>
 </head>
 <body>
 
-<!-- ======================= INCLUDE GLOBAL NAVBAR ======================= -->
-<!-- Hier neem je de topbar en navbar op vanuit je globale template -->
-<div id="global-navbar"></div>
+<!-- ===== Global Navbar Include ===== -->
+<div id="navbar-placeholder"></div>
+<script>
+fetch('/MyFamTreeCollab/navbar.html')
+    .then(resp => resp.text())
+    .then(html => {
+        document.getElementById('navbar-placeholder').innerHTML = html;
 
-<!-- ======================= CONTENT ======================= -->
-<div class="storage-container">
+        // Actief menu-item markeren
+        const currentPage = window.location.pathname.split('/').pop();
+        document.querySelectorAll('#navbar-placeholder a').forEach(link => {
+            if(link.getAttribute('href') && link.getAttribute('href').endsWith(currentPage)){
+                link.classList.add('active');
+            }
+        });
+    });
+</script>
 
+<!-- ===== Main Content ===== -->
+<div class="main-container">
     <h2>📦 Local Storage Overzicht</h2>
-
     <div class="storage-info" id="storageInfo"></div>
-
     <div id="storageContainer"></div>
-
     <button class="btn-reset" id="resetBtn">Reset Storage</button>
-
 </div>
 
-<!-- ======================= SCRIPTS ======================= -->
+<!-- ===== Scripts ===== -->
 <script src="../js/storage.js"></script>
-
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-
-    // === Optioneel: laad de globale navbar automatisch ===
-    fetch('/MyFamTreeCollab/components/navbar.html')
-        .then(resp => resp.text())
-        .then(html => {
-            document.getElementById('global-navbar').innerHTML = html;
-        });
-
     const container = document.getElementById('storageContainer');
     const info = document.getElementById('storageInfo');
     const resetBtn = document.getElementById('resetBtn');
 
-    const columns = ['ID', 'Doopnaam', 'Achternaam']; // consistente kolomvolgorde
+    const columns = ['ID', 'Doopnaam', 'Achternaam']; // Consistente kolomvolgorde
 
     function renderTable() {
         const data = StamboomStorage.get();
         container.innerHTML = "";
+        info.innerHTML = `Storage versie: ${StamboomStorage.version} | Aantal records: ${data.length}`;
 
-        info.innerHTML = 
-            "Storage versie: " + StamboomStorage.version + 
-            " | Aantal records: " + data.length;
-
-        if (!data.length) {
+        if(!data.length){
             container.innerHTML = '<div class="empty">Geen data gevonden in localStorage.</div>';
             return;
         }
 
         const table = document.createElement('table');
-
-        // Header
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
         columns.forEach(col => {
@@ -119,7 +84,6 @@ document.addEventListener('DOMContentLoaded', function () {
         thead.appendChild(headerRow);
         table.appendChild(thead);
 
-        // Body
         const tbody = document.createElement('tbody');
         data.forEach(person => {
             const row = document.createElement('tr');
@@ -135,15 +99,14 @@ document.addEventListener('DOMContentLoaded', function () {
         container.appendChild(table);
     }
 
-    resetBtn.addEventListener('click', function () {
-        if (confirm("Weet je zeker dat je alle storage wilt wissen?")) {
+    resetBtn.addEventListener('click', function() {
+        if(confirm("Weet je zeker dat je alle storage wilt wissen?")){
             StamboomStorage.clear();
             renderTable();
         }
     });
 
     renderTable();
-
 });
 </script>
 
