@@ -1,6 +1,6 @@
 // storage.js
 // Centrale opslagmodule voor Stamboom applicatie
-// Production-proof versie
+// Production-proof, geoptimaliseerd
 
 (function () {
     'use strict';
@@ -52,44 +52,26 @@
 
     /**
      * Reset storage veilig
+     * Alleen gebruikt bij handmatige reset of import
      */
     function clearStamboomStorage() {
         localStorage.removeItem(STORAGE_KEY);
         localStorage.setItem(VERSION_KEY, STORAGE_VERSION);
         console.warn('Stamboom localStorage is gereset.');
-    }
-
-    /**
-     * Controleert versie en reset indien nodig
-     */
-    function checkStorageVersion() {
-        const storedVersion = localStorage.getItem(VERSION_KEY);
-
-        if (storedVersion !== STORAGE_VERSION) {
-            console.warn('Storage versie mismatch. Reset wordt uitgevoerd.');
-            clearStamboomStorage();
-        }
+        return true;
     }
 
     /**
      * Haalt dataset veilig op
+     * Valideert, maar clear niet automatisch
      */
     function getStamboomData() {
-        checkStorageVersion();
-
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return [];
 
         const parsed = safeParse(raw);
-        if (!parsed) {
-            console.warn('Corrupt JSON gedetecteerd. Storage wordt gereset.');
-            clearStamboomStorage();
-            return [];
-        }
-
-        if (!validateDataset(parsed)) {
-            console.warn('Dataset structuur ongeldig. Storage wordt gereset.');
-            clearStamboomStorage();
+        if (!parsed || !validateDataset(parsed)) {
+            console.warn('Dataset is corrupt of ongeldig. Lege array wordt teruggegeven.');
             return [];
         }
 
@@ -135,6 +117,11 @@
      * Vervangt volledige dataset (bij import)
      */
     function replaceDataset(newData) {
+        if (!validateDataset(newData)) {
+            console.error('Import geweigerd: dataset ongeldig.');
+            return false;
+        }
+
         clearStamboomStorage();
         return setStamboomData(newData);
     }
