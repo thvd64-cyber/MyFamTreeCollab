@@ -46,9 +46,9 @@
                 <a href="#" class="menu-title">Abonnementen ▼</a>
                 <ul class="submenu">
                   <li><a href="/MyFamTreeCollab/abonnementen/overview.html" class="submenu-link">Overview</a></li>
-                <li><a href="/MyFamTreeCollab/abonnementen/compare.html" class="submenu-link">Compare</a></li>
-                <li><a href="/MyFamTreeCollab/abonnementen/pricing.html" class="submenu-link">Pricing</a></li>
-                <li><a href="/MyFamTreeCollab/abonnementen/benefits.html" class="submenu-link">Benefits</a></li>
+                  <li><a href="/MyFamTreeCollab/abonnementen/compare.html" class="submenu-link">Compare</a></li>
+                  <li><a href="/MyFamTreeCollab/abonnementen/pricing.html" class="submenu-link">Pricing</a></li>
+                  <li><a href="/MyFamTreeCollab/abonnementen/benefits.html" class="submenu-link">Benefits</a></li>
                 </ul>
             </li>
 
@@ -57,10 +57,10 @@
                 <a href="#" class="menu-title">Bronnen ▼</a>
                 <ul class="submenu">
                    <li><a href="/MyFamTreeCollab/bronnen/manuals.html" class="submenu-link">Manuals</a></li>
-                    <li><a href="/MyFamTreeCollab/bronnen/articles.html" class="submenu-link">Articles</a></li>
-                    <li><a href="/MyFamTreeCollab/bronnen/tutorials.html" class="submenu-link">Tutorials</a></li>
-                    <li><a href="/MyFamTreeCollab/bronnen/external.html" class="submenu-link">External</a></li>
-                    <li><a href="/MyFamTreeCollab/bronnen/template.html" class="submenu-link">Template</a></li>
+                   <li><a href="/MyFamTreeCollab/bronnen/articles.html" class="submenu-link">Articles</a></li>
+                   <li><a href="/MyFamTreeCollab/bronnen/tutorials.html" class="submenu-link">Tutorials</a></li>
+                   <li><a href="/MyFamTreeCollab/bronnen/external.html" class="submenu-link">External</a></li>
+                   <li><a href="/MyFamTreeCollab/bronnen/template.html" class="submenu-link">Template</a></li>
                 </ul>
             </li>
 
@@ -75,25 +75,18 @@
                     <li><a href="/MyFamTreeCollab/gemeenschap/contact.html" class="submenu-link">Contact</a></li>
                 </ul>
             </li>
+
+            <!-- =======================
+                 Administrator dropdown (nieuw toegevoegd)
+                 ======================= -->
+            <li class="dropdown" id="adminDropdown" style="display:none;">
+                <a href="#" class="menu-title">Administrator ▼</a>
+                <ul class="submenu">
+                    <li><a href="/MyFamTreeCollab/admin/lsd.html" class="submenu-link">Local Storage</a></li>
+                    <!-- toekomstige admin links kunnen hier toegevoegd worden -->
+                </ul>
+            </li>
+
         </ul>
     </nav>
 </header>
-
-<!-- ======================= NAVBAR SCRIPT ======================= -->
-<script>
-/* 
-    Script om de navbar in meerdere talen te ondersteunen.
-    - data-lang attribuut bepaalt de taal.
-    - Vervang eventueel de links naar EN/NL pagina's hier.
-*/
-document.querySelectorAll('.lang-link').forEach(link => {
-    link.addEventListener('click', e => {
-        e.preventDefault();
-        const lang = link.getAttribute('data-lang');
-        // Redirect naar juiste taalversie, voorbeeld:
-        if(lang === 'nl') window.location.href = window.location.href.replace('-en',''); 
-        if(lang === 'en') window.location.href = window.location.href.replace('.html','-en.html');
-    });
-});
-</script>
-
