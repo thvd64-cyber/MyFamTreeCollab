@@ -1,7 +1,7 @@
 'use strict';
 
 // =======================
-// Configuratie & DOM
+// Configuratie & DOM 
 // =======================
 let stamboomData = JSON.parse(localStorage.getItem('stamboomData') || '[]');
 const tableBody = document.querySelector('#manageTable tbody');
@@ -207,17 +207,17 @@ function generateMissingIDs() {
 }
 
 // =======================
-// Save data
+// Save data (robust)
 // =======================
 function saveData() {
-    const tempRows = tableBody.querySelectorAll('tr');
+    const rows = tableBody.querySelectorAll('tr');
     const existingIDs = new Set(stamboomData.map(p => p.ID));
 
-    tempRows.forEach(tr => {
+    rows.forEach(tr => {
         const rowData = {};
         let hasData = false;
 
-        // Verzamel alle velden uit input of cell
+        // Verzamel alle velden
         fields.forEach((f, i) => {
             const input = tr.cells[i].querySelector('input');
             const value = input ? input.value.trim() : tr.cells[i].textContent.trim();
@@ -225,10 +225,10 @@ function saveData() {
             if(value) hasData = true;
         });
 
-        // Sla lege rijen over of rijen zonder Doopnaam
+        // Skip lege rijen of zonder Doopnaam
         if(!hasData || !rowData.Doopnaam) return;
 
-        // ID afhandeling
+        // ID aanmaken of controleren op duplicaat
         if(!rowData.ID || existingIDs.has(rowData.ID)){
             let newID;
             do {
@@ -237,7 +237,7 @@ function saveData() {
             rowData.ID = newID;
         }
 
-        // Update bestaande of voeg nieuwe toe
+        // Bestaande ID updaten of nieuwe toevoegen
         const existingIndex = stamboomData.findIndex(p => p.ID === rowData.ID);
         if(existingIndex > -1){
             Object.keys(rowData).forEach(k => {
