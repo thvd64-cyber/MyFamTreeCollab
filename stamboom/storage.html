@@ -27,33 +27,22 @@
 </head>
 <body>
 
-<!-- ===== Navbar Include (robust) ===== -->
-<div id="navbar-placeholder"></div> <!-- Placeholder voor de navbar -->
+<!-- ======================= NAVBAR ======================= -->
+<div id="navbar-placeholder"></div> <!-- Placeholder voor navbar -->
 
 <script>
-(async function(){
+(async function() {
     try {
-        // Bepaal dynamisch pad naar Layout folder t.o.v. huidige pagina
-        let depth = window.location.pathname.split('/').length - 2; 
-        // Als root pagina (index.html) → depth = 0
-        // Als /stamboom/manage.html → depth = 1
-
-        let prefix = '';
-        for(let i=0; i<depth; i++){ prefix += '../'; } 
-        // Bouw prefix voor subfolders, bijvoorbeeld '../' of '../../'
-
-        const navbarPath = prefix + 'Layout/Navbar.html'; // Pad naar navbar.html
-
-        // Fetch de navbar
-        const resp = await fetch(navbarPath);
-        const html = await resp.text();
+        // Laad Navbar vanuit Layout folder
+        const resp = await fetch('Layout/Navbar.html'); 
+        const html = await resp.text(); 
         document.getElementById('navbar-placeholder').innerHTML = html;
 
-        // ==================== Actief menu-item markeren ====================
-        const currentPage = window.location.pathname.split('/').pop(); // Huidige pagina
+        // Actief menu-item markeren
+        const currentPage = window.location.pathname.split('/').pop(); 
         document.querySelectorAll('#navbar-placeholder a').forEach(link => {
             if(link.getAttribute('href') && link.getAttribute('href').endsWith(currentPage)){
-                link.classList.add('active'); // Voeg class 'active' toe
+                link.classList.add('active');
             }
         });
     } catch(err) {
@@ -61,7 +50,6 @@
     }
 })();
 </script>
-
 <!-- ===== Main Content ===== -->
 <div class="main-container">
     <h2>📦 Local Storage Overzicht</h2>
