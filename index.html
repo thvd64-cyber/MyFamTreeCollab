@@ -10,18 +10,19 @@
 
 <body>
 
-    <!-- ======================= NAVBAR (geïmporteerd) ======================= -->
-    <div id="navbar"></div> <!-- Placeholder voor navbar -->
+    <!-- ======================= NAVBAR (geïmporteerd vanuit Layout) ======================= -->
+<div id="navbar"></div> <!-- Placeholder voor navbar -->
 
-    <script>
-        // Laad navbar.html vanuit de root folder
-        fetch('navbar.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('navbar').innerHTML = data;
-            });
-    </script>
-
+<script>
+    // Laad navbar.html vanuit Layout folder
+    fetch('/Layout/Navbar.html')
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('navbar').innerHTML = data;
+        })
+        .catch(err => console.error('Navbar laden mislukt:', err));
+</script>
+    
     <!-- ======================= MAIN CONTENT ======================= -->
     <main id="home">
         <section>
