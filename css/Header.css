@@ -1,0 +1,21 @@
+/* ======================= HEADER ======================= */
+
+.main-header {
+    background-color: #1f2933; /* Donkergrijze/blauwzwarte achtergrond */
+    color: #ffffff; /* Witte tekstkleur */
+    padding: 40px 0; /* Verticale ruimte boven en onder */
+}
+
+.header-content {
+    max-width: 1200px; /* Beperkt breedte op grote schermen */
+    margin: 0 auto; /* Centreert horizontaal */
+    padding: 0 20px; /* Binnenruimte links en rechts */
+    text-align: center; /* Centreert de titel */
+}
+
+.main-header h1 {
+    font-size: 32px; /* Grootte van de hoofdtitel */
+    font-weight: 600; /* Iets dikker dan normaal */
+    margin: 0; /* Verwijdert standaard marge van h1 */
+    letter-spacing: 1px; /* Kleine extra spatiëring tussen letters */
+}
