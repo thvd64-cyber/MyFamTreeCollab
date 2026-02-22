@@ -1,79 +1,73 @@
 <!-- ======================= index.html ======================= -->
 <!DOCTYPE html>
 <html lang="nl">
-    
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pagina Titel</title>
+    <meta charset="UTF-8"> <!-- Stelt tekencodering in op UTF-8 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Zorgt dat de pagina responsief is op mobiel/tablet -->
+    <title>MyFamTreeCollab</title> <!-- Titel van de pagina -->
 
+    <!-- ======================= CSS ======================= -->
     <!-- Globale CSS -->
-    <link rel="stylesheet" href="/css/style.css">
-
-    <!-- Component CSS -->
-    <link rel="stylesheet" href="/css/TopBar.css">
-    <link rel="stylesheet" href="/css/Navbar.css">
-    <link rel="stylesheet" href="/css/Paginatitel.css">
-    <link rel="stylesheet" href="/css/Header.css">
-    <link rel="stylesheet" href="/css/BottomBar.css">
+    <link rel="stylesheet" href="css/style.css"> <!-- Hoofd CSS voor algemene stijlen -->
+    <!-- Component-specifieke CSS -->
+    <link rel="stylesheet" href="css/TopBar.css"> <!-- CSS voor TopBar -->
+    <link rel="stylesheet" href="css/Navbar.css"> <!-- CSS voor Navbar -->
+    <link rel="stylesheet" href="css/Paginatitel.css"> <!-- CSS voor PaginaTitel -->
+    <link rel="stylesheet" href="css/Header.css"> <!-- CSS voor Header -->
+    <link rel="stylesheet" href="css/BottomBar.css"> <!-- CSS voor BottomBar -->
 </head>
+
 <body>
-    <!-- ======================= -->
-    <!-- TopBar -->
-    <!-- ======================= -->
-    <div id="topbar"></div>
 
-    <!-- ======================= -->
-    <!-- Navbar -->
-    <!-- ======================= -->
-    <div id="navbar"></div>
+    <!-- ======================= COMPONENT PLACEHOLDERS ======================= -->
+    <div id="topbar"></div> <!-- Placeholder voor TopBar -->
+    <div id="navbar"></div> <!-- Placeholder voor Navbar -->
+    <div id="pagetitle"></div> <!-- Placeholder voor PaginaTitel -->
+    <header id="header"></header> <!-- Placeholder voor Header -->
 
-    <!-- ======================= -->
-    <!-- Page Title / Header -->
-    <!-- ======================= -->
-    <div id="pagetitle"></div>
-    <header id="header"></header>
-    
     <!-- ======================= MAIN CONTENT ======================= -->
     <main id="home">
         <section>
-            <h2>Welkom op de MyFamTreeCollab website</h2>
-            <p>Ontdek uw stamboom, abonnementen en bronnen eenvoudig via de navigatie hierboven.</p>
-            <p>Ontdek uw stamboom, abonnementen en bronnen eenvoudig via de navigatie hierboven.</p>
+            <h2>Welkom op de MyFamTreeCollab website</h2> <!-- Titel sectie -->
+            <p>Ontdek uw stamboom, abonnementen en bronnen eenvoudig via de navigatie hierboven.</p> <!-- Intro tekst -->
         </section>
 
         <section>
-            <h2>Start uw Stamboom</h2>
-            <p>Begin vandaag nog met het ontdekken en beheren van uw familiegeschiedenis.</p>
-            <a href="stamboom/index.html" class="btn">Start Nu</a>
+            <h2>Start uw Stamboom</h2> <!-- Titel sectie -->
+            <p>Begin vandaag nog met het ontdekken en beheren van uw familiegeschiedenis.</p> <!-- Info tekst -->
+            <a href="stamboom/index.html" class="btn">Start Nu</a> <!-- Call-to-action knop -->
         </section>
 
         <section>
-            <h2>Nieuws & Updates</h2>
-            <p>Bekijk de laatste functies en tips voor het beheren van uw stamboom.</p>
+            <h2>Nieuws & Updates</h2> <!-- Titel sectie -->
+            <p>Bekijk de laatste functies en tips voor het beheren van uw stamboom.</p> <!-- Info tekst -->
         </section>
     </main>
 
     <!-- ======================= FOOTER ======================= -->
-       <footer id="bottombar"></footer>
-    <footer>
-        <p>&copy; 2026 MyFamTreeCollab website</p>
-    </footer>
-    <!-- ======================= -->
-    <!-- JS voor componenten -->
-    <!-- ======================= -->
+    <footer id="bottombar"></footer> <!-- Placeholder voor BottomBar -->
+
+    <!-- ======================= JS COMPONENT LOADER ======================= -->
     <script>
+        // Functie om een component te laden vanuit Layout folder, robuust met try/catch
         async function loadComponent(id, url) {
-            const resp = await fetch(url);
-            document.getElementById(id).innerHTML = await resp.text();
+            try {
+                const resp = await fetch(url); // Fetch het component bestand
+                const data = await resp.text(); // Lees de HTML tekst
+                document.getElementById(id).innerHTML = data; // Plaats HTML in de juiste placeholder
+            } catch (error) {
+                console.error('Fout bij laden van ' + url, error); // Log fout indien component niet geladen kan worden
+            }
         }
 
-        // Componenten inladen
-        loadComponent('topbar', '/Layout/TopBar.html');
-        loadComponent('navbar', '/Layout/Navbar.html');
-        loadComponent('pagetitle', '/Layout/PaginaTitel.html');
-        loadComponent('header', '/Layout/Header.html');
-        loadComponent('bottombar', '/Layout/BottomBar.html');
-    <js/script>
+        // ======================= LAAD COMPONENTEN =======================
+        // Gebruik relatieve paden, werkt zowel lokaal als op GitHub Pages
+        loadComponent('topbar', 'Layout/TopBar.html'); // Laad TopBar component
+        loadComponent('navbar', 'Layout/Navbar.html'); // Laad Navbar component
+        loadComponent('pagetitle', 'Layout/PaginaTitel.html'); // Laad PaginaTitel component
+        loadComponent('header', 'Layout/Header.html'); // Laad Header component
+        loadComponent('bottombar', 'Layout/BottomBar.html'); // Laad BottomBar component
+    </script>
+
 </body>
 </html>
