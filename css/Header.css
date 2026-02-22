@@ -4,6 +4,15 @@
     background-color: #1f2933; /* Donkergrijze/blauwzwarte achtergrond */
     color: #ffffff; /* Witte tekstkleur */
     padding: 40px 0; /* Verticale ruimte boven en onder */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+    /* 
+        Subtiele schaduw:
+        0px horizontale offset
+        4px verticale offset
+        6px vervaging
+        rgba(0,0,0,0.1) = zwarte kleur met 10% dekking
+        Geeft een lichte diepte zonder te zwaar te zijn
+    */
 }
 
 .header-content {
