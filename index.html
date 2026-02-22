@@ -1,28 +1,37 @@
 <!-- ======================= index.html ======================= -->
 <!DOCTYPE html>
 <html lang="nl">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyFamTreeCollab</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Pagina Titel</title>
+
+    <!-- Globale CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+
+    <!-- Component CSS -->
+    <link rel="stylesheet" href="/css/TopBar.css">
+    <link rel="stylesheet" href="/css/Navbar.css">
+    <link rel="stylesheet" href="/css/Paginatitel.css">
+    <link rel="stylesheet" href="/css/Header.css">
+    <link rel="stylesheet" href="/css/BottomBar.css">
 </head>
-
 <body>
+    <!-- ======================= -->
+    <!-- TopBar -->
+    <!-- ======================= -->
+    <div id="topbar"></div>
 
-    <!-- ======================= NAVBAR (geïmporteerd vanuit Layout) ======================= -->
-<div id="navbar"></div> <!-- Placeholder voor navbar -->
+    <!-- ======================= -->
+    <!-- Navbar -->
+    <!-- ======================= -->
+    <div id="navbar"></div>
 
-<script>
-    // Laad navbar.html vanuit Layout folder
-    fetch('Layout/Navbar.html')
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('navbar').innerHTML = data;
-        })
-        .catch(err => console.error('Navbar laden mislukt:', err));
-</script>
+    <!-- ======================= -->
+    <!-- Page Title / Header -->
+    <!-- ======================= -->
+    <div id="pagetitle"></div>
+    <header id="header"></header>
     
     <!-- ======================= MAIN CONTENT ======================= -->
     <main id="home">
