@@ -1,0 +1,25 @@
+/* ======================= PAGINA TITEL ======================= */
+
+.page-title {
+    background-color: #f4f6f8; /* Lichtgrijze achtergrond */
+    color: #1f2933; /* Donkergrijze tekstkleur */
+    padding: 30px 0; /* Verticale ruimte */
+    border-bottom: 1px solid #d1d5db; /* Subtiele scheidingslijn onderaan */
+}
+
+.page-title-content {
+    max-width: 1200px; /* Maximale breedte */
+    margin: 0 auto; /* Centreert horizontaal */
+    padding: 0 20px; /* Binnenruimte links en rechts */
+}
+
+.page-title h2 {
+    font-size: 24px; /* Grootte van paginatitel */
+    margin-bottom: 8px; /* Ruimte onder de titel */
+}
+
+.page-title p {
+    font-size: 14px; /* Kleinere ondersteunende tekst */
+    color: #4b5563; /* Iets lichtere tekstkleur voor hiërarchie */
+    margin: 0; /* Verwijdert standaard marge */
+}
