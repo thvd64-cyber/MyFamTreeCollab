@@ -1,0 +1,97 @@
+/* ==============================
+   css/Navbar.css
+   ============================== */
+
+/* Algemene navbar container */
+#navbar {
+    background-color: #2c3e50; /* donkerblauw/grijs tint */
+    font-family: 'Arial', sans-serif;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+/* Hoofd menu lijst */
+#navbar ul.menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* Menu items */
+#navbar ul.menu > li {
+    position: relative;
+}
+
+/* Links in menu */
+#navbar ul.menu > li > a {
+    display: block;
+    padding: 14px 20px;
+    text-decoration: none;
+    color: #ecf0f1; /* lichte tekst */
+    font-weight: bold;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Hover effect */
+#navbar ul.menu > li > a:hover {
+    background-color: #34495e;
+    color: #ffffff;
+}
+
+/* Dropdown submenu */
+#navbar ul.menu li .submenu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #34495e;
+    min-width: 180px;
+    border-radius: 0 0 5px 5px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    z-index: 999;
+}
+
+/* Submenu items */
+#navbar ul.menu li .submenu li {
+    width: 100%;
+}
+
+/* Submenu links */
+#navbar ul.menu li .submenu li a {
+    padding: 10px 20px;
+    color: #ecf0f1;
+    font-weight: normal;
+}
+
+/* Submenu hover effect */
+#navbar ul.menu li .submenu li a:hover {
+    background-color: #3d566e;
+    color: #ffffff;
+}
+
+/* Toon dropdown bij hover */
+#navbar ul.menu li:hover > .submenu {
+    display: block;
+}
+
+/* Actieve pagina highlight */
+#navbar ul.menu > li.active > a {
+    background-color: #1abc9c; /* opvallende kleur voor actieve pagina */
+    color: #ffffff;
+}
+
+/* Responsive basis: mobiel menu */
+@media (max-width: 768px) {
+    #navbar ul.menu {
+        flex-direction: column;
+    }
+    #navbar ul.menu > li > a {
+        padding: 12px 16px;
+    }
+    #navbar ul.menu li .submenu {
+        position: static;
+        box-shadow: none;
+    }
+}
