@@ -72,41 +72,42 @@ function buildHeader(){
 }
 
 // =======================
-// Relatie-engine v1.5
-// Inclusief:
-// - Partner van kind
-// - Partner van broer/zus
-// - Directe positionering onder gekoppelde persoon
-// - Null-safe
+// Relatie-engine v1.3.0
+// Structuur:
+// 0 = Ouder
+// 1 = Hoofd
+// 2 = Partner
+// 3 = Kind + partner
+// 4 = Broer/Zus + partner
 // =======================
 function computeRelaties(data, hoofdId){
 
-    const hoofdIdStr = safe(hoofdId);                          // Hoofd ID null-safe
-    if(!hoofdIdStr) return [];                                 // Stop indien leeg
+    const hoofdIdStr = safe(hoofdId);
+    if(!hoofdIdStr) return [];
 
-    const hoofd = data.find(d => safe(d.ID) === hoofdIdStr);   // Zoek hoofd persoon
-    if(!hoofd) return [];                                      // Stop indien niet gevonden
+    const hoofd = data.find(d => safe(d.ID) === hoofdIdStr);
+    if(!hoofd) return [];
 
-    const vaderId   = safe(hoofd.VaderID);                     // Vader ID
-    const moederId  = safe(hoofd.MoederID);                    // Moeder ID
-    const partnerId = safe(hoofd.PartnerID);                   // Partner ID
+    const vaderId   = safe(hoofd.VaderID);
+    const moederId  = safe(hoofd.MoederID);
+    const partnerId = safe(hoofd.PartnerID);
 
     // =======================
     // Context filtering
     // =======================
     const contextData = data.filter(p=>{
-        const pid = safe(p.ID);                                // Huidige ID
+        const pid = safe(p.ID);
 
-        if(pid === hoofdIdStr) return true;                    // Hoofd
-        if(pid === vaderId || pid === moederId) return true;   // Ouders
-        if(pid === partnerId) return true;                     // Partner
+        if(pid === hoofdIdStr) return true;                   // Hoofd
+        if(pid === vaderId || pid === moederId) return true;  // Ouders
+        if(pid === partnerId) return true;                    // Partner
 
-        // Kinderen van hoofd
+        // Kinderen hoofd
         if(safe(p.VaderID) === hoofdIdStr ||
            safe(p.MoederID) === hoofdIdStr)
             return true;
 
-        // Kinderen van partner
+        // Kinderen partner
         if(partnerId && (
             safe(p.VaderID) === partnerId ||
             safe(p.MoederID) === partnerId))
@@ -119,39 +120,37 @@ function computeRelaties(data, hoofdId){
             return true;
 
         // Partner van kind
-        const isPartnerVanKind = data.some(k =>
+        if(data.some(k =>
             (safe(k.VaderID) === hoofdIdStr ||
              safe(k.MoederID) === hoofdIdStr) &&
-            safe(k.PartnerID) === pid
-        );
-        if(isPartnerVanKind) return true;
+            safe(k.PartnerID) === pid))
+            return true;
 
-        // Partner van broer/zus
-        const isPartnerVanSibling = data.some(k =>
+        // Partner van sibling
+        if(data.some(k =>
             (
                 (vaderId  && safe(k.VaderID)  === vaderId) ||
                 (moederId && safe(k.MoederID) === moederId)
             ) &&
             safe(k.ID) !== hoofdIdStr &&
-            safe(k.PartnerID) === pid
-        );
-        if(isPartnerVanSibling) return true;
+            safe(k.PartnerID) === pid))
+            return true;
 
-        return false;                                          // Anders uitsluiten
+        return false;
     });
 
     // =======================
     // Relatie mapping
     // =======================
-    return contextData.map(p=>{
-        const clone = { ...p };                                // Clone
+    const mapped = contextData.map(p=>{
+        const clone = { ...p };
         const pid = safe(p.ID);
 
-        clone._priority = 99;                                  // Default
+        clone._priority = 99;
         clone._scenario = 0;
-        clone._linkedTo = '';                                   // Voor sortering
+        clone._linkedTo = '';
 
-        // ===== Ouders =====
+        // ===== Ouder =====
         if(pid === vaderId || pid === moederId){
             clone.Relatie = 'Ouder';
             clone._priority = 0;
@@ -212,7 +211,7 @@ function computeRelaties(data, hoofdId){
         const zelfdeVader  = vaderId  && safe(p.VaderID)  === vaderId;
         const zelfdeMoeder = moederId && safe(p.MoederID) === moederId;
 
-        if(zelfdeVader || zelfdeMoeder){
+        if(pid !== hoofdIdStr && (zelfdeVader || zelfdeMoeder)){
             clone.Relatie = 'broer-zus';
             clone._priority = 4;
 
@@ -242,14 +241,14 @@ function computeRelaties(data, hoofdId){
         }
 
         return clone;
-    })
+    });
 
     // =======================
     // Sortering
     // =======================
-    .sort((a,b)=>{
+    return mapped.sort((a,b)=>{
 
-        // 1️⃣ Prioriteit
+        // 1️⃣ Structuur prioriteit
         if(a._priority !== b._priority)
             return a._priority - b._priority;
 
