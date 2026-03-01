@@ -181,41 +181,42 @@ function computeRelaties(data, hoofdId){
 
        // ===== Broer/Zus van HoofdID (G1) =====
 const isSibling =
-    pid !== hoofdIdStr &&
+    pid !== hoofdIdStr && // Zorg dat we het hoofd zelf niet meenemen
     (
-        (vaderId  && safe(p.VaderID)  === vaderId) ||
-        (moederId && safe(p.MoederID) === moederId)
+        (vaderId  && safe(p.VaderID)  === vaderId) || // Zelfde vader als hoofd?
+        (moederId && safe(p.MoederID) === moederId)   // Of dezelfde moeder als hoofd?
     );
 
 if(isSibling){
-    clone.Relatie='broer-zus';
-    clone._priority=4;                // Na kinderen
-    clone._scenario =
+    clone.Relatie='broer-zus';        // Label deze persoon als sibling
+    clone._priority=4;                // Visuele sortering: na kinderen
+    clone._scenario =                  // Scenario bepaalt interne sortering
         (vaderId && moederId &&
          safe(p.VaderID)===vaderId &&
-         safe(p.MoederID)===moederId) ? 1 :
-        (vaderId && safe(p.VaderID)===vaderId) ? 2 : 3;
-    mapped.push(clone);
-    return;
+         safe(p.MoederID)===moederId) ? 1 : // Volledige broer/zus eerst
+        (vaderId && safe(p.VaderID)===vaderId) ? 2 : // Halfbroer via vader
+        3; // Halfbroer via moeder
+    mapped.push(clone);               // Voeg toe aan mapping
+    return;                            // Stop verdere checks voor deze persoon
 }
 
 // ===== Partner van Broer/Zus (G1) =====
 const siblingLinked = data.find(s =>
-    s.ID !== hoofdIdStr &&
+    s.ID !== hoofdIdStr &&           // Niet het hoofd zelf
     (
-        (vaderId  && safe(s.VaderID)  === vaderId) ||
-        (moederId && safe(s.MoederID) === moederId)
+        (vaderId  && safe(s.VaderID)  === vaderId) || // Zelfde vader als hoofd
+        (moederId && safe(s.MoederID) === moederId)   // Zelfde moeder als hoofd
     ) &&
-    safe(s.PartnerID) === pid
+    safe(s.PartnerID) === pid        // Deze persoon is partner van een sibling
 );
 
 if(siblingLinked){
-    clone.Relatie='sibling-partner';
-    clone._priority=4;                // Zelfde blok als broer/zus
-    clone._scenario=4;                // Na alle broer/zus
-    clone._linkedTo=safe(siblingLinked.ID); // Direct onder gekoppelde broer/zus
-    mapped.push(clone);
-    return;
+    clone.Relatie='sibling-partner';  // Label als partner van sibling
+    clone._priority=4;                 // Zelfde blok als siblings
+    clone._scenario=4;                 // Na alle siblings
+    clone._linkedTo=safe(siblingLinked.ID); // Visueel direct onder gekoppelde sibling
+    mapped.push(clone);                // Voeg toe aan mapping
+    return;                             // Stop verdere checks voor deze persoon
 }
         
     });
