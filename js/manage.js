@@ -166,17 +166,7 @@ if(kindLinked && safe(p.PartnerID)){
         mapped.push(clonePartner); // nfo: voeg partner van kind toe
     }
 }
-        // ===== Partner van broer/zus =====
-        const siblingLinked = data.find(s => s.ID!==hoofdIdStr && ((vaderId && safe(s.VaderID)===vaderId) || (moederId && safe(s.MoederID)===moederId)) && safe(s.PartnerID)===pid); // nfo: partner van sibling zoeken
-        if(siblingLinked){
-            clone.Relatie='sibling-partner'; 
-            clone._priority=4; 
-            clone._scenario=4; 
-            clone._linkedTo=safe(siblingLinked.ID); 
-            mapped.push(clone); 
-            return; // nfo: partner sibling toegevoegd
-        }
-    });
+      
 
     // Sortering: prioriteit -> linkedTo -> scenario -> leeftijd
     return mapped.sort((a,b)=>{
