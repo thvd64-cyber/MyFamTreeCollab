@@ -70,131 +70,150 @@ function buildHeader(){
 }
 
 // =======================
-// Relatie-engine v2.0
-// Alle relaties zichtbaar: ouders, hoofd+partner, kind+partner, broer/zus+partner
-// Partners staan altijd direct onder de gekoppelde persoon
-// =======================
-function computeRelaties(data, hoofdId){
-    const hoofdIdStr = safe(hoofdId);                      // Zorg dat hoofdId een string is, null-safe
-    if(!hoofdIdStr) return [];                             // Stop als geen hoofdId
-    const hoofd = data.find(d => safe(d.ID)===hoofdIdStr); // Vind de hoofdpersoon
-    if(!hoofd) return [];                                  // Stop als hoofdpersoon niet bestaat
+// Relatie-engine v2.0/************************************************************
+ * STAP 0 — Voorbereiding
+ ************************************************************/
 
-    // Haal ouders en partner van HoofdID op
-    const vaderId   = safe(hoofd.VaderID);
-    const moederId  = safe(hoofd.MoederID);
-    const partnerId = safe(hoofd.PartnerID);
+const hoofdIdStr = String(hoofdId);      
+// Zorgt dat hoofdId altijd string is zodat vergelijkingen betrouwbaar zijn
 
-    // =======================
-    // 1️⃣ Filter context: selecteer alle relevante personen
-    // =======================
-    const contextData = data.filter(p=>{
-        const pid = safe(p.ID);
+const safe = v => String(v || "");      
+// Helperfunctie: voorkomt undefined/null problemen bij ID-vergelijkingen
 
-        // Hoofd, ouders, partner
-        if(pid===hoofdIdStr || pid===vaderId || pid===moederId || pid===partnerId) return true;
 
-        // Kinderen van hoofd of partner (G2)
-        if(safe(p.VaderID)===hoofdIdStr || safe(p.MoederID)===hoofdIdStr) return true;
-        if(partnerId && (safe(p.VaderID)===partnerId || safe(p.MoederID)===partnerId)) return true;
+/************************************************************
+ * STAP 1 — Basis relaties bepalen (ZONDER partners)
+ ************************************************************/
 
-        // Broer/Zus van hoofd (G1)
-        const zelfdeVader = vaderId && safe(p.VaderID)===vaderId;
-        const zelfdeMoeder = moederId && safe(p.MoederID)===moederId;
-        if(pid!==hoofdIdStr && (zelfdeVader || zelfdeMoeder)) return true;
+const parents = [];      // G0
+const hoofd = [];        // G1
+const siblings = [];     // G1
+const children = [];     // G2
 
-        // Partners van kinderen (G2)
-        if(data.some(k => ((safe(k.VaderID)===hoofdIdStr || safe(k.MoederID)===hoofdIdStr) && safe(k.PartnerID)===pid))) return true;
+// Zoek hoofd persoon
+const hoofdPersoon = data.find(p => safe(p.ID) === hoofdIdStr);
+// Zoekt de hoofdpersoon op basis van ID
 
-        // Partners van broer/zus (G1)
-        if(data.some(k => ((zelfdeVader || zelfdeMoeder) && safe(k.ID)!==hoofdIdStr && safe(k.PartnerID)===pid))) return true;
+if (!hoofdPersoon) {
+    console.error("HoofdID niet gevonden");
+    return;
+}
 
-        return false;
+// Bepaal ouders van hoofd
+data.forEach(p => {
+    if (
+        safe(p.ID) === safe(hoofdPersoon.VaderID) ||
+        safe(p.ID) === safe(hoofdPersoon.MoederID)
+    ) {
+        parents.push({ ...p, _role: "parent" });
+        // Voeg ouder toe aan G0
+    }
+});
+
+// Voeg hoofd toe
+hoofd.push({ ...hoofdPersoon, _role: "hoofd" });
+
+// Bepaal kinderen van hoofd
+data.forEach(p => {
+    if (
+        safe(p.VaderID) === hoofdIdStr ||
+        safe(p.MoederID) === hoofdIdStr
+    ) {
+        children.push({ ...p, _role: "child" });
+    }
+});
+
+// Bepaal broers/zussen (zelfde vader én moeder)
+data.forEach(p => {
+    if (
+        safe(p.ID) !== hoofdIdStr &&
+        safe(p.VaderID) === safe(hoofdPersoon.VaderID) &&
+        safe(p.MoederID) === safe(hoofdPersoon.MoederID)
+    ) {
+        siblings.push({ ...p, _role: "sibling" });
+    }
+});
+
+
+/************************************************************
+ * STAP 2 — Partners koppelen (altijd onder persoon)
+ ************************************************************/
+
+const allBasePersons = [
+    ...hoofd,
+    ...children,
+    ...siblings
+];
+// Alleen personen die partners mogen hebben
+
+const partners = [];
+
+allBasePersons.forEach(base => {
+
+    if (!safe(base.PartnerID)) return;
+    // Geen partner? Stop hier.
+
+    const partner = data.find(p =>
+        safe(p.ID) === safe(base.PartnerID)
+    );
+    // Zoek exacte partner via ID
+
+    if (!partner) return;
+
+    partners.push({
+        ...partner,
+        _role: "partner",
+        _linkedTo: base.ID
+        // Koppel partner expliciet aan persoon
     });
+});
+
+
+/************************************************************
+ * STAP 3 — Definitieve volgorde bepalen
+ ************************************************************/
+
+const finalList = [];
+
+// 1️⃣ Ouders
+parents.forEach(p => finalList.push(p));
+
+// 2️⃣ Hoofd
+hoofd.forEach(p => finalList.push(p));
+
+// 3️⃣ Partner van hoofd
+partners
+    .filter(p => p._linkedTo === hoofdIdStr)
+    .forEach(p => finalList.push(p));
+
+// 4️⃣ Kinderen + partner direct eronder
+children.forEach(child => {
+    finalList.push(child);
+
+    partners
+        .filter(p => p._linkedTo === child.ID)
+        .forEach(p => finalList.push(p));
+});
+
+// 5️⃣ Broer/Zus + partner direct eronder
+siblings.forEach(sib => {
+    finalList.push(sib);
+
+    partners
+        .filter(p => p._linkedTo === sib.ID)
+        .forEach(p => finalList.push(p));
+});
+
+
+/************************************************************
+ * STAP 4 — Render
+ ************************************************************/
+
+renderList(finalList);
+// Stuurt definitieve gestructureerde lijst naar je renderfunctie
 
     // =======================
-    // 2️⃣ Map relaties en stel prioriteit, scenario en linkedTo in
-    // =======================
-    const mapped = [];
-    contextData.forEach(p=>{
-        const clone = { ...p };               // Maak een clone zodat originele data intact blijft
-        const pid = safe(p.ID);
-        clone._priority = 99;                 // Default prioriteit (laagste)
-        clone._scenario = 0;                  // Scenario (gebruik voor sortering binnen dezelfde prioriteit)
-        clone._linkedTo = '';                 // Voor partners: ID van gekoppelde persoon
-
-        // ===== Ouders (G0) =====
-        if(pid===vaderId || pid===moederId){
-            clone.Relatie='Ouder';
-            clone._priority=0;                // Ouders bovenaan
-            mapped.push(clone);
-            return;
-        }
-
-        // ===== HoofdID (G1) =====
-        if(pid===hoofdIdStr){
-            clone.Relatie='Hoofd';
-            clone._priority=1;                // Hoofd direct na ouders
-            mapped.push(clone);
-            return;
-        }
-
-        // ===== Partner van HoofdID (G1) =====
-        if(pid===partnerId){
-            clone.Relatie='Partner';
-            clone._priority=2;                // Partner direct onder hoofd
-            clone._linkedTo=hoofdIdStr;       // LinkedTo zorgt dat hij visueel direct onder staat
-            mapped.push(clone);
-            return;
-        }
-
-        // ===== Kinderen (G2) =====
-        const isKindHoofd = safe(p.VaderID)===hoofdIdStr || safe(p.MoederID)===hoofdIdStr;
-        const isKindPartner = partnerId && (safe(p.VaderID)===partnerId || safe(p.MoederID)===partnerId);
-        if(isKindHoofd || isKindPartner){
-            clone.Relatie='Kind';
-            clone._priority=3;                // Kinderen na hoofd+partner
-            clone._scenario = isKindHoofd && isKindPartner ? 1 : isKindHoofd ? 2 : 3;
-            mapped.push(clone);
-            return;
-        }
-
-        // ===== Partner van Kind (G2) =====
-        const childLinked = data.find(k => 
-            (safe(k.VaderID)===hoofdIdStr || safe(k.MoederID)===hoofdIdStr) && safe(k.PartnerID)===pid
-        );
-        if(childLinked){
-            clone.Relatie='kind-partner';
-            clone._priority=3;                // Zelfde blok als kind
-            clone._scenario=4;                // Na alle kinderen
-            clone._linkedTo=safe(childLinked.ID); // Direct onder gekoppeld kind
-            mapped.push(clone);
-            return;
-        }
-
-        // ===== Broer/Zus van HoofdID (G1) =====
-        if(pid!==hoofdIdStr && (zelfdeVader || zelfdeMoeder)){
-            clone.Relatie='broer-zus';
-            clone._priority=4;                // Na kinderen
-            clone._scenario = zelfdeVader && zelfdeMoeder ? 1 : zelfdeVader ? 2 : 3;
-            mapped.push(clone);
-            return;
-        }
-
-        // ===== Partner van Broer/Zus (G1) =====
-        const siblingLinked = data.find(k => ((zelfdeVader || zelfdeMoeder) && safe(k.ID)!==hoofdIdStr && safe(k.PartnerID)===pid));
-        if(siblingLinked){
-            clone.Relatie='sibling-partner';
-            clone._priority=4;                // Zelfde blok als broer/zus
-            clone._scenario=4;                // Na alle broer/zus
-            clone._linkedTo=safe(siblingLinked.ID); // Direct onder gekoppelde broer/zus
-            mapped.push(clone);
-            return;
-        }
-    });
-
-    // =======================
-    // 3️⃣ Sorteer: prioriteit -> linkedTo -> scenario -> geboortedatum
+    //  Sorteer: prioriteit -> linkedTo -> scenario -> geboortedatum
     // =======================
     return mapped.sort((a,b)=>{
         if(a._priority!==b._priority) return a._priority-b._priority;
