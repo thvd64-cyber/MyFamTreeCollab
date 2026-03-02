@@ -1,5 +1,6 @@
-<!-- ======================= stamboom/manage.html v1.2.1 ======================= -->
+<!-- ======================= stamboom/manage.html v1.2.3 ======================= -->
 <!-- Lazy-load, zoek, refresh, opslaan en toevoegen en relatie tabel via js -->
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -8,28 +9,83 @@
     <title>MyFamTreeCollab - Manage</title> <!-- Browser tab titel -->
     <link rel="stylesheet" href="../css/style.css"> <!-- CSS styling -->
 
- <style>
-.rel-hoofd   { background-color: #fffde7 !important; font-weight: 600; }
-.rel-ouder   { background-color: #e8f5e9 !important; }
-.rel-partner { background-color: #f3e5f5 !important; }
-.rel-kind    { background-color: #e3f2fd !important; }
+ <!-- ======================= RELATIE STYLING MANAGE TABLE ======================= -->
 
-/* Scenario overrides */
-.rel-kind.scenario-1 { background-color: #e3f2fd !important; }
-.rel-kind.scenario-2 { background-color: #eef7fe !important; }
-.rel-kind.scenario-3 { background-color: #f7fbff !important; }
-
-#manageTable td input {
-    background-color: transparent;
-    border: none;
-    width: 100%;
-    box-sizing: border-box;
+/* ====== Hoofd ====== */
+.rel-hoofd { 
+    background-color: #fffde7 !important; /* Licht geel zodat Hoofd direct opvalt */
+    font-weight: 600;                     /* Bold font voor herkenbaarheid */
 }
-</style>
-    
-</head>
-<body>
 
+/* ====== Ouders ====== */
+.rel-vhoofdid, .rel-mhoofdid { 
+    background-color: #e8f5e9 !important; /* Licht groen voor ouders */
+    font-weight: 500;                     /* Semi-bold */
+}
+
+/* ====== Partner van Hoofd ====== */
+.rel-phoofdid { 
+    background-color: #f3e5f5 !important; /* Licht paars/lavendel voor partner */
+    font-style: italic;                   /* Italic om visueel verschil te maken */
+}
+
+/* ====== Kinderen ====== */
+.rel-kindid { 
+    background-color: #e3f2fd !important; /* Licht blauw voor kinderen */
+    font-weight: 400;                     /* Normaal gewicht */
+}
+
+/* Scenario overrides Kind */
+.rel-kindid.scenario-1 { background-color: #e3f2fd !important; } /* Scenario 1 blauw */
+.rel-kindid.scenario-2 { background-color: #eef7fe !important; } /* Scenario 2 iets lichter blauw */
+.rel-kindid.scenario-3 { background-color: #f7fbff !important; } /* Scenario 3 nog lichter blauw */
+
+/* ====== Partner van Kind ====== */
+.rel-pkpartnerid { 
+    background-color: #d0ebff !important; /* Iets donkerder blauw voor partner kind */
+    font-style: italic;                   /* Italic om verschil te maken */
+}
+
+/* Scenario overrides Partner van Kind */
+.rel-pkpartnerid.scenario-1 { background-color: #d0ebff !important; } 
+.rel-pkpartnerid.scenario-2 { background-color: #daf4ff !important; } 
+.rel-pkpartnerid.scenario-3 { background-color: #e4f9ff !important; } 
+
+/* ====== Broers/Zussen ====== */
+.rel-bzid { 
+    background-color: #fff3e0 !important; /* Licht oranje voor broer/zus */
+    font-weight: 500;                     /* Semi-bold */
+}
+
+/* Scenario overrides Broer/Zus */
+.rel-bzid.scenario-1 { background-color: #fff3e0 !important; } 
+.rel-bzid.scenario-2 { background-color: #fff7ed !important; } 
+.rel-bzid.scenario-3 { background-color: #fffaf1 !important; } 
+
+/* ====== Partner van Broer/Zus ====== */
+.rel-bzpartnerid { 
+    background-color: #fbe9e7 !important; /* Iets donkerder oranje */
+    font-style: italic;                   /* Italic font */
+}
+
+/* Scenario overrides Partner Broer/Zus */
+.rel-bzpartnerid.scenario-1 { background-color: #fbe9e7 !important; } 
+.rel-bzpartnerid.scenario-2 { background-color: #fcebe9 !important; } 
+.rel-bzpartnerid.scenario-3 { background-color: #fdecea !important; } 
+
+/* ====== Algemene input cel styling ====== */
+#manageTable td input { 
+    background-color: transparent; /* Transparant zodat celkleur zichtbaar blijft */
+    border: none;                  /* Geen border voor cleaner look */
+    width: 100%;                   /* Input vult gehele celbreedte */
+    box-sizing: border-box;        /* Padding en border vallen binnen breedte */
+    cursor: text;                  /* Cursor wordt text bij hover */
+}
+
+/* ====== Hover effect voor rijen ====== */
+#manageTable tr:hover { 
+    background-color: rgba(0,0,0,0.05); /* Lichte grijze overlay bij hover */
+}
 <!-- ======================= layout/TopBar.html ======================= -->
 <div id="topbar-placeholder"></div>
 <script>
