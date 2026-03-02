@@ -113,10 +113,13 @@ function computeRelaties(data, hoofdId){
             return true;
 
         // Broer/Zus
-        const zelfdeVader  = vaderId  && safe(p.VaderID)  === vaderId;
-        const zelfdeMoeder = moederId && safe(p.MoederID) === moederId;
-        if(pid !== hoofdIdStr && (zelfdeVader || zelfdeMoeder))
-            return true;
+       const siblings = data.filter(p =>
+    safe(p.ID) !== hoofdIdStr &&
+    (
+        (vaderId  && safe(p.VaderID)  === vaderId) ||
+        (moederId && safe(p.MoederID) === moederId)
+    )
+);
 
         // Partner van kind
         const isPartnerVanKind = data.some(k =>
