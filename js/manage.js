@@ -144,15 +144,14 @@ function renderTable(dataset){
     const lookupByID = {};
     contextData.forEach(p => { lookupByID[p.ID] = p; }); // snelle lookup
 
-    // queue voor render volgorde
     const renderQueue = [];
+
+    // ===== Ouders boven het hoofd =====
+    contextData.filter(p => p.Relatie==='VHoofdID'||p.Relatie==='MHoofdID').forEach(p=>renderQueue.push(p));
 
     // Hoofd
     const hoofd = contextData.find(p => p.Relatie==='HoofdID');
     if(hoofd) renderQueue.push(hoofd);
-
-    // Ouders
-    contextData.filter(p => p.Relatie==='VHoofdID'||p.Relatie==='MHoofdID').forEach(p=>renderQueue.push(p));
 
     // Partner hoofd
     contextData.filter(p => p.Relatie==='PHoofdID').forEach(p=>renderQueue.push(p));
