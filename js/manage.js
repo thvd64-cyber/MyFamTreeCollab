@@ -213,9 +213,15 @@ function liveSearch(){
     document.getElementById('searchPopup')?.remove(); // verwijder oude popup
     if(!term) return;
 
-    const results = dataset.filter(p=>safe(p.ID).toLowerCase().includes(term) || safe(p.Roepnaam).toLowerCase().includes(term) || safe(p.Achternaam).toLowerCase().includes(term)); // filteren
-    const rect = searchInput.getBoundingClientRect(); // positie zoekveld
-    const popup=document.createElement('div'); // popup div
+    // filter dataset op ID, Roepnaam, Achternaam
+    const results = dataset.filter(p=>
+        safe(p.ID).toLowerCase().includes(term) ||
+        safe(p.Roepnaam).toLowerCase().includes(term) ||
+        safe(p.Achternaam).toLowerCase().includes(term)
+    );
+
+    const rect = searchInput.getBoundingClientRect();
+    const popup=document.createElement('div');
     popup.id='searchPopup';
     popup.style.position='absolute';
     popup.style.background='#fff';
@@ -231,9 +237,14 @@ function liveSearch(){
         const row=document.createElement('div'); 
         row.textContent=`${p.ID} | ${p.Roepnaam} | ${p.Achternaam}`;
         row.style.padding='5px'; row.style.cursor='pointer';
+
+        // klik op resultaat → update hoofdID EN render alleen deze persoon
         row.addEventListener('click', ()=>{
-            selectedHoofdId = safe(p.ID); popup.remove(); renderTable(dataset);
+            selectedHoofdId = safe(p.ID); // update hoofd
+            popup.remove();
+            renderTable(dataset, [p]); // render exact deze persoon
         });
+
         popup.appendChild(row);
     });
 
@@ -244,7 +255,7 @@ function liveSearch(){
         popup.appendChild(row); 
     }
 
-    document.body.appendChild(popup); // popup toevoegen aan body
+    document.body.appendChild(popup);
 }
 
 // =======================
