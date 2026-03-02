@@ -1,4 +1,4 @@
-// ======================= manage.js v1.3.3 =======================
+// ======================= js/manage.js v1.3.3 =======================
 // Beheer module: Hoofd + Ouders + Partner + Kinderen + Broer/Zus
 // Production hardened: null-safe + selectedHoofdId state + header fix
 // Visualisatie: HoofdID → VHoofdID / MHoofdID / PHoofdID → KindID → PKPartnerID → BZID → BZPartnerID
