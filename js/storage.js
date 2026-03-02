@@ -1,4 +1,5 @@
-// storage.js – verbeterde versie voor persistent stamboom
+// ======================= js/storage.js v0.0.0
+// verbeterde versie voor persistent stamboom
 (function(){ 
     'use strict'; // strikte modus voor veiligere JS uitvoering
 
