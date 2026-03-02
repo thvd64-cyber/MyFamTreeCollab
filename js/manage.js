@@ -1,4 +1,4 @@
-// ======================= js/manage.js v1.3.5 =======================
+// ======================= manage.js v1.3.3 =======================
 // Beheer module: Hoofd + Ouders + Partner + Kinderen + Broer/Zus
 // Production hardened: null-safe + selectedHoofdId state + header fix
 // Visualisatie: HoofdID → VHoofdID / MHoofdID / PHoofdID → KindID → PKPartnerID → BZID → BZPartnerID
@@ -259,53 +259,36 @@ function addPersoon(){
     nieuw.ID = window.genereerCode(nieuw,dataset); // genereer unieke ID
     dataset.push(nieuw);
     selectedHoofdId = nieuw.ID;
-    window.StamboomStorage.set(dataset); // direct opslaan
+    window.StamboomStorage.set(dataset);
     renderTable(dataset);
 }
 
-// =======================
-// SAVE DATASET MET CORRECTE MERGE
-// =======================
 function saveDataset(){
-    const rows = tableBody.querySelectorAll('tr'); // alle rijen ophalen
-    let wijzigingen = 0; // teller wijzigingen
-    const idSet = new Set(); // check duplicates
+    const rows = tableBody.querySelectorAll('tr');
+    const nieuweDataset = [];
+    const idSet = new Set();
 
     rows.forEach(tr=>{
-        const rowData = {};
+        const persoon = {};
         COLUMNS.forEach((col,index)=>{
             const cell = tr.cells[index];
-            if(col.readonly){
-                rowData[col.key] = safe(cell.textContent); // readonly kopiëren
-            } else {
-                const input = cell.querySelector('input');
-                rowData[col.key] = input ? input.value.trim() : ''; // editable kopiëren
-            }
+            if(col.readonly){ if(col.key==='ID') persoon.ID = safe(cell.textContent); }
+            else{ const input=cell.querySelector('input'); persoon[col.key]=input?input.value.trim():''; }
         });
-
-        // valideer ID
-        if(!rowData.ID) throw new Error('ID ontbreekt');
-        if(idSet.has(rowData.ID)) throw new Error(`Duplicate ID: ${rowData.ID}`);
-        idSet.add(rowData.ID);
-
-        // merge in bestaande dataset
-        const existing = dataset.find(p => p.ID === rowData.ID);
-        if(existing){
-            if(JSON.stringify(existing)!==JSON.stringify(rowData)) wijzigingen++; // wijziging telt
-            Object.assign(existing,rowData); // update bestaande
-        } else {
-            dataset.push(rowData); // nieuw record
-            wijzigingen++;
-        }
+        if(!persoon.ID) throw new Error('ID ontbreekt');
+        if(idSet.has(persoon.ID)) throw new Error(`Duplicate ID: ${persoon.ID}`);
+        idSet.add(persoon.ID);
+        nieuweDataset.push(persoon);
     });
 
-    window.StamboomStorage.set(dataset); // opslaan in storage
-    alert(`${wijzigingen} wijziging(en) opgeslagen`); // feedback
+    dataset = nieuweDataset;
+    window.StamboomStorage.set(dataset);
+    alert('Dataset succesvol opgeslagen');
 }
 
 function refreshTable(){
-    dataset = window.StamboomStorage.get() || []; // opnieuw laden
-    renderTable(dataset); // render
+    dataset = window.StamboomStorage.get() || [];
+    renderTable(dataset);
 }
 
 // =======================
@@ -313,10 +296,10 @@ function refreshTable(){
 // =======================
 buildHeader(); // bouw header
 renderTable(dataset); // render tabel
-searchInput.addEventListener('input', liveSearch); // live search
-addBtn.addEventListener('click', addPersoon); // +Toevoegen
-saveBtn.addEventListener('click', saveDataset); // opslaan
-refreshBtn.addEventListener('click', refreshTable); // refresh
+searchInput.addEventListener('input', liveSearch);
+addBtn.addEventListener('click', addPersoon);
+saveBtn.addEventListener('click', saveDataset);
+refreshBtn.addEventListener('click', refreshTable);
 
 // =======================
 // Sluit popup bij klik buiten
