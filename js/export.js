@@ -1,5 +1,4 @@
-// =======================================
-// export.js
+// ======================= js/export.js v0.0.0
 // Exporteer stamboomData naar CSV
 // Gebruikt import naam + datumtijd
 // Overschrijft nooit bestanden
