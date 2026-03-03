@@ -1,4 +1,4 @@
-// ======================= manage.js v1.4.0 =======================
+// ======================= js/manage.js v1.3.5 =======================
 // Beheer module: Hoofd + Ouders + Partner + Kinderen + Broer/Zus
 // Opslaan knop: merged opslaan met bestaande localStorage data
 // =================================================================
