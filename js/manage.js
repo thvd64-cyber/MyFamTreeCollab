@@ -1,14 +1,13 @@
-// ======================= manage.js v1.3.10 =======================
+// ======================= manage.js v1.3.11 =======================
 // Beheer module: Hoofd + Ouders + Partner + Kinderen + Broer/Zus
-// Features v1.3.10:
+// Features v1.3.11:
 // - addRow: max 10 rijen
-// - SaveDatasetMerged: lege rijen krijgen unieke ID via letters+3 cijfers, bestaande behouden
+// - SaveDatasetMerged: veilige ID-generator letters+3 cijfers
 // - Refresh: relaod + relaties herberekenen
 // - Live Search: filter + selecteer centrale persoon, relaties intact
-// - Correcte weergave: BZID + partner, PKPartnerID direct onder KindID
 // =================================================================
 (function(){
-'use strict'; // activeer strict mode
+'use strict'; // activeer strict mode voor veiliger JS
 
 // =======================
 // DOM-elementen
@@ -65,16 +64,22 @@ const COLUMNS = [
 ];
 
 // =======================
-// ID GENERATOR (letters + 3 cijfers, uniek)
+// ID GENERATOR (letters + 3 cijfers, veilig)
 // =======================
 function genereerCode(persoon, bestaande){
-    const letters = (persoon.Doopnaam[0]||'') + (persoon.Roepnaam[0]||'') + (persoon.Achternaam[0]||'') + (persoon.Geslacht[0]||'X');
+    // Eerste letters van doopnaam, roepnaam, achternaam, geslacht (X als leeg)
+    const letters = (persoon.Doopnaam?.[0] || '') +
+                    (persoon.Roepnaam?.[0] || '') +
+                    (persoon.Achternaam?.[0] || '') +
+                    (persoon.Geslacht?.[0] || 'X');
+
     let code;
     const bestaandeIDs = new Set(bestaande.map(p=>p.ID));
     do {
-        const cijfers = Math.floor(100 + Math.random()*900);
+        const cijfers = Math.floor(100 + Math.random() * 900); // 100–999
         code = letters + cijfers;
     } while(bestaandeIDs.has(code)); // voorkom duplicaten
+
     return code;
 }
 
@@ -104,19 +109,25 @@ function computeRelaties(data, hoofdId){
     const MHoofdID = safe(hoofd.MoederID);
     const PHoofdID = safe(hoofd.PartnerID);
 
-    // Alle kinderen van hoofd of partner
     const KindID = data.filter(p =>
         safe(p.VaderID) === hoofdID ||
         safe(p.MoederID) === hoofdID ||
         (PHoofdID && (safe(p.VaderID) === PHoofdID || safe(p.MoederID) === PHoofdID))
     ).map(p => p.ID);
 
-    // Broers/Zussen (zelfde ouders als hoofd)
+    const PKPartnerID = data.filter(p =>
+        KindID.includes(safe(p.VaderID)) || KindID.includes(safe(p.MoederID))
+    ).filter(p => p.PartnerID).map(p => safe(p.PartnerID));
+
     const BZID = data.filter(p =>
         (safe(p.VaderID) === VHoofdID || safe(p.MoederID) === MHoofdID) &&
         safe(p.ID) !== hoofdID &&
         !KindID.includes(safe(p.ID))
     ).map(p => p.ID);
+
+    const BZPartnerID = data.filter(p =>
+        BZID.includes(safe(p.VaderID)) || BZID.includes(safe(p.MoederID))
+    ).filter(p => p.PartnerID).map(p => safe(p.PartnerID));
 
     return data.map(p=>{
         const pid = safe(p.ID);
@@ -129,7 +140,9 @@ function computeRelaties(data, hoofdId){
         else if(pid === MHoofdID){ clone.Relatie='MHoofdID'; clone._priority=0; }
         else if(pid === PHoofdID){ clone.Relatie='PHoofdID'; clone._priority=2; }
         else if(KindID.includes(pid)){ clone.Relatie='KindID'; clone._priority=3; }
+        else if(PKPartnerID.includes(pid)){ clone.Relatie='PKPartnerID'; clone._priority=3; }
         else if(BZID.includes(pid)){ clone.Relatie='BZID'; clone._priority=4; }
+        else if(BZPartnerID.includes(pid)){ clone.Relatie='BZPartnerID'; clone._priority=4; }
 
         return clone;
     }).sort((a,b)=>a._priority - b._priority);
@@ -153,25 +166,20 @@ function renderTable(dataset){
     contextData.filter(p => p.Relatie==='VHoofdID'||p.Relatie==='MHoofdID').forEach(p=>renderQueue.push(p));
     contextData.filter(p => p.Relatie==='PHoofdID').forEach(p=>renderQueue.push(p));
 
-    // Kinderen + partner direct eronder
     contextData.filter(p => p.Relatie==='KindID').forEach(kind=>{
         renderQueue.push(kind);
-        if(kind.PartnerID){
-            const pk = contextData.find(p => safe(p.ID) === safe(kind.PartnerID));
-            if(pk) renderQueue.push(pk);
-        }
+        const pk = contextData.find(p => p.Relatie==='PKPartnerID' &&
+                                         safe(p.PartnerID)===kind.ID);
+        if(pk) renderQueue.push(pk);
     });
 
-    // Broer/Zus + partner direct eronder
     contextData.filter(p => p.Relatie==='BZID').forEach(sib=>{
         renderQueue.push(sib);
-        if(sib.PartnerID){
-            const bzPartner = contextData.find(p => safe(p.ID) === safe(sib.PartnerID));
-            if(bzPartner) renderQueue.push(bzPartner);
-        }
+        const bzPartner = contextData.find(p => p.Relatie==='BZPartnerID' &&
+                                                (p.VaderID===sib.ID||p.MoederID===sib.ID||safe(p.PartnerID)===sib.ID));
+        if(bzPartner) renderQueue.push(bzPartner);
     });
 
-    // Render de rijen
     renderQueue.forEach(p=>{
         const tr = document.createElement('tr');
         if(p.Relatie) tr.classList.add(`rel-${p.Relatie.toLowerCase()}`);
@@ -230,7 +238,7 @@ function addRow(){
 }
 
 // =======================
-// Save (merged) dataset + ID generator
+// SaveDatasetMerged + veilige ID-generator
 // =======================
 function saveDatasetMerged(){
     try {
@@ -245,12 +253,11 @@ function saveDatasetMerged(){
                 if(col.readonly){ 
                     if(col.key==='ID') persoon.ID = safe(cell.textContent); 
                 } else { 
-                    const input=cell.querySelector('input'); 
-                    persoon[col.key]=input?input.value.trim():''; 
+                    const input = cell.querySelector('input'); 
+                    persoon[col.key] = input ? input.value.trim() : ''; 
                 }
             });
 
-            // genereer unieke ID indien leeg
             if(!persoon.ID){
                 persoon.ID = genereerCode(persoon, Array.from(idMap.values()));
             }
@@ -261,7 +268,7 @@ function saveDatasetMerged(){
         dataset = Array.from(idMap.values());
         window.StamboomStorage.set(dataset);
         tempRowCount = 0;
-        alert('Dataset succesvol opgeslagen (merged met bestaande data)');
+        alert('Dataset succesvol opgeslagen met veilige ID-generatie');
     } catch(e){
         alert(`Opslaan mislukt: ${e.message}`);
         console.error(e);
