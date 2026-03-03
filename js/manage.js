@@ -1,13 +1,13 @@
 // ======================= manage.js v1.3.7 =======================
 // Beheer module: Hoofd + Ouders + Partner + Kinderen + Broer/Zus
 // Features v1.3.7:
-// - addRow: voeg lege rij toe, max 10 rijen, daarna opslaan forceren
-// - Opslaan: merged met bestaande localStorage
-// - Refresh: reload + relaties herberekenen, behoud centrale persoon
+// - addRow: voeg lege rij toe, max 10 rijen, daarna alert opslaan
+// - SaveDatasetMerged: lege rijen krijgen ID via generateCode, bestaande behouden
+// - Refresh: relaod + relaties herberekenen, behoud centrale persoon
 // - Live Search: filter + selecteer centrale persoon, relaties intact
 // =================================================================
 (function(){
-'use strict'; // activeer strict mode voor veiligere JS
+'use strict'; // activeer strict mode voor veiliger JS
 
 // =======================
 // DOM-elementen
@@ -24,7 +24,7 @@ const searchInput = document.getElementById('searchPerson'); // zoekveld
 // =======================
 let dataset = window.StamboomStorage.get() || []; // laad dataset uit localStorage
 let selectedHoofdId = null; // centrale geselecteerde persoon (Hoofd)
-let tempRowCount = 0; // telt tijdelijke rijen toegevoegd met addRow
+let tempRowCount = 0; // telt tijdelijk toegevoegde rijen met addRow
 
 // =======================
 // Helpers (null-safe)
@@ -67,10 +67,10 @@ const COLUMNS = [
 // Build Table Header
 // =======================
 function buildHeader(){ 
-    theadRow.innerHTML = ''; // leegmaken van bestaande header
+    theadRow.innerHTML = ''; // leeg bestaande header
     COLUMNS.forEach(col=>{
-        const th = document.createElement('th'); // nieuwe <th> voor kolom
-        th.textContent = col.key; // zet kolomnaam
+        const th = document.createElement('th'); // nieuwe <th>
+        th.textContent = col.key; // kolomnaam
         theadRow.appendChild(th); // voeg toe aan header rij
     });
 }
@@ -215,12 +215,12 @@ function addRow(){
         tr.appendChild(td);
     });
 
-    tableBody.appendChild(tr); // rij onder tabel toevoegen
+    tableBody.appendChild(tr); // voeg toe
     tempRowCount++; // teller verhogen
 }
 
 // =======================
-// Save (merged) dataset
+// Save (merged) dataset met automatische ID generatie
 // =======================
 function saveDatasetMerged(){
     try {
@@ -240,14 +240,18 @@ function saveDatasetMerged(){
                 }
             });
 
-            if(!persoon.ID) throw new Error('ID ontbreekt');
+            // Als er nog geen ID is, genereer er één
+            if(!persoon.ID){
+                persoon.ID = window.genereerCode(persoon, Array.from(idMap.values()));
+            }
+
             idMap.set(persoon.ID, {...idMap.get(persoon.ID), ...persoon}); // merge
         });
 
         const mergedDataset = Array.from(idMap.values());
         dataset = mergedDataset;
         window.StamboomStorage.set(dataset);
-        tempRowCount = 0; // reset tijdelijke rijen teller
+        tempRowCount = 0; // reset teller
         alert('Dataset succesvol opgeslagen (merged met bestaande data)');
     } catch(e){
         alert(`Opslaan mislukt: ${e.message}`);
@@ -321,7 +325,7 @@ function liveSearch(){
 buildHeader(); 
 renderTable(dataset); 
 searchInput.addEventListener('input', liveSearch);
-addBtn.addEventListener('click', addRow); // + Toevoegen knop nu addRow
+addBtn.addEventListener('click', addRow); // + Toevoegen knop
 saveBtn.addEventListener('click', saveDatasetMerged);
 refreshBtn.addEventListener('click', refreshTable);
 
