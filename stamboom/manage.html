@@ -67,14 +67,23 @@
     .rel-bzpartnerid.scenario-2 { background-color: #fcebe9 !important; }
     .rel-bzpartnerid.scenario-3 { background-color: #fdecea !important; }
 
-    /* ====== Algemene input cel styling ====== */
-    #manageTable td input { 
-        background-color: transparent; /* Input achtergrond transparant zodat celkleur zichtbaar blijft */
-        border: none;                  /* Geen borders voor cleaner look */
-        width: 100%;                   /* Input vult volledige celbreedte */
-        box-sizing: border-box;        /* Padding valt binnen breedte */
-        cursor: text;                  /* Cursor verandert naar tekst bij hover */
-    }
+   /* ====== Transparante tabel en cel achtergrond ====== */
+#manageTable {
+    background-color: transparent; /* Tabel zelf doorzichtig */
+    border-collapse: collapse;     /* Celranden netjes samenvallen */
+}
+
+#manageTable td {
+    background-color: transparent; /* Alle cellen doorzichtig */
+}
+
+#manageTable td input {
+    background-color: transparent; /* Input velden doorzichtig */
+    border: none;                  /* Geen borders voor cleaner look */
+    width: 100%;                   /* Vul volledige celbreedte */
+    box-sizing: border-box;        /* Padding valt binnen breedte */
+    cursor: text;                  /* Cursor toont tekst */
+}
 
     /* ====== Hover effect rijen ====== */
     #manageTable tr:hover { 
