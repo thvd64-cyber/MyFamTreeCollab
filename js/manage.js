@@ -111,12 +111,16 @@ function computeRelaties(data, hoofdId){
         (PHoofdID && (safe(p.VaderID) === PHoofdID || safe(p.MoederID) === PHoofdID)) // Vader of moeder is partner van hoofd
     ).map(p => p.ID);
 
-    // Broers/Zussen (zelfde ouders als hoofd, exclusief hoofd en kinderen)
-    const BZID = data.filter(p =>
-        (safe(p.VaderID) === VHoofdID || safe(p.MoederID) === MHoofdID) &&
-        safe(p.ID) !== hoofdID &&
-        !KindID.includes(safe(p.ID))
-    ).map(p => p.ID);
+   // Broers/Zussen (zelfde ouders als hoofd, exclusief hoofd, kinderen en partner van hoofd)
+    const BZID = data.filter(p => {
+        const pid = safe(p.ID);
+        if(pid === hoofdID) return false;               // sluit hoofd uit
+        if(KindID.includes(pid)) return false;         // sluit kinderen uit
+        if(pid === PHoofdID) return false;             // sluit partner hoofd uit
+        const sameVader = VHoofdID && safe(p.VaderID) === VHoofdID;
+        const sameMoeder = MHoofdID && safe(p.MoederID) === MHoofdID;
+        return sameVader || sameMoeder;               // broer/zus als vader of moeder gelijk
+    }).map(p => p.ID);
 
     // Partners van kinderen
     const KindPartnerID = KindID
