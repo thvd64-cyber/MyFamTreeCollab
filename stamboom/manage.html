@@ -9,22 +9,12 @@
 
     <!-- ======================= RELATIE STYLING MANAGE TABLE ======================= -->
     <style>
-        /* ====== Tabel transparant ====== */
-#manageTable {
-    background-color: transparent; /* Maakt de gehele tabel doorzichtig, zodat rijen kleuren zichtbaar zijn */
-    border-collapse: collapse;     /* Zorgt dat celranden netjes samenvallen */
-}
-    /* ====== HoofdID ====== */
+        /* ====== HoofdID ====== */
     .rel-hoofd { 
         background-color: #fffde7 !important; /* Licht geel, benadrukt de hoofdpersoon in stamboom */
         font-weight: 600;                     /* Bold font voor snelle herkenning */
     }
-    /* Scenario override: alle cellen in hoofdrij krijgen ook geel */
-    tr.rel-hoofd, tr.rel-hoofd td {
-        background-color: #fffde7 !important; /* Forceert geel voor de hele rij */
-        font-weight: 600;                     /* Zorgt dat bold blijft */
-    }
-
+    
     /* ====== Ouders ====== */
     .rel-vhoofdid, .rel-mhoofdid { 
         background-color: #e8f5e9 !important; /* Licht groen voor vader/moeder */
@@ -36,12 +26,7 @@
         background-color: #f3e5f5 !important; /* Licht paars/lavendel voor partner van hoofd */
         font-style: italic;                   /* Italic voor visueel onderscheid */
     }
-    /* Scenario override: forceer kleur voor alle cellen van partner van hoofd */
-    tr.rel-phoofdid, tr.rel-phoofdid td {
-        background-color: #f3e5f5 !important; /* Forceert paars/lavendel */
-        font-style: italic;                   /* Zorgt dat italic behouden blijft */
-    }
-
+    
     /* ====== Kinderen ====== */
     .rel-kindid { 
         background-color: #e3f2fd !important; /* Licht blauw standaard voor kind */
