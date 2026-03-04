@@ -9,95 +9,95 @@
     <link rel="stylesheet" href="../css/style.css"> <!-- Algemene CSS van de applicatie -->
 
     <!-- ======================= RELATIE STYLING MANAGE TABLE ======================= -->
-    <style>
-    /* ====== Hoofd ====== */
-    .rel-hoofd { 
-        background-color: #fffde7 !important; /* Licht geel zodat het hoofd van de stamboom direct opvalt */
-        font-weight: 600;                     /* Bold font voor snelle herkenning van hoofdID */
-    }
-        /* Scenario override: hoofdrij altijd geel, ongeacht andere kleuren */
-        tr.rel-hoofd, tr.rel-hoofd td {
-    background-color: #fffde7 !important;
-    font-weight: 600;
+<style>
+/* ====== Hoofd ====== */
+.rel-hoofd { 
+    background-color: #fffde7 !important; /* Licht geel zodat het hoofd van de stamboom direct opvalt */
+    font-weight: 600;                     /* Bold font voor snelle herkenning van hoofdID */
 }
 
-    /* ====== Ouders ====== */
-    .rel-vhoofdid, .rel-mhoofdid { 
-        background-color: #e8f5e9 !important; /* Licht groen voor ouders (vader/moeder) zodat ze duidelijk verschillen van hoofd) */
-        font-weight: 500;                     /* Semi-bold voor visueel verschil */
-    }
+/* Scenario override: hoofdrij altijd geel, ongeacht andere kleuren */
+tr.rel-hoofd, tr.rel-hoofd td {
+    background-color: #fffde7 !important; /* Forceert geel voor alle cellen in de hoofdrij */
+    font-weight: 600;                     /* Zorgt dat het bold blijft */
+}
 
-    /* ====== Partner van Hoofd ====== */
+/* ====== Ouders (vader & moeder) ====== */
+.rel-vhoofdid, .rel-mhoofdid { 
+    background-color: #e8f5e9 !important; /* Licht groen voor ouders */
+    font-weight: 500;                     /* Semi-bold voor visueel verschil met hoofd */
+}
+
+/* ====== Partner van Hoofd ====== */
 .rel-phoofdid { 
     background-color: #f3e5f5 !important; /* Licht paars/lavendel voor partner van hoofd */
-    font-style: italic;                   /* Italic zodat partner makkelijker te onderscheiden is */
+    font-style: italic;                   /* Italic voor visueel onderscheid */
 }
 
-/* Scenario override: partner van hoofd altijd paars/lavendel, ongeacht andere kleuren */
+/* Scenario override: partner van hoofd altijd paars/lavendel */
 tr.rel-phoofdid, tr.rel-phoofdid td {
-    background-color: #f3e5f5 !important;
-    font-style: italic;
+    background-color: #f3e5f5 !important; /* Forceert paars voor alle cellen van de partner-rij */
+    font-style: italic;                   /* Zorgt dat italic blijft */
+}
 
-    /* ====== Kinderen ====== */
-    .rel-kindid { 
-        background-color: #e3f2fd !important; /* Licht blauw voor kinderen, neutraal en rustgevend */
-        font-weight: 400;                     /* Normaal font gewicht */
-    }
+/* ====== Kinderen ====== */
+.rel-kindid { 
+    background-color: #e3f2fd !important; /* Licht blauw voor kinderen */
+    font-weight: 400;                     /* Normaal font gewicht */
+}
 
-    /* Scenario overrides Kind */
-    .rel-kindid.scenario-1 { background-color: #e3f2fd !important; } /* Scenario 1 = standaard blauw */
-    .rel-kindid.scenario-2 { background-color: #eef7fe !important; } /* Scenario 2 = iets lichter blauw, subtiel verschil */
-    .rel-kindid.scenario-3 { background-color: #f7fbff !important; } /* Scenario 3 = zeer licht blauw, differentiatie voor scenario’s */
+/* Scenario overrides Kinderen */
+.rel-kindid.scenario-1 { background-color: #e3f2fd !important; } /* Standaard blauw */
+.rel-kindid.scenario-2 { background-color: #eef7fe !important; } /* Iets lichter blauw */
+.rel-kindid.scenario-3 { background-color: #f7fbff !important; } /* Zeer licht blauw */
 
-    /* ====== Partner van Kind ====== */
-    .rel-pkpartnerid { 
-        background-color: #d0ebff !important; /* Iets donkerder blauw voor partner van kind om verschil te maken met kind zelf */
-        font-style: italic;                   /* Italic voor visueel onderscheid */
-    }
+/* ====== Partner van Kind ====== */
+.rel-pkpartnerid { 
+    background-color: #d0ebff !important; /* Iets donkerder blauw voor partner van kind */
+    font-style: italic;                   /* Italic voor onderscheid */
+}
 
-    /* Scenario overrides Partner van Kind */
-    .rel-pkpartnerid.scenario-1 { background-color: #d0ebff !important; } /* Scenario 1 */
-    .rel-pkpartnerid.scenario-2 { background-color: #daf4ff !important; } /* Scenario 2 */
-    .rel-pkpartnerid.scenario-3 { background-color: #e4f9ff !important; } /* Scenario 3 */
+/* Scenario overrides Partner van Kind */
+.rel-pkpartnerid.scenario-1 { background-color: #d0ebff !important; }
+.rel-pkpartnerid.scenario-2 { background-color: #daf4ff !important; }
+.rel-pkpartnerid.scenario-3 { background-color: #e4f9ff !important; }
 
-    /* ====== Broers/Zussen ====== */
-    .rel-bzid { 
-        background-color: #fff3e0 !important; /* Licht oranje voor broer/zus, opvallend maar niet te fel */
-        font-weight: 500;                     /* Semi-bold */
-    }
+/* ====== Broers/Zussen ====== */
+.rel-bzid { 
+    background-color: #fff3e0 !important; /* Licht oranje voor broer/zus */
+    font-weight: 500;                     /* Semi-bold */
+}
 
-    /* Scenario overrides Broer/Zus */
-    .rel-bzid.scenario-1 { background-color: #fff3e0 !important; } /* Scenario 1 */
-    .rel-bzid.scenario-2 { background-color: #fff7ed !important; } /* Scenario 2 = iets lichter */
-    .rel-bzid.scenario-3 { background-color: #fffaf1 !important; } /* Scenario 3 = nog lichter */
+/* Scenario overrides Broers/Zussen */
+.rel-bzid.scenario-1 { background-color: #fff3e0 !important; }
+.rel-bzid.scenario-2 { background-color: #fff7ed !important; }
+.rel-bzid.scenario-3 { background-color: #fffaf1 !important; }
 
-    /* ====== Partner van Broer/Zus ====== */
-    .rel-bzpartnerid { 
-        background-color: #fbe9e7 !important; /* Iets donkerder oranje voor partner van broer/zus */
-        font-style: italic;                   /* Italic font voor onderscheid */
-    }
+/* ====== Partner van Broer/Zus ====== */
+.rel-bzpartnerid { 
+    background-color: #fbe9e7 !important; /* Iets donkerder oranje voor partner van broer/zus */
+    font-style: italic;                   /* Italic font voor onderscheid */
+}
 
-    /* Scenario overrides Partner Broer/Zus */
-    .rel-bzpartnerid.scenario-1 { background-color: #fbe9e7 !important; } /* Scenario 1 */
-    .rel-bzpartnerid.scenario-2 { background-color: #fcebe9 !important; } /* Scenario 2 */
-    .rel-bzpartnerid.scenario-3 { background-color: #fdecea !important; } /* Scenario 3 */
+/* Scenario overrides Partner Broer/Zus */
+.rel-bzpartnerid.scenario-1 { background-color: #fbe9e7 !important; }
+.rel-bzpartnerid.scenario-2 { background-color: #fcebe9 !important; }
+.rel-bzpartnerid.scenario-3 { background-color: #fdecea !important; }
 
-    /* ====== Algemene input cel styling ====== */
-    #manageTable td input { 
-        background-color: transparent; /* Input achtergrond transparant zodat celkleur zichtbaar blijft */
-        border: none;                  /* Geen borders voor cleaner look */
-        width: 100%;                   /* Input vult volledige celbreedte */
-        box-sizing: border-box;        /* Padding valt binnen breedte */
-        cursor: text;                  /* Cursor verandert naar tekst bij hover */
-    }
+/* ====== Algemene input cel styling ====== */
+#manageTable td input { 
+    background-color: transparent; /* Input achtergrond transparant zodat celkleur zichtbaar blijft */
+    border: none;                  /* Geen borders voor cleaner look */
+    width: 100%;                   /* Input vult volledige celbreedte */
+    box-sizing: border-box;        /* Padding valt binnen breedte */
+    cursor: text;                  /* Cursor verandert naar tekst bij hover */
+}
 
-    /* ====== Hover effect voor rijen ====== */
-    #manageTable tr:hover { 
-        background-color: rgba(0,0,0,0.05); /* Lichte grijze overlay bij hover om focus te tonen */
-    }
-    </style>
-</head>
-<body>
+/* ====== Hover effect voor rijen ====== */
+#manageTable tr:hover { 
+    background-color: rgba(0,0,0,0.05); /* Lichte grijze overlay bij hover om focus te tonen */
+}
+</style>
 
 <!-- ======================= TopBar & Navbar ======================= -->
 <div id="topbar-placeholder"></div> <!-- Placeholder voor topbar -->
