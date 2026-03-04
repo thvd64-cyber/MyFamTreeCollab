@@ -151,69 +151,106 @@ document.addEventListener('DOMContentLoaded', () => {
 <script src="../js/idGenerator.js"></script>
 <script src="../js/storage.js"></script>
 <script>
-function renderTable(data, hoofdId) { // Vul tabel dynamisch
-    const tableBody = document.querySelector('#manageTable tbody'); // Haal tbody
-    tableBody.innerHTML = ''; // Maak oude rijen leeg
 
-    if (!data || data.length === 0) { // Geen data
-        const tr = document.createElement('tr'); // Nieuwe rij
+ / ======================= renderTable v1.1 =======================
+function renderTable(data, hoofdId) { // Vul de tabel dynamisch
+    const tableBody = document.querySelector('#manageTable tbody'); // Haal tbody van de manageTable
+    tableBody.innerHTML = ''; // Maak bestaande rijen leeg
+
+    if (!data || data.length === 0) { // Als er geen data is
+        const tr = document.createElement('tr'); // Maak nieuwe rij
         tr.innerHTML = '<td colspan="10">Geen personen gevonden</td>'; // Placeholder
         tableBody.appendChild(tr);
         return;
     }
 
-    data.forEach(person => { // Loop door personen
-        const tr = document.createElement('tr'); // Nieuwe rij
+    data.forEach(person => { // Loop door alle personen
+        const tr = document.createElement('tr'); // Nieuwe rij aanmaken
 
-        if (person.id === hoofdId) { // HoofdID
-            tr.classList.add('rel-hoofd'); // Class geel
-            tr.style.backgroundColor = '#fffde7'; // Altijd geel (#fffde7)
-            tr.style.fontWeight = '600'; // Bold
-        } else if (person.type === 'partnerHoofd') { 
-            tr.classList.add('rel-phoofdid'); // Partner hoofd
-            tr.style.backgroundColor = '#f3e5f5'; // Licht paars
-            tr.style.fontStyle = 'italic'; // Italic
-        } else if (person.type === 'vader') {
-            tr.classList.add('rel-vhoofdid'); // Vader
-            tr.style.backgroundColor = '#e8f5e9'; // Licht groen
-            tr.style.fontWeight = '500'; // Semi-bold
-        } else if (person.type === 'moeder') {
-            tr.classList.add('rel-mhoofdid'); // Moeder
-            tr.style.backgroundColor = '#e8f5e9'; // Licht groen
-            tr.style.fontWeight = '500';
-        } else if (person.type === 'kind') {
-            tr.classList.add('rel-kindid'); // Kind
-            if(person.scenario === 1) tr.style.backgroundColor = '#e3f2fd'; // Blauw scenario 1
-            if(person.scenario === 2) tr.style.backgroundColor = '#eef7fe'; // Blauw scenario 2
-            if(person.scenario === 3) tr.style.backgroundColor = '#f7fbff'; // Blauw scenario 3
-            tr.style.fontWeight = '400'; // Normaal
-        } else if (person.type === 'partnerKind') {
-            tr.classList.add('rel-pkpartnerid'); // Partner kind
-            if(person.scenario === 1) tr.style.backgroundColor = '#d0ebff';
-            if(person.scenario === 2) tr.style.backgroundColor = '#daf4ff';
-            if(person.scenario === 3) tr.style.backgroundColor = '#e4f9ff';
-            tr.style.fontStyle = 'italic';
-        } else if (person.type === 'broerZus') {
-            tr.classList.add('rel-bzid'); // Broer/zus
-            if(person.scenario === 1) tr.style.backgroundColor = '#fff3e0';
-            if(person.scenario === 2) tr.style.backgroundColor = '#fff7ed';
-            if(person.scenario === 3) tr.style.backgroundColor = '#fffaf1';
-            tr.style.fontWeight = '500';
-        } else if (person.type === 'partnerBroerZus') {
-            tr.classList.add('rel-bzpartnerid'); // Partner broer/zus
-            if(person.scenario === 1) tr.style.backgroundColor = '#fbe9e7';
-            if(person.scenario === 2) tr.style.backgroundColor = '#fcebe9';
-            if(person.scenario === 3) tr.style.backgroundColor = '#fdecea';
-            tr.style.fontStyle = 'italic';
+        // ====== HoofdID ======
+        if (person.id === hoofdId) { // Check of persoon hoofdID is
+            tr.classList.add('rel-hoofd');              // Voeg CSS class toe
+            tr.style.backgroundColor = '#fffde7';       // Forceer geel op de <tr>
+            tr.style.fontWeight = '600';                // Bold font
+            tr.querySelectorAll('td').forEach(td => td.style.backgroundColor = '#fffde7'); // Forceer geel per cel
         }
 
+        // ====== Partner van Hoofd ======
+        else if (person.type === 'partnerHoofd') {
+            tr.classList.add('rel-phoofdid');           // Voeg CSS class paars toe
+            tr.style.backgroundColor = '#f3e5f5';       // Licht paars op <tr>
+            tr.style.fontStyle = 'italic';              // Italic font
+            tr.querySelectorAll('td').forEach(td => td.style.backgroundColor = '#f3e5f5'); // Forceer per cel
+        }
+
+        // ====== Vader ======
+        else if (person.type === 'vader') {
+            tr.classList.add('rel-vhoofdid');           // CSS class groen
+            tr.style.backgroundColor = '#e8f5e9';       // Licht groen
+            tr.style.fontWeight = '500';                // Semi-bold
+            tr.querySelectorAll('td').forEach(td => td.style.backgroundColor = '#e8f5e9'); // Forceer per cel
+        }
+
+        // ====== Moeder ======
+        else if (person.type === 'moeder') {
+            tr.classList.add('rel-mhoofdid');           // CSS class groen
+            tr.style.backgroundColor = '#e8f5e9';
+            tr.style.fontWeight = '500';
+            tr.querySelectorAll('td').forEach(td => td.style.backgroundColor = '#e8f5e9');
+        }
+
+        // ====== Kinderen ======
+        else if (person.type === 'kind') {
+            tr.classList.add('rel-kindid');             // CSS class kind
+            let color = '#e3f2fd';                      // Default scenario 1
+            if (person.scenario === 2) color = '#eef7fe'; // Scenario 2
+            if (person.scenario === 3) color = '#f7fbff'; // Scenario 3
+            tr.style.backgroundColor = color;           // Forceer op <tr>
+            tr.style.fontWeight = '400';                // Normaal
+            tr.querySelectorAll('td').forEach(td => td.style.backgroundColor = color); // Forceer per cel
+        }
+
+        // ====== Partner van Kind ======
+        else if (person.type === 'partnerKind') {
+            tr.classList.add('rel-pkpartnerid');        // CSS class partner kind
+            let color = '#d0ebff';                      // Default scenario 1
+            if (person.scenario === 2) color = '#daf4ff';
+            if (person.scenario === 3) color = '#e4f9ff';
+            tr.style.backgroundColor = color;           // Forceer op <tr>
+            tr.style.fontStyle = 'italic';              // Italic
+            tr.querySelectorAll('td').forEach(td => td.style.backgroundColor = color); // Forceer per cel
+        }
+
+        // ====== Broer/Zus ======
+        else if (person.type === 'broerZus') {
+            tr.classList.add('rel-bzid');               // CSS class
+            let color = '#fff3e0';
+            if (person.scenario === 2) color = '#fff7ed';
+            if (person.scenario === 3) color = '#fffaf1';
+            tr.style.backgroundColor = color;
+            tr.style.fontWeight = '500';
+            tr.querySelectorAll('td').forEach(td => td.style.backgroundColor = color);
+        }
+
+        // ====== Partner van Broer/Zus ======
+        else if (person.type === 'partnerBroerZus') {
+            tr.classList.add('rel-bzpartnerid');
+            let color = '#fbe9e7';
+            if (person.scenario === 2) color = '#fcebe9';
+            if (person.scenario === 3) color = '#fdecea';
+            tr.style.backgroundColor = color;
+            tr.style.fontStyle = 'italic';
+            tr.querySelectorAll('td').forEach(td => td.style.backgroundColor = color);
+        }
+
+        // ====== Voeg celinhoud toe ======
         tr.innerHTML = `
             <td>${person.voornaam || ''}</td>
             <td>${person.achternaam || ''}</td>
             <td>${person.relaties || ''}</td>
             <td>${person.scenario || ''}</td>
         `;
-        tableBody.appendChild(tr); // Voeg toe aan tbody
+        tableBody.appendChild(tr); // Voeg rij toe aan tbody
     });
 }
 </script>
