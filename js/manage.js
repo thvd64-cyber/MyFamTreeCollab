@@ -1,5 +1,6 @@
 // ======================= manage.js v1.3.12 =======================
 // Visuele aanpas ouders boven hoofd
+// Indentatie visueel weergave, hiërarchie ouders, hoofd, kinderen, partner, broer/zus
 // =================================================================
 (function(){
 'use strict'; // activeer strict mode
@@ -170,45 +171,45 @@ function computeRelaties(data, hoofdId){
 }
 
 // =======================
-// Render Table (ouders boven hoofd, leesbare labels)
+// Render Table (ouders boven hoofd, leesbare labels, hiërarchische indentatie)
 // =======================
 function renderTable(dataset){
-    // Controleer of er een geselecteerd hoofd is, anders placeholder tonen
+    // Controleer of er een geselecteerd hoofd is
     if(!selectedHoofdId){ showPlaceholder('Selecteer een persoon'); return; }
 
     // Bereken contextuele relaties (vader, moeder, partner, kinderen, etc.)
     const contextData = computeRelaties(dataset, selectedHoofdId);
     if(!contextData.length){ showPlaceholder('Geen personen gevonden'); return; }
 
-    // Maak tbody leeg om opnieuw te vullen
+    // Maak tbody leeg
     tableBody.innerHTML = ''; 
-    const renderQueue = []; // queue waarin we rijen in juiste weergavevolgorde zetten
+    const renderQueue = []; // queue voor rijen in juiste weergavevolgorde
 
     // ======================
-    // Vader en moeder eerst
+    // Ouders eerst
     // ======================
     contextData
         .filter(p => p.Relatie==='VHoofdID' || p.Relatie==='MHoofdID') // filter ouders
-        .forEach(p => renderQueue.push(p)); // voeg ouders toe aan queue
+        .forEach(p => renderQueue.push(p)); // voeg toe aan queue
 
     // ======================
-    // Daarna hoofd
+    // Hoofd daarna
     // ======================
-    const hoofd = contextData.find(p => p.Relatie==='HoofdID'); // zoek hoofdpersoon
+    const hoofd = contextData.find(p => p.Relatie==='HoofdID'); // zoek hoofd
     if(hoofd) renderQueue.push(hoofd); // voeg hoofd toe na ouders
 
     // ======================
-    // Partner hoofd
+    // Partner van hoofd
     // ======================
     contextData
-        .filter(p => p.Relatie==='PHoofdID') // filter partner hoofd
-        .forEach(p => renderQueue.push(p)); // voeg partner toe
+        .filter(p => p.Relatie==='PHoofdID')
+        .forEach(p => renderQueue.push(p));
 
     // ======================
     // Kinderen + partner van kind
     // ======================
     contextData
-        .filter(p => p.Relatie==='KindID') // filter kinderen
+        .filter(p => p.Relatie==='KindID')
         .forEach(kind=>{
             renderQueue.push(kind); // voeg kind toe
             const kp = contextData.find(p => p.Relatie==='KindPartnerID' && safe(p.ID)===safe(kind.PartnerID));
@@ -219,7 +220,7 @@ function renderTable(dataset){
     // Broer/Zus + partner van broer/zus
     // ======================
     contextData
-        .filter(p => p.Relatie==='BZID') // filter broer/zus
+        .filter(p => p.Relatie==='BZID')
         .forEach(sib=>{
             renderQueue.push(sib); // voeg broer/zus toe
             const bzP = contextData.find(p => p.Relatie==='BZPartnerID' && safe(p.ID)===safe(sib.PartnerID));
@@ -227,49 +228,78 @@ function renderTable(dataset){
         });
 
     // ======================
-    // Render rijen in tabel
+    // Render rijen met hiërarchische indentatie
     // ======================
     renderQueue.forEach(p=>{
-        const tr = document.createElement('tr'); // nieuwe tabelrij
+        const tr = document.createElement('tr'); // maak nieuwe tabelrij
 
         // Leesbare labels instellen
         let relatieLabel = '';
         switch(p.Relatie){
             case 'VHoofdID':
             case 'MHoofdID':
-                relatieLabel = 'Ouder';
+                relatieLabel = 'Ouder'; 
                 break;
             case 'PHoofdID':
             case 'KindPartnerID':
             case 'BZPartnerID':
-                relatieLabel = 'Partner';
+                relatieLabel = 'Partner'; 
                 break;
             case 'BZID':
-                relatieLabel = 'Broer/Zus';
+                relatieLabel = 'Broer/Zus'; 
                 break;
             case 'HoofdID':
-                relatieLabel = 'Hoofd';
+                relatieLabel = 'Hoofd'; 
                 break;
             case 'KindID':
-                relatieLabel = 'Kind';
+                relatieLabel = 'Kind'; 
                 break;
             default:
-                relatieLabel = p.Relatie || '-';
+                relatieLabel = p.Relatie || '-'; 
         }
 
-        // CSS class op basis van originele relatie (voor styling)
+        // CSS class voor styling behouden
         if(p.Relatie) tr.classList.add(`rel-${p.Relatie.toLowerCase()}`);
 
         // Vul kolommen
         COLUMNS.forEach(col=>{
-            const td = document.createElement('td');
+            const td = document.createElement('td'); // maak cel
 
+            // Indentatie bepalen op basis van hiërarchie
+            let indent = 0; 
+            switch(p.Relatie){
+                case 'VHoofdID':
+                case 'MHoofdID':
+                    indent = 1; // ouder iets inspringen
+                    break;
+                case 'HoofdID':
+                    indent = 0; // hoofd geen indent
+                    break;
+                case 'PHoofdID':
+                    indent = 1; // partner van hoofd inspringen
+                    break;
+                case 'KindID':
+                case 'KindPartnerID':
+                    indent = 2; // kinderen en partner inspringen
+                    break;
+                case 'BZID':
+                case 'BZPartnerID':
+                    indent = 1; // broer/zus en partner iets inspringen
+                    break;
+                default:
+                    indent = 0;
+            }
+
+            // Pas padding-left toe voor visuele indentatie
+            td.style.paddingLeft = `${indent * 20}px`; // 20px per niveau
+
+            // Kolom vullen
             if(col.key === 'Relatie'){ 
-                td.textContent = relatieLabel; // vervang interne code door leesbaar label
+                td.textContent = relatieLabel; // leesbaar label
             } else if(col.readonly){ 
-                td.textContent = p[col.key]||''; // alleen-lezen veld
+                td.textContent = p[col.key]||''; // alleen-lezen
             } else { 
-                const input = document.createElement('input'); // bewerkbare cel
+                const input = document.createElement('input'); 
                 input.value = p[col.key]||''; 
                 input.dataset.field = col.key; 
                 td.appendChild(input); 
@@ -280,8 +310,7 @@ function renderTable(dataset){
 
         tableBody.appendChild(tr); // voeg rij toe aan tabel
     });
-}
-    
+} 
 
 // =======================
 // Placeholder
