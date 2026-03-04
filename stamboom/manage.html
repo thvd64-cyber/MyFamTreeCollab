@@ -1,4 +1,5 @@
-<!-- ======================= stamboom/manage.html v1.2.4 ======================= -->
+<!-- ======================= stamboom/manage.html v1.2.5 ======================= -->
+<!-- scenario override code toegevoegd voor HoofdID en kind partner -->
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -14,6 +15,11 @@
         background-color: #fffde7 !important; /* Licht geel zodat het hoofd van de stamboom direct opvalt */
         font-weight: 600;                     /* Bold font voor snelle herkenning van hoofdID */
     }
+        /* Scenario override: hoofdrij altijd geel, ongeacht andere kleuren */
+        tr.rel-hoofd, tr.rel-hoofd td {
+    background-color: #fffde7 !important;
+    font-weight: 600;
+}
 
     /* ====== Ouders ====== */
     .rel-vhoofdid, .rel-mhoofdid { 
@@ -22,10 +28,15 @@
     }
 
     /* ====== Partner van Hoofd ====== */
-    .rel-phoofdid { 
-        background-color: #f3e5f5 !important; /* Licht paars/lavendel voor partner van hoofd, visueel apart van hoofd en ouders */
-        font-style: italic;                   /* Italic zodat partner makkelijker te onderscheiden is */
-    }
+.rel-phoofdid { 
+    background-color: #f3e5f5 !important; /* Licht paars/lavendel voor partner van hoofd */
+    font-style: italic;                   /* Italic zodat partner makkelijker te onderscheiden is */
+}
+
+/* Scenario override: partner van hoofd altijd paars/lavendel, ongeacht andere kleuren */
+tr.rel-phoofdid, tr.rel-phoofdid td {
+    background-color: #f3e5f5 !important;
+    font-style: italic;
 
     /* ====== Kinderen ====== */
     .rel-kindid { 
