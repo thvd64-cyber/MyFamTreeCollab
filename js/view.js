@@ -172,7 +172,7 @@ function liveSearch(){
         row.addEventListener('click',()=>{
             selectedHoofdId = safe(p.ID); 
             popup.remove();
-            renderTable(dataset);
+            renderTable();
         });
         popup.appendChild(row);
     });
