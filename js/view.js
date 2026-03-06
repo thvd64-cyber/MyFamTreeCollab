@@ -137,38 +137,52 @@ function renderTree(){
     treeContainer.appendChild(tree);
 }
 
+
 // =======================
-// LIVE SEARCH (popup)
+// Live Search
 // =======================
 function liveSearch(){
-    document.getElementById('searchPopup')?.remove(); // verwijder oude popup
-    const term=safe(searchInput.value).toLowerCase();
+    const term = safe(searchInput.value).toLowerCase();
+    document.getElementById('searchPopup')?.remove();
     if(!term) return;
 
-    const results=dataset.filter(p=>
+    const results = dataset.filter(p=>
         safe(p.ID).toLowerCase().includes(term) ||
         safe(p.Roepnaam).toLowerCase().includes(term) ||
         safe(p.Achternaam).toLowerCase().includes(term)
     );
 
-    const rect=searchInput.getBoundingClientRect();
-    const popup=document.createElement('div'); popup.id='searchPopup';
-    Object.assign(popup.style,{
-        position:'absolute',background:'#fff',border:'1px solid #999',zIndex:1000,
-        top:rect.bottom+window.scrollY+'px', left:rect.left+window.scrollX+'px', width:rect.width+'px',
-        maxHeight:'200px',overflowY:'auto'
-    });
+    const rect = searchInput.getBoundingClientRect();
+    const popup = document.createElement('div');
+    popup.id='searchPopup';
+    popup.style.position='absolute';
+    popup.style.background='#fff';
+    popup.style.border='1px solid #999';
+    popup.style.zIndex=1000;
+    popup.style.top=rect.bottom+window.scrollY+'px';
+    popup.style.left=rect.left+window.scrollX+'px';
+    popup.style.width=rect.width+'px';
+    popup.style.maxHeight='200px';
+    popup.style.overflowY='auto';
 
     results.forEach(p=>{
-        const row=document.createElement('div'); row.textContent=`${p.ID} | ${p.Roepnaam} | ${p.Achternaam}`;
-        Object.assign(row.style,{padding:'5px',cursor:'pointer'});
+        const row = document.createElement('div');
+        row.textContent=`${p.ID} | ${p.Roepnaam} | ${p.Achternaam}`;
+        row.style.padding='5px'; row.style.cursor='pointer';
         row.addEventListener('click',()=>{
-            selectedHoofdId=safe(p.ID); popup.remove(); renderTree();
+            selectedHoofdId = safe(p.ID); 
+            popup.remove();
+            renderTable(dataset);
         });
         popup.appendChild(row);
     });
 
-    if(results.length===0){ const row=document.createElement('div'); row.textContent='Geen resultaten'; row.style.padding='5px'; popup.appendChild(row); }
+    if(results.length===0){ 
+        const row=document.createElement('div'); 
+        row.textContent='Geen resultaten'; 
+        row.style.padding='5px'; 
+        popup.appendChild(row); 
+    }
 
     document.body.appendChild(popup);
 }
