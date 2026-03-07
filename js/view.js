@@ -1,6 +1,5 @@
-// ======================= view.js v1.2.3 =======================
+// ======================= view.js v1.2.2 =======================
 // vis-network voor stamboom
-// live search manage geplaatst
 (function(){
 'use strict'; // activeer strict mode zodat JS veiliger werkt
 
@@ -225,49 +224,44 @@ function refreshTable(){
 // Live Search
 // =======================
 function liveSearch(){
-    const term = safe(searchInput.value).toLowerCase();
-    document.getElementById('searchPopup')?.remove();
-    if(!term) return;
+    const term=safe(searchInput.value).toLowerCase(); // zoekterm
+    document.getElementById('searchPopup')?.remove(); // oude popup weg
+    if(!term) return; // stop bij leeg
 
-    const results = dataset.filter(p=>
-        safe(p.ID).toLowerCase().includes(term) ||
-        safe(p.Roepnaam).toLowerCase().includes(term) ||
-        safe(p.Achternaam).toLowerCase().includes(term)
+    const results=dataset.filter(p=> // filter dataset
+        safe(p.ID).toLowerCase().includes(term) || // match ID
+        safe(p.Roepnaam).toLowerCase().includes(term) || // match roepnaam
+        safe(p.Achternaam).toLowerCase().includes(term) // match achternaam
     );
 
-    const rect = searchInput.getBoundingClientRect();
-    const popup = document.createElement('div');
-    popup.id='searchPopup';
-    popup.style.position='absolute';
-    popup.style.background='#fff';
-    popup.style.border='1px solid #999';
-    popup.style.zIndex=1000;
-    popup.style.top=rect.bottom+window.scrollY+'px';
-    popup.style.left=rect.left+window.scrollX+'px';
-    popup.style.width=rect.width+'px';
-    popup.style.maxHeight='200px';
-    popup.style.overflowY='auto';
+    const rect=searchInput.getBoundingClientRect(); // positie zoekveld
+    const popup=document.createElement('div'); // popup
+    popup.id='searchPopup'; // id
 
-    results.forEach(p=>{
-        const row = document.createElement('div');
-        row.textContent=`${p.ID} | ${p.Roepnaam} | ${p.Achternaam}`;
-        row.style.padding='5px'; row.style.cursor='pointer';
-        row.addEventListener('click',()=>{
-            selectedHoofdId = safe(p.ID); 
-            popup.remove();
-            renderTable(dataset);
+    popup.style.position='absolute'; // absolute positie
+    popup.style.background='#fff'; // witte achtergrond
+    popup.style.border='1px solid #999'; // rand
+    popup.style.zIndex=1000; // boven andere elementen
+    popup.style.top=rect.bottom+window.scrollY+'px'; // plaats onder zoekveld
+    popup.style.left=rect.left+window.scrollX+'px'; // uitlijnen links
+    popup.style.width=rect.width+'px'; // zelfde breedte
+
+    results.forEach(p=>{ // loop resultaten
+        const row=document.createElement('div'); // resultaat rij
+        row.textContent=`${p.ID} | ${p.Roepnaam} | ${p.Achternaam}`; // label
+        row.style.padding='5px'; // spacing
+        row.style.cursor='pointer'; // klik cursor
+
+        row.addEventListener('click',()=>{ // klik event
+            selectedHoofdId=safe(p.ID); // selecteer persoon
+            popup.remove(); // sluit popup
+            renderTable(dataset); // render tabel + boom
         });
-        popup.appendChild(row);
+
+        popup.appendChild(row); // voeg toe
     });
 
-    if(results.length===0){ 
-        const row=document.createElement('div'); 
-        row.textContent='Geen resultaten'; 
-        row.style.padding='5px'; 
-        popup.appendChild(row); 
-    }
-
-    document.body.appendChild(popup);
+    document.body.appendChild(popup); // plaats popup
 }
 
 // =======================
