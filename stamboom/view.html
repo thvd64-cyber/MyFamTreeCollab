@@ -1,113 +1,208 @@
-<!-- ======================= stamboom/view.html v1.2.4  ======================= -->
-<!--  Tabel verwijderd → geen #viewTable meer, focus op boom + broers/zussen.-->
-<!-- Container flex → #treeContainer + #siblingsContainer naast elkaar.-->
-<!-- Broers/zussen lijst → klikbaar, update selectedHoofdId en her-render de boom.-->
-<!-- Code regel uitleg → inline commentaar achter belangrijke regels toegevoegd.-->
-<!-- Styling → consistent met scenario kleuren en boom nodes-->
-
+<!-- ======================= stamboom/view.html v1.2.2 ======================= -->
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8"> <!-- Tekencodering UTF-8 -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Mobiel responsive -->
-<title>MyFamTreeCollab - View</title>
-<link rel="stylesheet" href="../css/style.css"> <!-- Algemene CSS -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyFamTreeCollab - View</title>
+    <link rel="stylesheet" href="../css/style.css">
 
-<style>
-/* ======================= RELATIE STYLING ======================= */
-.rel-hoofd { background-color: #fffde7 !important; font-weight: 600; } /* Hoofd persoon */
-.rel-vhoofdid, .rel-mhoofdid { background-color: #e8f5e9 !important; font-weight: 500; } /* Ouders */
-.rel-phoofdid { background-color: #f3e5f5 !important; font-style: italic; } /* Partner hoofd */
-.rel-kindid { background-color: #e3f2fd !important; font-weight: 400; } /* Kinderen */
-.rel-kindid.scenario-2 { background-color: #eef7fe !important; } 
-.rel-kindid.scenario-3 { background-color: #f7fbff !important; } 
-.rel-pkpartnerid { background-color: #d0ebff !important; font-style: italic; } /* Partner kind */
-.rel-pkpartnerid.scenario-2 { background-color: #daf4ff !important; } 
-.rel-pkpartnerid.scenario-3 { background-color: #e4f9ff !important; } 
-.rel-bzid { background-color: #fff3e0 !important; font-weight: 500; } /* Broer/Zus */
-.rel-bzid.scenario-2 { background-color: #fff7ed !important; } 
-.rel-bzid.scenario-3 { background-color: #fffaf1 !important; } 
-.rel-bzpartnerid { background-color: #fbe9e7 !important; font-style: italic; } /* Partner B/Z */
-.rel-bzpartnerid.scenario-2 { background-color: #fcebe9 !important; }
-.rel-bzpartnerid.scenario-3 { background-color: #fdecea !important; } 
+    <!-- ======================= RELATIE STYLING VIEW TABLE ======================= -->
+    <style>
+        /* ====== HoofdID ====== */
+        .rel-hoofd { 
+            background-color: #fffde7 !important; 
+            font-weight: 600;                     
+        }
+        /* ====== Ouders ====== */
+        .rel-vhoofdid, .rel-mhoofdid { 
+            background-color: #e8f5e9 !important; 
+            font-weight: 500;                     
+        }
+        /* ====== Partner van Hoofd ====== */
+        .rel-phoofdid { 
+            background-color: #f3e5f5 !important; 
+            font-style: italic;                   
+        }
+        /* ====== Kinderen ====== */
+        .rel-kindid { 
+            background-color: #e3f2fd !important; 
+            font-weight: 400;                     
+        }
+        .rel-kindid.scenario-1 { background-color: #e3f2fd !important; } 
+        .rel-kindid.scenario-2 { background-color: #eef7fe !important; } 
+        .rel-kindid.scenario-3 { background-color: #f7fbff !important; } 
+        /* ====== Partner van Kind ====== */
+        .rel-pkpartnerid { 
+            background-color: #d0ebff !important; 
+            font-style: italic;                   
+        }
+        .rel-pkpartnerid.scenario-1 { background-color: #d0ebff !important; } 
+        .rel-pkpartnerid.scenario-2 { background-color: #daf4ff !important; } 
+        .rel-pkpartnerid.scenario-3 { background-color: #e4f9ff !important; } 
+        /* ====== Broers/Zussen ====== */
+        .rel-bzid { 
+            background-color: #fff3e0 !important; 
+            font-weight: 500;                     
+        }
+        .rel-bzid.scenario-1 { background-color: #fff3e0 !important; } 
+        .rel-bzid.scenario-2 { background-color: #fff7ed !important; } 
+        .rel-bzid.scenario-3 { background-color: #fffaf1 !important; } 
+        /* ====== Partner van Broer/Zus ====== */
+        .rel-bzpartnerid { 
+            background-color: #fbe9e7 !important; 
+            font-style: italic;                   
+        }
+        .rel-bzpartnerid.scenario-1 { background-color: #fbe9e7 !important; }
+        .rel-bzpartnerid.scenario-2 { background-color: #fcebe9 !important; }
+        .rel-bzpartnerid.scenario-3 { background-color: #fdecea !important; }
 
-/* ======================= Layout ======================= */
-.container { display: flex; gap: 20px; align-items: flex-start; } /* Flex container voor boom + B/Z lijst */
-#treeContainer { flex: 1; margin-top: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; background-color: #fafafa; } /* Boom container */
-#siblingsContainer { width: 220px; flex-shrink: 0; padding: 10px; border: 1px solid #ccc; border-radius: 6px; background: #fafafa; } /* Broers/Zussen lijst */
-#siblingsContainer h4 { margin-top:0; } 
-#siblingsList { list-style:none; padding-left:0; margin:0; } /* ul reset */
-#siblingsList li { padding:4px 0; cursor:pointer; } /* individuele B/Z */
-#siblingsList li:hover { background-color: rgba(0,0,0,0.05); } /* hover effect B/Z */
-.tree-node { display: inline-block; padding: 5px 10px; margin: 5px; border-radius: 4px; background-color: #fff; border: 1px solid #999; cursor: default; } /* node styling */
-.tree-root { text-align: center; margin-bottom: 10px; } 
-.tree-parents, .tree-children { display: flex; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; }
-</style>
+        /* ====== Transparante tabel en cel achtergrond ====== */
+        #viewTable {
+            background-color: transparent; 
+            border-collapse: collapse;     
+            width: 100%;
+            margin-top: 15px;
+        }
+        #viewTable td {
+            background-color: transparent; 
+            padding: 5px;
+        }
+        #viewTable td input, #viewTable td textarea {
+            background-color: transparent; 
+            border: none;                  
+            width: 100%;                   
+            box-sizing: border-box;        
+            cursor: text;                  
+        }
+
+        /* ====== Hover effect rijen ====== */
+        #viewTable tr:hover { 
+            background-color: rgba(0,0,0,0.05); 
+        }
+
+        /* ====== Boom container styling ====== */
+        #treeContainer {
+            margin-top: 25px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background-color: #fafafa;
+        }
+
+        /* Tree node styling */
+        .tree-node {
+            display: inline-block;
+            padding: 5px 10px;
+            margin: 5px;
+            border-radius: 4px;
+            background-color: #fff;
+            border: 1px solid #999;
+            cursor: default;
+        }
+        .tree-root {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .tree-parents, .tree-children {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
 <!-- ======================= TopBar & Navbar ======================= -->
 <div id="topbar-placeholder"></div>
 <script>
 fetch('/MyFamTreeCollab/Layout/TopBar.html')
-  .then(resp => resp.text())
-  .then(data => document.getElementById('topbar-placeholder').innerHTML = data); // TopBar toevoegen
+    .then(resp => resp.text())
+    .then(data => document.getElementById('topbar-placeholder').innerHTML = data);
 </script>
 
 <div id="Navbar-placeholder"></div>
 <script>
 fetch('/MyFamTreeCollab/Layout/Navbar.html')
-  .then(resp => resp.text())
-  .then(data => { const ph=document.getElementById('Navbar-placeholder'); if(ph) ph.innerHTML=data; });
+    .then(resp => resp.text())
+    .then(data => {
+        const placeholder = document.getElementById('Navbar-placeholder');
+        if (placeholder) placeholder.innerHTML = data;
+        else console.error('Navbar-placeholder niet gevonden');
+    });
 </script>
 
 <!-- ======================= Pagina Titel ======================= -->
-<div id="pageTitle" style="font-size:1.5rem; font-weight:bold; margin-bottom:15px;">View Stamboom</div>
+<div id="pageTitle" style="font-size:1.5rem; font-weight:bold; margin-bottom:15px;"></div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('pageTitle').textContent = "View Stamboom";
+});
+</script>
 
-<!-- ======================= Intro ======================= -->
+<!-- ======================= Intro Content ======================= -->
 <section style="margin-top:20px; padding:20px; background:#ffffff; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.05);">
-<h2 style="margin-bottom:15px;">Welkom bij MyFamTreeCollab</h2>
-<p style="margin-bottom:15px; line-height:1.6;">
-Deze omgeving is ontworpen om familiegeschiedenis centraal, overzichtelijk en veilig te beheren.
-Hier kan je personen bekijken, relaties analyseren en generaties structureren binnen één gedeeld platform.
-</p>
-<p style="margin-bottom:15px; line-height:1.6;">De view-pagina zal binnenkort uitgebreide functionaliteiten bevatten zoals:</p>
-<ul style="margin-left:20px; line-height:1.6;">
-<li>Overzicht van alle personen</li>
-<li>Relaties en familieverbanden visualiseren</li>
-<li>Filter- en zoekmogelijkheden</li>
-<li>Detailweergave per familielid</li>
-</ul>
+    <h2 style="margin-bottom:15px;">Welkom bij MyFamTreeCollab</h2>
+    <p style="margin-bottom:15px; line-height:1.6;">
+        Deze omgeving is ontworpen om familiegeschiedenis centraal, overzichtelijk en veilig te beheren.
+        Hier kan je personen bekijken, relaties analyseren en generaties structureren binnen Ã©Ã©n gedeeld platform.
+    </p>
+    <p style="margin-bottom:15px; line-height:1.6;">
+        De view-pagina zal binnenkort uitgebreide functionaliteiten bevatten zoals:
+    </p>
+    <ul style="margin-left:20px; line-height:1.6;">
+        <li>Overzicht van alle personen</li>
+        <li>Relaties en familieverbanden visualiseren</li>
+        <li>Filter- en zoekmogelijkheden</li>
+        <li>Detailweergave per familielid</li>
+    </ul>
 </section>
 
-<!-- ======================= Search + Actions ======================= -->
-<div style="margin-top:15px; margin-bottom:15px;">
-<input type="text" id="searchPerson" placeholder="Voer ID of naam in"> <!-- Live search input -->
-<button id="refreshBtn">Refresh</button> <!-- Refresh dataset -->
-<button id="addBtn">+ Toevoegen</button> <!-- Voeg persoon toe -->
-<button id="saveBtn">Opslaan</button> <!-- Opslaan dataset -->
-</div>
+<main class="container" style="margin-top:20px;">
+    <!-- Zoekveld en knoppen -->
+    <input type="text" id="searchPerson" placeholder="Voer ID of naam in"> 
+    <button id="refreshBtn">Refresh</button> 
+    <button id="addBtn">+ Toevoegen</button> 
+    <button id="saveBtn">Opslaan</button> 
 
-<!-- ======================= Boom + Broers/Zussen ======================= -->
-<div class="container">
-    <div id="treeContainer"></div> <!-- Boom container -->
-    <div id="siblingsContainer"> <!-- Broers/Zussen container -->
-        <h4>Broers/Zussen</h4>
-        <ul id="siblingsList"></ul>
+    <!-- Zoekresultaat Formulier -->
+    <div id="searchResultForm" style="display:none; margin-top:15px; border:1px solid #ccc; padding:10px;">
+        <h4>Gevonden personen:</h4>
+        <form id="resultForm">
+            <table id="resultTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Roepnaam</th>
+                        <th>Achternaam</th>
+                        <th>Geboortedatum</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </form>
     </div>
-</div>
+
+    <!-- View tabel -->
+    <table id="viewTable">
+        <thead><tr></tr></thead> 
+        <tbody></tbody>
+    </table>
+
+    <!-- Boom container -->
+    <div id="treeContainer"></div>
+</main>
 
 <!-- ======================= Scripts ======================= -->
 <script src="../js/schema.js"></script>
 <script src="../js/idGenerator.js"></script>
 <script src="../js/storage.js"></script>
-<script src="../js/view.js"></script> <!-- Hierin renderTable + renderSiblings + liveSearch -->
+<script src="../js/view.js"></script>
 
 <!-- ======================= Footer ======================= -->
 <div id="footer-placeholder"></div>
 <script>
 fetch('/MyFamTreeCollab/Layout/Footer.html')
-  .then(resp => resp.text())
-  .then(data => document.getElementById('footer-placeholder').innerHTML = data); // Footer plaatsen
+    .then(resp => resp.text())
+    .then(data => document.getElementById('footer-placeholder').innerHTML = data);
 </script>
-</body>
-</html>
