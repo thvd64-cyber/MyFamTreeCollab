@@ -1,59 +1,58 @@
-// ======================= view.js v1.2.8 =======================
-// Boom rendering + Live search + Broers/Zussen + relatie kleuren
-// Nodes zijn klikbaar zodat je door de stamboom kan navigeren
-
+// ======================= view.js v1.2.9 =======================
+// Live search + siblings fix
 (function(){
 'use strict'; // voorkomt onbedoelde globale variabelen
+
 // =======================
 // DOM-elementen
 // =======================
-const treeBox      = document.getElementById('treeContainer');   // container waar de boom wordt opgebouwd
+const treeBox      = document.getElementById('treeContainer');   // container voor boom
 const siblingsList = document.getElementById('siblingsList');    // lijst met broers/zussen
-const searchInput  = document.getElementById('searchPerson');    // zoekveld
-const refreshBtn   = document.getElementById('refreshBtn');      // refresh knop
+const searchInput  = document.getElementById('searchPerson');    // live search input
+const refreshBtn   = document.getElementById('refreshBtn');      // refresh knop (optioneel)
 
 // =======================
 // State
 // =======================
-let dataset = window.StamboomStorage.get() || []; // dataset laden uit storage
-let selectedHoofdId = null;                       // huidige hoofd persoon in de boom
+let dataset = window.StamboomStorage.get() || []; // dataset ophalen uit storage
+let selectedHoofdId = null;                       // hoofdpersoon start leeg (live search bepaalt)
 
 // =======================
 // Helpers
 // =======================
-function safe(val){ return val ? String(val).trim() : ''; } // voorkomt null/undefined problemen
-function nodeLabel(p){                                      // label voor node maken
-    return `${safe(p.Roepnaam)} ${safe(p.Achternaam)} (${safe(p.ID)})`; // naam + ID tonen
+function safe(val){ return val ? String(val).trim() : ''; }   // voorkomt null/undefined
+function nodeLabel(p){                                        // label voor node
+    return `${safe(p.Roepnaam)} ${safe(p.Achternaam)} (${safe(p.ID)})`;
 }
 
 // =======================
 // NODE CREATOR
 // =======================
-function createNode(p,rel){                                  // node maken met relatie type
-    const div = document.createElement('div');               // nieuwe div node maken
-    div.className = 'tree-node';                             // basis CSS class
-    if(rel) div.classList.add(rel);                          // relatie class toevoegen voor kleur
-    div.textContent = nodeLabel(p);                          // label tonen
-    div.dataset.id = p.ID;                                   // ID opslaan in dataset attribuut
+function createNode(p,rel){
+    const div = document.createElement('div');              // maak div voor persoon
+    div.className = 'tree-node';                            // basis CSS
+    if(rel) div.classList.add(rel);                         // voeg relatie class toe
+    div.textContent = nodeLabel(p);                         // label tonen
+    div.dataset.id = p.ID;                                  // ID in dataset attribuut
 
-    div.addEventListener('click', () => {                    // klik op node
-        selectedHoofdId = p.ID;                              // nieuwe hoofd persoon zetten
-        renderTree();                                        // boom opnieuw renderen
+    div.addEventListener('click', () => {                   // klik event
+        selectedHoofdId = p.ID;                             // klik = nieuwe hoofdpersoon
+        renderTree();                                       // boom renderen
     });
 
-    return div;                                              // node teruggeven
+    return div;                                             // node teruggeven
 }
 
 // =======================
 // DATA HELPERS
 // =======================
-function findPerson(id){                                     // persoon zoeken op ID
-    return dataset.find(p => safe(p.ID) === safe(id));
+function findPerson(id){
+    return dataset.find(p => safe(p.ID) === safe(id));      // persoon zoeken op ID
 }
-function findChildren(id){                                   // kinderen zoeken
+function findChildren(id){
     return dataset.filter(p =>
-        safe(p.VaderID) === safe(id) ||
-        safe(p.MoederID) === safe(id)
+        safe(p.VaderID) === safe(id) ||                     // kinderen via vader
+        safe(p.MoederID) === safe(id)                       // kinderen via moeder
     );
 }
 
@@ -61,93 +60,93 @@ function findChildren(id){                                   // kinderen zoeken
 // BOOM BUILDER
 // =======================
 function buildTree(rootID){
-    treeBox.innerHTML = '';                                  // container leeg maken
-    if(!rootID){                                             // geen hoofd persoon
+    treeBox.innerHTML = '';                                  // leegmaken container
+    if(!rootID){                                             // geen hoofdpersoon
         treeBox.textContent = 'Selecteer een persoon';
         return;
     }
-    const root = findPerson(rootID);                         // hoofd persoon ophalen
-    if(!root){                                               // controle of persoon bestaat
+
+    const root = findPerson(rootID);                         // hoofdpersoon ophalen
+    if(!root){                                               // controle
         treeBox.textContent = 'Persoon niet gevonden';
         return;
     }
 
     // ===== ROOT =====
-    const rootNode = createNode(root,'rel-hoofd');           // hoofd node met kleur
+    const rootNode = createNode(root,'rel-hoofd');           // node hoofd
     const rootWrapper = document.createElement('div');       // wrapper voor root + partner
-    rootWrapper.className = 'tree-root';                     // CSS structuur
-    rootWrapper.appendChild(rootNode);                       // root toevoegen
-    treeBox.appendChild(rootWrapper);                        // wrapper in boom plaatsen
-    
+    rootWrapper.className = 'tree-root';
+    rootWrapper.appendChild(rootNode);
+    treeBox.appendChild(rootWrapper);
+
     // ===== OUDERS =====
-    const parents = document.createElement('div');           // container ouders
+    const parents = document.createElement('div');
     parents.className = 'tree-parents';
-    if(root.VaderID){                                        // vader aanwezig?
-        const v = findPerson(root.VaderID);                  // vader ophalen
-        if(v) parents.appendChild(createNode(v,'rel-vhoofdid')); // vader node toevoegen
+    if(root.VaderID){
+        const v = findPerson(root.VaderID);
+        if(v) parents.appendChild(createNode(v,'rel-vhoofdid'));
     }
-    if(root.MoederID){                                       // moeder aanwezig?
-        const m = findPerson(root.MoederID);                 // moeder ophalen
-        if(m) parents.appendChild(createNode(m,'rel-mhoofdid')); // moeder node toevoegen
+    if(root.MoederID){
+        const m = findPerson(root.MoederID);
+        if(m) parents.appendChild(createNode(m,'rel-mhoofdid'));
     }
-    if(parents.children.length > 0){                         // alleen tonen als ouders bestaan
-        treeBox.prepend(parents);
+    if(parents.children.length > 0){
+        treeBox.prepend(parents);                           // alleen tonen als ouders aanwezig
     }
 
     // ===== PARTNER =====
-    if(root.PartnerID){                                      // partner aanwezig?
-        const partner = findPerson(root.PartnerID);          // partner zoeken
+    if(root.PartnerID){
+        const partner = findPerson(root.PartnerID);
         if(partner){
-            rootWrapper.appendChild(
-                createNode(partner,'rel-phoofdid')           // partner node toevoegen
-            );
+            rootWrapper.appendChild(createNode(partner,'rel-phoofdid'));
         }
     }
 
     // ===== KINDEREN =====
-    const kids = findChildren(rootID);                       // kinderen ophalen
+    const kids = findChildren(rootID);
     if(kids.length > 0){
-        const kidsWrap = document.createElement('div');      // container kinderen
+        const kidsWrap = document.createElement('div');
         kidsWrap.className = 'tree-children';
-        kids.forEach(k => {                                  // elk kind doorlopen
-            kidsWrap.appendChild(
-                createNode(k,'rel-kindid')                   // kind node toevoegen
-            );
+        kids.forEach(k => {
+            kidsWrap.appendChild(createNode(k,'rel-kindid'));
         });
-        treeBox.appendChild(kidsWrap);                       // kinderen container toevoegen
+        treeBox.appendChild(kidsWrap);
     }
-    renderSiblings(rootID);                                  // broers/zussen lijst verversen
+
+    renderSiblings(rootID);                                   // broers/zussen renderen
 }
-function renderTree(){ buildTree(selectedHoofdId); }         // wrapper voor boom render
+
+function renderTree(){ buildTree(selectedHoofdId); }          // wrapper
 
 // =======================
 // BROERS / ZUSSEN
 // =======================
 function renderSiblings(rootID){
-    siblingsList.innerHTML = '';                             // lijst leeg maken
-    if(!rootID) return;                                      // geen hoofd persoon
-    const persoon = findPerson(rootID);                      // hoofd persoon ophalen
+    siblingsList.innerHTML = '';                              // lijst leegmaken
+    if(!rootID) return;
+    const persoon = findPerson(rootID);                       // hoofdpersoon ophalen
     if(!persoon) return;
-    const siblings = dataset.filter(p =>                    // broers/zussen bepalen
+
+    const siblings = dataset.filter(p =>
         safe(p.VaderID) === safe(persoon.VaderID) &&
         safe(p.MoederID) === safe(persoon.MoederID) &&
-        safe(p.ID) !== safe(rootID)
+        safe(p.ID) !== safe(rootID)                          // zichzelf uitsluiten
     );
 
-    if(siblings.length === 0){                               // geen siblings gevonden
+    if(siblings.length === 0){
         const li = document.createElement('li');
         li.textContent = 'Geen broers/zussen';
         siblingsList.appendChild(li);
         return;
     }
-    siblings.forEach(s => {                                  // elke sibling tonen
+
+    siblings.forEach(s => {
         const li = document.createElement('li');
         li.textContent = `${safe(s.Roepnaam)} ${safe(s.Achternaam)} (${safe(s.ID)})`;
-        li.addEventListener('click', () => {                 // klik → nieuwe boom
+        li.addEventListener('click', () => {                 // klik → nieuwe hoofdpersoon
             selectedHoofdId = s.ID;
             renderTree();
-        });f
-
+        });
         siblingsList.appendChild(li);
     });
 }
@@ -156,25 +155,26 @@ function renderSiblings(rootID){
 // LIVE SEARCH
 // =======================
 function liveSearch(){
-    const term = safe(searchInput.value).toLowerCase();        // zoekterm ophalen
-    document.getElementById('searchPopup')?.remove();          // bestaande popup verwijderen
-    if(!term){                                                 // leeg zoekveld
-        return;
-    }
+    const term = safe(searchInput.value).toLowerCase();      // zoekterm ophalen
+    document.getElementById('searchPopup')?.remove();        // oude popup verwijderen
 
-    const results = dataset.filter(p =>                        // zoeken in dataset
+    if(!term) return;                                        // leeg zoekveld → niets doen
+
+    const results = dataset.filter(p =>                      // filter dataset
         safe(p.ID).toLowerCase().includes(term) ||
         safe(p.Roepnaam).toLowerCase().includes(term) ||
         safe(p.Achternaam).toLowerCase().includes(term)
     );
-    // ===== eerste match automatisch selecteren =====
-    if(results.length > 0 && !selectedHoofdId){
-        selectedHoofdId = safe(results[0].ID);                 // eerste match hoofd maken
-        renderTree();                                          // boom opnieuw tekenen
+
+    // ===== eerste match automatisch hoofdpersoon =====
+    if(results.length > 0){
+        selectedHoofdId = safe(results[0].ID);
+        renderTree();
     }
 
-    const rect = searchInput.getBoundingClientRect();          // positie zoekveld
-    const popup = document.createElement('div');               // popup container maken
+    // ===== popup voor resultaten =====
+    const rect = searchInput.getBoundingClientRect();
+    const popup = document.createElement('div');
     popup.id = 'searchPopup';
     popup.style.position = 'absolute';
     popup.style.background = '#fff';
@@ -187,28 +187,26 @@ function liveSearch(){
     popup.style.overflowY = 'auto';
 
     results.forEach(p => {
-
-        const row = document.createElement('div');             // resultaat rij
+        const row = document.createElement('div');
         row.textContent = `${p.ID} | ${p.Roepnaam} | ${p.Achternaam}`;
-
         row.style.padding = '5px';
         row.style.cursor = 'pointer';
-        row.addEventListener('click', () => {                  // klik resultaat
-            selectedHoofdId = safe(p.ID);                      // nieuwe hoofd persoon
-            popup.remove();                                    // popup sluiten
-            renderTree();                                      // boom opnieuw tekenen
+        row.addEventListener('click', () => {
+            selectedHoofdId = safe(p.ID);
+            popup.remove();
+            renderTree();
         });
-
-        popup.appendChild(row);                                // rij toevoegen
+        popup.appendChild(row);
     });
 
-    if(results.length === 0){                                  // geen resultaten
+    if(results.length === 0){
         const row = document.createElement('div');
         row.textContent = 'Geen resultaten';
         row.style.padding = '5px';
         popup.appendChild(row);
     }
-    document.body.appendChild(popup);                          // popup tonen
+
+    document.body.appendChild(popup);
 }
 
 // =======================
@@ -216,12 +214,11 @@ function liveSearch(){
 // =======================
 function refreshView(){
     dataset = window.StamboomStorage.get() || [];            // dataset opnieuw laden
-    if(!selectedHoofdId && dataset.length > 0){              // eerste persoon selecteren
-        selectedHoofdId = dataset[0].ID;
-    }
-    renderTree();                                            // boom renderen
+    renderTree();                                            // boom renderen zonder init hoofdId
 }
+
 refreshView();                                               // eerste render
 searchInput.addEventListener('input', liveSearch);           // live search activeren
-refreshBtn.addEventListener('click', refreshView);           // refresh knop
+if(refreshBtn) refreshBtn.addEventListener('click', refreshView); // refresh knop
+
 })();
