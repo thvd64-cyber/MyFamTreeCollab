@@ -1,7 +1,8 @@
 // =======================================
-// import.js
+// js.import.js v1.0.1
 // Importeer stamboomData vanuit CSV
 // CSV wordt verwerkt en toegevoegd aan de dataset
+// Ontbrekende ID's worden automatisch gegenereerd met idGenerator
 // Wijzigingen opslaan via StamboomStorage.set(dataset)
 // =======================================
 
@@ -41,54 +42,67 @@ document.getElementById("importBtn").addEventListener("click", async function ()
         reader.onload = function(e) {
             const text = e.target.result; // De inhoud van het CSV-bestand als tekst
 
-    // ======================= CSV verwerken met automatische delimiter en lege cellen =======================
-function detectDelimiter(csvText) {
-    const firstLine = csvText.split("\n")[0]; // neem header
-    const delimiters = [';', ',', '\t']; // mogelijke delimiters
-    let maxCount = 0, chosen = ',';
-    delimiters.forEach(d => {
-        const count = firstLine.split(d).length;
-        if (count > maxCount) { maxCount = count; chosen = d; }
-    });
-    return chosen;
-}
+            // ======================= CSV verwerken met automatische delimiter en lege cellen =======================
+            function detectDelimiter(csvText) {
+                const firstLine = csvText.split("\n")[0]; // neem header
+                const delimiters = [';', ',', '\t']; // mogelijke delimiters
+                let maxCount = 0, chosen = ',';
+                delimiters.forEach(d => {
+                    const count = firstLine.split(d).length;
+                    if (count > maxCount) { maxCount = count; chosen = d; }
+                });
+                return chosen;
+            }
 
-const delimiter = detectDelimiter(text); // detecteer delimiter automatisch
-let newData = [];
-const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-const headers = lines[0].split(delimiter).map(h => h.trim()); // header keys
+            const delimiter = detectDelimiter(text); // detecteer delimiter automatisch
+            let newData = [];
+            const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+            const headers = lines[0].split(delimiter).map(h => h.trim()); // header keys
 
-lines.slice(1).forEach(line => { // loop over alle regels behalve header
-    let values = []; 
-    let current = '';
-    let insideQuotes = false;
+            lines.slice(1).forEach(line => { // loop over alle regels behalve header
+                let values = []; 
+                let current = '';
+                let insideQuotes = false;
 
-    for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        if (char === '"') insideQuotes = !insideQuotes; // toggle quotes
-        else if (char === delimiter && !insideQuotes) { // delimiter buiten quotes
-            values.push(current); // voeg huidige waarde toe
-            current = ''; // reset voor volgende cel
-        } else {
-            current += char; // voeg karakter toe aan huidige cel
-        }
-    }
-    values.push(current); // laatste waarde toevoegen
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    if (char === '"') insideQuotes = !insideQuotes; // toggle quotes
+                    else if (char === delimiter && !insideQuotes) { // delimiter buiten quotes
+                        values.push(current); // voeg huidige waarde toe
+                        current = ''; // reset voor volgende cel
+                    } else {
+                        current += char; // voeg karakter toe aan huidige cel
+                    }
+                }
+                values.push(current); // laatste waarde toevoegen
 
-    // verwijder eventuele quotes rond waarde
-    values = values.map(v => v.replace(/^"(.*)"$/, '$1').trim());
+                // verwijder eventuele quotes rond waarde
+                values = values.map(v => v.replace(/^"(.*)"$/, '$1').trim());
 
-    // object aanmaken
-    let obj = {};
-    headers.forEach((header, i) => obj[header] = values[i] !== undefined ? values[i] : "");
-    newData.push(obj);
-});
+                // object aanmaken
+                let obj = {};
+                headers.forEach((header, i) => obj[header] = values[i] !== undefined ? values[i] : "");
+                newData.push(obj); // voeg object toe aan nieuwe data
+            });
+
             // -------------------------------
-            // Combineren met bestaande data
+            // Combineren met bestaande data en ID genereren
             // -------------------------------
             let existingData = StamboomStorage.get ? StamboomStorage.get() : []; // Haal bestaande dataset op (of lege array)
-            let combinedData = existingData.concat(newData); // Voeg nieuwe data toe aan bestaande
-            if (StamboomStorage.set) StamboomStorage.set(combinedData); // Sla gecombineerde dataset op in centrale storage
+
+            // Loop over nieuwe data en genereer ID als deze ontbreekt
+            newData.forEach(item => {
+                if (!item.ID || item.ID.trim() === "") { // Check of ID leeg is
+                    // Genereer unieke ID met idGenerator op basis van bestaande dataset + nieuwe data
+                    item.ID = window.genereerCode(item, existingData.concat(newData));
+                }
+            });
+
+            // Voeg nieuwe data toe aan bestaande data
+            let combinedData = existingData.concat(newData);
+
+            // Sla gecombineerde dataset op in centrale storage
+            if (StamboomStorage.set) StamboomStorage.set(combinedData);
 
             // -------------------------------
             // Statusmelding
@@ -96,10 +110,10 @@ lines.slice(1).forEach(line => { // loop over alle regels behalve header
             status.innerHTML = "✅ CSV succesvol geïmporteerd en opgeslagen."; // Toon succesmelding
             status.style.color = "green"; // Groen voor succes
         };
+
         reader.readAsText(file); // Start het uitlezen van het CSV-bestand
 
     } catch (error) {
-
         // Fallback voor onverwachte fouten
         status.innerHTML = "❌ Import mislukt."; // Toon foutmelding
         status.style.color = "red"; // Rood voor fout
