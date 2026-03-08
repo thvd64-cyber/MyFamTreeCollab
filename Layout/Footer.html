@@ -1,21 +1,42 @@
-<!-- ======================= Layout/Footer.html v0.0.1 ======================= --> <!-- Bestandsheader met naam en versienummer voor onderhoud -->
+<!-- ======================= Layout/Footer.html v1.0.1 ======================= -->
+<!-- Bestandsheader met naam en versie voor onderhoud -->
 
-<footer> <!-- Start van het HTML5 footer-element dat de onderkant van de pagina definieert -->
+<footer> <!-- Start van het HTML5 footer element dat de onderkant van de website definieert -->
 
-    <!-- Hoofd copyright -->
-    <p>&copy; 2026 MyFamTreeCollab website</p> <!-- Paragraaf met copyright tekst; &copy; is de HTML entiteit voor het © symbool -->
+    <!-- Copyright regel -->
+    <p>
+        &copy; <span id="year"></span> MyFamTreeCollab <!-- Span element waarin automatisch het huidige jaar wordt geplaatst -->
+    </p>
 
-    <!-- Extra document links -->
-    <p class="footer-links"> <!-- Paragraaf voor navigatielinks naar juridische pagina's; class wordt gebruikt voor CSS styling -->
+    <!-- Juridische links -->
+    <p class="footer-links"> <!-- Paragraaf met links naar juridische documenten -->
 
-        <a href="/MyFamTreeCollab/docs/disclaimer.html">Disclaimer</a> <!-- Link naar de disclaimer pagina waarin aansprakelijkheid en gebruik worden uitgelegd -->
-        | <!-- Scheidingsteken tussen de links voor betere leesbaarheid -->
-        
-        <a href="/MyFamTreeCollab/docs/privacy.html">Privacy</a> <!-- Link naar de privacy pagina (AVG/GDPR informatie over persoonsgegevens) -->
-        | <!-- Scheidingsteken tussen de links -->
+        <a href="/MyFamTreeCollab/docs/disclaimer.html">Disclaimer</a> <!-- Link naar disclaimer pagina -->
+        | <!-- Scheidingsteken -->
 
-        <a href="/MyFamTreeCollab/docs/terms.html">Terms</a> <!-- Link naar de gebruiksvoorwaarden van de website -->
+        <a href="/MyFamTreeCollab/docs/privacy.html">Privacy</a> <!-- Link naar privacy pagina -->
+        | <!-- Scheidingsteken -->
 
-    </p> <!-- Einde van de paragraaf met de footer links -->
+        <a href="/MyFamTreeCollab/docs/terms.html">Terms</a> <!-- Link naar gebruiksvoorwaarden -->
 
-</footer> <!-- Sluiting van het footer-element dat het einde van de paginavoet markeert -->
+    </p>
+
+    <!-- Extra project informatie -->
+    <p class="footer-meta"> <!-- Extra informatie over het project -->
+
+        Version v1.0 | <!-- Handmatig beheerd versienummer van de website -->
+
+        <a href="https://github.com/thvd64-cyber/MyFamTreeCollab" target="_blank">
+        GitHub Repository
+        </a> <!-- Link naar de GitHub repository van het project -->
+
+    </p>
+
+</footer> <!-- Sluiting van het footer element -->
+
+<script> <!-- JavaScript blok voor kleine dynamische functionaliteit -->
+
+document.getElementById("year").textContent = new Date().getFullYear(); 
+/* Haalt automatisch het huidige jaar op uit de browser en plaatst het in het span element */
+
+</script>
