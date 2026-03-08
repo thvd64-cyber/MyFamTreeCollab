@@ -1,0 +1,64 @@
+<!-- ======================= docs/disclaimer.html v1.0.0 ======================= -->
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Disclaimer | MyFamTreeCollab</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    max-width:900px;
+    margin:40px auto;
+    padding:0 20px;
+    line-height:1.6;
+}
+
+h1{
+    border-bottom:2px solid #ccc;
+    padding-bottom:10px;
+}
+
+h2{
+    margin-top:30px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>Disclaimer</h1>
+
+<p>Deze website is onderdeel van het project <strong>MyFamTreeCollab</strong>, een platform voor het delen en visualiseren van genealogische gegevens.</p>
+
+<h2>1. Gebruik van informatie</h2>
+<p>Alle informatie op deze website is uitsluitend bedoeld voor informatieve en genealogische doeleinden.</p>
+
+<h2>2. Nauwkeurigheid van gegevens</h2>
+<p>Hoewel wij streven naar correcte informatie, kunnen genealogische gegevens onvolledig of onjuist zijn. Gebruikers dienen informatie zelfstandig te verifiëren.</p>
+
+<h2>3. Bijdragen van gebruikers</h2>
+<p>Een deel van de informatie kan afkomstig zijn van bijdragen van gebruikers. MyFamTreeCollab is niet verantwoordelijk voor de juistheid van deze gegevens.</p>
+
+<h2>4. Privacy van levende personen</h2>
+<p>Gegevens van levende personen worden zoveel mogelijk beperkt weergegeven om privacy te beschermen.</p>
+
+<h2>5. Auteursrechten</h2>
+<p>Foto's, documenten en andere materialen blijven eigendom van hun oorspronkelijke auteurs tenzij anders vermeld.</p>
+
+<h2>6. Aansprakelijkheid</h2>
+<p>MyFamTreeCollab aanvaardt geen aansprakelijkheid voor schade voortvloeiend uit het gebruik van deze website.</p>
+
+<h2>7. Correcties</h2>
+<p>Indien u onjuiste informatie aantreft, kunt u contact opnemen met de beheerder van deze website.</p>
+
+<p style="margin-top:40px;font-size:0.9rem;color:#666;">
+Laatste update: 2026
+</p>
+
+</body>
+</html>
