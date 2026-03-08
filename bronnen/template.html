@@ -1,4 +1,4 @@
-<!-- ======================= bronnen/template.html v0.0.0 ======================= -->
+<!-- ======================= bronnen/template.html v0.0.1 ======================= -->
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -9,17 +9,15 @@
 </head>
 <body>
 <!-- ======================= layout/TopBar.html ======================= -->
-
-<!-- Placeholder waar de TopBar.html inhoud wordt ingeladen -->
 <div id="topbar-placeholder"></div>  <!-- container voor TopBar content -->
 
 <script>
 fetch('/MyFamTreeCollab/Layout/TopBar.html')  // Haalt TopBar HTML op
-    .then(resp => resp.text())                // lees de inhoud van het bestand Converteert response naar tekst
-    .then(data => {                           // werk met de opgehaalde HTML data
-        document.getElementById('topbar-placeholder').innerHTML = data;  // plaats de TopBar HTML in de placeholder
-    });
+    .then(resp => resp.text())                // Converteert response naar tekst
+    .then(data => { document.getElementById('topbar-placeholder').innerHTML = data; }) // injecteert TopBar
+    .catch(err => console.error('TopBar laden mislukt:', err)); // ⚠️ Foutafhandeling toegevoegd
 </script>
+
 <!-- ======================= layout/Navbar.html ======================= -->
 <div id="Navbar-placeholder"></div> <!-- plek waar Navbar komt -->
 
@@ -33,31 +31,49 @@ fetch('/MyFamTreeCollab/Layout/Navbar.html') // Navbar bestand ophalen
         } else {
             console.error('Navbar-placeholder niet gevonden'); // Debugmelding
         }
-    });
+    })
+    .catch(err => console.error('Navbar laden mislukt:', err)); // ⚠️ Foutafhandeling toegevoegd
 </script>
 
 <!-- ======================= Hoofd pagina ======================= -->
-    <!-- ======================= Pagina Titel Manueel ======================= -->
 <div id="pageTitle" style="font-size:1.5rem; font-weight:bold; margin-bottom:15px;"></div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const pageTitleDiv = document.getElementById('pageTitle');  // Doel div
-    const title = "Template (CSV)";            // ⚠️ Zelf invullen title
+    const title = "Template (CSV)";                             // ⚠️ Zelf invullen title
     pageTitleDiv.textContent = title
-        .replace(/[-_]/g,' ')          // underscore/koppelteken → spatie
-        .replace(/\b\w/g, c => c.toUpperCase()); // eerste letter hoofdletter
+        .replace(/[-_]/g,' ')                                   // underscore/koppelteken → spatie
+        .replace(/\b\w/g, c => c.toUpperCase());               // eerste letter hoofdletter
 });
 </script>
-    <!-- ======================= MAIN CONTENT ======================= -->
+
+<!-- ======================= MAIN CONTENT ======================= -->
 <main>
     <div class="container">
         <section>
-            <h3>Voorbeeldrecord (alleen visueel)</h3>
-            <p>
-                ID: JJVM001 | Doopnaam: Jan | Roepnaam: Jan | Geslacht: M | Geboortedatum: 1980-01-01 | 
-                Geboorteplaats: Amsterdam | ....
-            </p>
+            <h3>Voorbeeld CSV Template (voor download)</h3>
+            <p>Dit is een visueel voorbeeld van hoe de CSV eruit zal zien:</p>
+            <!-- ===== Visueel voorbeeld van de CSV toegevoegd ===== -->
+            <table border="1" cellpadding="4" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Doopnaam</th><th>Roepnaam</th><th>Prefix</th><th>Achternaam</th>
+                        <th>Geslacht</th><th>Geboortedatum</th><th>Geboorteplaats</th><th>Overlijdensdatum</th>
+                        <th>Overlijdensplaats</th><th>VaderID</th><th>MoederID</th><th>PartnerID</th>
+                        <th>Huwelijksdatum</th><th>Huwelijksplaats</th><th>Opmerkingen</th>
+                        <th>Huisadressen</th><th>ContactInfo</th><th>URL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="19">&nbsp;</td> <!-- lege voorbeeldrij 1 -->
+                    </tr>
+                    <tr>
+                        <td colspan="19">&nbsp;</td> <!-- lege voorbeeldrij 2 -->
+                    </tr>
+                </tbody>
+            </table>
         </section>
 
         <button id="downloadBtn">Download CSV Voorbeeld</button>
@@ -71,15 +87,20 @@ const downloadBtn = document.getElementById('downloadBtn');
 const status = document.getElementById('status');
 
 downloadBtn.addEventListener('click', () => {
-    if (!window.StamboomSchema) {
-        status.textContent = "❌ Fout: StamboomSchema niet geladen.";
-        return;
-    }
 
-    const headers = StamboomSchema.header();
-    const emptyRow = Array(StamboomSchema.count()).fill("").join(",");
-    const csvContent = "\uFEFF" + `${headers}\n${emptyRow}\n${emptyRow}`; // BOM toegevoegd voor Excel
+    // ⚡ Definitieve kolommen voor CSV template
+    const columns = [
+        'ID','Doopnaam','Roepnaam','Prefix','Achternaam','Geslacht',
+        'Geboortedatum','Geboorteplaats','Overlijdensdatum','Overlijdensplaats',
+        'VaderID','MoederID','PartnerID','Huwelijksdatum','Huwelijksplaats',
+        'Opmerkingen','Huisadressen','ContactInfo','URL'
+    ];
 
+    // ⚡ Maak 2 lege rijen voor voorbeeld
+    const emptyRow = Array(columns.length).fill("").join(",");
+    const csvContent = "\uFEFF" + `${columns.join(',')}\n${emptyRow}\n${emptyRow}`; // BOM toegevoegd voor Excel
+
+    // ⚡ Download de CSV
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -88,19 +109,19 @@ downloadBtn.addEventListener('click', () => {
     link.click();
     document.body.removeChild(link);
 
-    status.textContent = "✅ CSV template succesvol gedownload!";
+    // ⚡ Statusmelding na download
+    status.textContent = "✅ CSV template succesvol gedownload! Vul de lege rijen handmatig in.";
 });
 </script>
+
 <!-- ======================= bottom bar ======================= -->
-  <!-- ======================= layout/Footer.html ======================= -->
 <div id="footer-placeholder"></div>  <!-- Doel: container voor Footer content -->
 
 <script>
 fetch('/MyFamTreeCollab/Layout/Footer.html')  // pad naar de layout/Footer.html
     .then(resp => resp.text())                // response omzetten naar leesbare HTML
-    .then(data => {                           // werk met de opgehaalde HTML
-        document.getElementById('footer-placeholder').innerHTML = data; // Footer injecteren
-    });
+    .then(data => { document.getElementById('footer-placeholder').innerHTML = data; }) // Footer injecteren
+    .catch(err => console.error('Footer laden mislukt:', err)); // ⚠️ Foutafhandeling toegevoegd
 </script>
 </body>
 </html>
