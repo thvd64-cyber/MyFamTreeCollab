@@ -58,7 +58,7 @@ function createTreeNode(p, rel, color){
     div.style.justifyContent = 'center';
     
     // Voeg hier de hoogte toe zodat datum altijd zichtbaar is 
-    div.style.height = '80px'; // Vaste hoogte van de node
+    div.style.height = '180px'; // Vaste hoogte van de node
     
     div.innerHTML = `
     
