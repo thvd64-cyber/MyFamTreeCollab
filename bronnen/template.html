@@ -37,7 +37,7 @@ fetch('/MyFamTreeCollab/Layout/Navbar.html') // Navbar bestand ophalen
 </script>
 
 <!-- ======================= Hoofd pagina ======================= -->
-<div id="pageTitle" style="font-size:1.5rem; font-weight:bold; margin-bottom:15px;"></div>
+<div id="pageTitle" style="font-size:1.5rem; font-weight:bold; margin-bottom:5px;"></div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 en <strong>Geslacht</strong>, gevolgd door 3 cijfers. Je hoeft deze kolom dus niet zelf in te vullen.
             </p>
 
-            <table border="1" cellpadding="4" cellspacing="0">
+            <table border="1" cellpadding="4" cellspacing="0" style="margin-bottom:30px;">
                 <thead>
                     <tr>
                         <th>ID</th><th>Doopnaam</th><th>Roepnaam</th><th>Prefix</th><th>Achternaam</th>
@@ -82,6 +82,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 </tbody>
             </table>
         </section>
+
+        <!-- ======================= Professionele uitleg CSV-export ======================= -->
+        <div style="margin-bottom:20px; font-size:0.95rem; color:#555; line-height:1.5;">
+            <strong>Hoe werkt de CSV-export?</strong><br>
+            1. Het CSV-bestand kan worden geopend in Excel of andere spreadsheetprogramma's.<br>
+            2. Je kunt altijd zelf een bestandsnaam kiezen via de prompt.<br>
+            3. <strong>DuckDuckGo, Chrome of Edge (HTTPS of localhost)</strong>: je krijgt een echte “Opslaan als” dialoog, waarmee je ook de locatie van het bestand kunt kiezen.<br>
+            4. <strong>Andere browsers</strong> (Firefox, Safari, oudere versies): de locatiekeuze wordt niet ondersteund. Het bestand wordt automatisch opgeslagen in je standaard downloadmap. Een alert legt dit uit bij de export.<br>
+            5. Dit geeft maximale compatibiliteit en duidelijke feedback ongeacht je browser.
+        </div>
+
+        <button id="downloadBtn" style="margin-bottom:15px;">Download CSV Voorbeeld</button>
+        <p id="status"></p>
+    </div>
+</main>
 
         <!-- ======================= Professionele uitleg CSV-export ======================= -->
         <div style="margin-bottom:15px; font-size:0.95rem; color:#555; line-height:1.5;">
