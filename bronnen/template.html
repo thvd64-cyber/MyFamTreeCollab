@@ -1,21 +1,22 @@
-<!-- ======================= bronnen/template.html v0.0.1 ======================= -->
+<!-- ======================= bronnen/template.html v0.0.2 ======================= -->
 <!DOCTYPE html>
 <html lang="nl">
 <head>
     <meta charset="UTF-8"> <!-- Tekencodering UTF-8 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Responsief op mobiel/tablet/desktop -->
-    <title>MyFamTreeCollab - Template (CSV)</title> <!-- ⚠️ Browser tab titel -->
-    <link rel="stylesheet" href="../css/style.css"> <!-- Verbindt de externe CSS voor volledige styling -->
+    <title>MyFamTreeCollab - Template (CSV)</title> <!-- Browser tab titel -->
+    <link rel="stylesheet" href="../css/style.css"> <!-- Verbindt de externe CSS -->
 </head>
 <body>
+
 <!-- ======================= layout/TopBar.html ======================= -->
-<div id="topbar-placeholder"></div>  <!-- container voor TopBar content -->
+<div id="topbar-placeholder"></div> <!-- container voor TopBar content -->
 
 <script>
 fetch('/MyFamTreeCollab/Layout/TopBar.html')  // Haalt TopBar HTML op
     .then(resp => resp.text())                // Converteert response naar tekst
     .then(data => { document.getElementById('topbar-placeholder').innerHTML = data; }) // injecteert TopBar
-    .catch(err => console.error('TopBar laden mislukt:', err)); // ⚠️ Foutafhandeling toegevoegd
+    .catch(err => console.error('TopBar laden mislukt:', err)); // Foutafhandeling
 </script>
 
 <!-- ======================= layout/Navbar.html ======================= -->
@@ -32,7 +33,7 @@ fetch('/MyFamTreeCollab/Layout/Navbar.html') // Navbar bestand ophalen
             console.error('Navbar-placeholder niet gevonden'); // Debugmelding
         }
     })
-    .catch(err => console.error('Navbar laden mislukt:', err)); // ⚠️ Foutafhandeling toegevoegd
+    .catch(err => console.error('Navbar laden mislukt:', err)); // Foutafhandeling
 </script>
 
 <!-- ======================= Hoofd pagina ======================= -->
@@ -41,7 +42,7 @@ fetch('/MyFamTreeCollab/Layout/Navbar.html') // Navbar bestand ophalen
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const pageTitleDiv = document.getElementById('pageTitle');  // Doel div
-    const title = "Template (CSV)";                             // ⚠️ Zelf invullen title
+    const title = "Template (CSV)";                             // Titel
     pageTitleDiv.textContent = title
         .replace(/[-_]/g,' ')                                   // underscore/koppelteken → spatie
         .replace(/\b\w/g, c => c.toUpperCase());               // eerste letter hoofdletter
@@ -55,14 +56,12 @@ document.addEventListener('DOMContentLoaded', () => {
             <h3>Voorbeeld CSV Template (voor download)</h3>
             <p>Dit is een visueel voorbeeld van hoe de CSV eruit zal zien:</p>
 
-            <!-- ===== Informatie over automatisch genereren van ID ===== -->
             <p style="font-style: italic; color: #555;">
                 ⚠️ Bij gebruik van deze template wordt bij import automatisch een unieke ID gegenereerd 
                 op basis van <strong>Doopnaam</strong>, <strong>Roepnaam</strong>, <strong>Achternaam</strong> 
                 en <strong>Geslacht</strong>, gevolgd door 3 cijfers. Je hoeft deze kolom dus niet zelf in te vullen.
             </p>
 
-            <!-- ===== Visueel voorbeeld van de CSV toegevoegd ===== -->
             <table border="1" cellpadding="4" cellspacing="0">
                 <thead>
                     <tr>
@@ -88,10 +87,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <p id="status"></p>
     </div>
 </main>
+
 <!-- ======================= PAGE-SPECIFIC JS ======================= -->
 <script>
-const downloadBtn = document.getElementById('downloadBtn');
-const status = document.getElementById('status');
+const downloadBtn = document.getElementById('downloadBtn'); // Download knop ophalen
+const status = document.getElementById('status');           // Status element ophalen
 
 downloadBtn.addEventListener('click', () => {
 
@@ -105,16 +105,28 @@ downloadBtn.addEventListener('click', () => {
 
     // ⚡ Maak 2 lege rijen voor voorbeeld
     const emptyRow = Array(columns.length).fill("").join(",");
-    const csvContent = "\uFEFF" + `${columns.join(',')}\n${emptyRow}\n${emptyRow}`; // BOM toegevoegd voor Excel
 
-    // ⚡ Download de CSV
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "Stamboom_template.csv";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // ⚡ CSV inhoud samenstellen + BOM voor Excel
+    const csvContent = "\uFEFF" + `${columns.join(',')}\n${emptyRow}\n${emptyRow}`;
+
+    // ⚡ Standaard bestandsnaam met datum
+    const now = new Date();
+    const defaultFileName = `stamboom_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.csv`;
+
+    // ⚡ Prompt voor bestandsnaam (zonder .csv)
+    let userFileName = prompt("Voer bestandsnaam in (zonder .csv):", defaultFileName.replace(".csv",""));
+    if (!userFileName) userFileName = defaultFileName.replace(".csv",""); // fallback
+    const fileName = `${userFileName}.csv`; // definitieve bestandsnaam
+
+    // ⚡ Downloaden van CSV via Blob
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); // CSV blob maken
+    const link = document.createElement("a");                                    // tijdelijk anker element
+    link.href = URL.createObjectURL(blob);                                        // URL genereren
+    link.download = fileName;                                                     // bestandsnaam instellen
+    document.body.appendChild(link);                                              // toevoegen aan DOM
+    link.click();                                                                 // trigger download
+    document.body.removeChild(link);                                              // verwijder link
+    URL.revokeObjectURL(link.href);                                               // geheugen vrijgeven
 
     // ⚡ Statusmelding na download
     status.textContent = "✅ CSV template succesvol gedownload! Vul de lege rijen handmatig in.";
@@ -122,13 +134,13 @@ downloadBtn.addEventListener('click', () => {
 </script>
 
 <!-- ======================= bottom bar ======================= -->
-<div id="footer-placeholder"></div>  <!-- Doel: container voor Footer content -->
+<div id="footer-placeholder"></div>  <!-- Container voor Footer content -->
 
 <script>
-fetch('/MyFamTreeCollab/Layout/Footer.html')  // pad naar de layout/Footer.html
-    .then(resp => resp.text())                // response omzetten naar leesbare HTML
-    .then(data => { document.getElementById('footer-placeholder').innerHTML = data; }) // Footer injecteren
-    .catch(err => console.error('Footer laden mislukt:', err)); // ⚠️ Foutafhandeling toegevoegd
+fetch('/MyFamTreeCollab/Layout/Footer.html')  // pad naar Footer.html
+    .then(resp => resp.text())                // response omzetten naar HTML
+    .then(data => { document.getElementById('footer-placeholder').innerHTML = data; }) // injecteren
+    .catch(err => console.error('Footer laden mislukt:', err)); // Foutafhandeling
 </script>
 </body>
 </html>
