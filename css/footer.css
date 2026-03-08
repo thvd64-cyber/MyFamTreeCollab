@@ -1,1 +1,23 @@
+footer{
+    background:#343a40;            /* Donkergrijze achtergrond */
+    color:#fff;                    /* Witte tekstkleur */
+    padding:15px 20px;             /* Binnenruimte rondom */
+    text-align:center;             /* Centreert alle inhoud */
+    font-family:Arial, sans-serif; /* Consistente en leesbare font */
+}
 
+footer a{
+    color:#fff;                    /* Links blijven wit */
+    text-decoration:underline;     /* Onderstreepte links voor herkenbaarheid */
+}
+
+.footer-links{
+    margin-top:5px;                /* Kleine ruimte boven de juridische links */
+    font-size:0.9rem;              /* Iets kleinere tekst */
+}
+
+.footer-meta{
+    margin-top:5px;                /* Ruimte boven de project info */
+    font-size:0.8rem;              /* Nog iets kleinere tekst voor metadata */
+    opacity:0.8;                   /* Iets lichtere weergave zodat het subtieler oogt */
+}
