@@ -1,0 +1,66 @@
+<!-- ======================= docs/terms.html v1.0.0 ======================= -->
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gebruiksvoorwaarden | MyFamTreeCollab</title>
+
+<style>
+body{
+    font-family:Arial, sans-serif;
+    max-width:900px;
+    margin:40px auto;
+    padding:0 20px;
+    line-height:1.6;
+}
+h1{
+    border-bottom:2px solid #ccc;
+    padding-bottom:10px;
+}
+h2{
+    margin-top:30px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Gebruiksvoorwaarden</h1>
+
+<p>
+Door deze website te gebruiken gaat u akkoord met de onderstaande voorwaarden.
+</p>
+
+<h2>Gebruik van de website</h2>
+<p>
+De website MyFamTreeCollab is bedoeld voor genealogisch onderzoek en informatief gebruik.
+</p>
+
+<h2>Correct gebruik</h2>
+<p>
+Gebruikers mogen de informatie niet misbruiken voor illegale activiteiten of schending van privacy.
+</p>
+
+<h2>Auteursrechten</h2>
+<p>
+Alle inhoud op deze website, inclusief tekst, afbeeldingen en genealogische gegevens, blijft eigendom van de oorspronkelijke auteur of bron.
+</p>
+
+<h2>Wijzigingen</h2>
+<p>
+De beheerder behoudt zich het recht voor om deze voorwaarden op elk moment aan te passen.
+</p>
+
+<h2>Aansprakelijkheid</h2>
+<p>
+Gebruik van de website is volledig op eigen risico.
+</p>
+
+<p style="margin-top:40px;font-size:0.9rem;color:#666;">
+Laatste update: 2026
+</p>
+
+</body>
+</html>
