@@ -1,4 +1,4 @@
-// ======================= view.js v1.4.7 =======================
+// ======================= view.js v1.4.6 =======================
 // Boom rendering + Live search + Kind/Partner + BZID + kleur/shading + geboortedatum zichtbaar
 // Nodes zijn klikbaar zodat je door de stamboom kan navigeren
 
@@ -39,71 +39,56 @@ function formatDate(d){
     const options = { day:'2-digit', month:'short', year:'numeric' };
     return date.toLocaleDateString('nl-NL', options).replace(/\./g,'');
 }
-
-
 // =======================
 // NODE CREATOR (Boom-nodes)
 // =======================
 function createTreeNode(p, rel, color){
-    const div = document.createElement('div');           // Maak een nieuwe div voor de node
-    div.className = 'tree-node';                         // Voeg standaard CSS class toe
-    if(rel) div.classList.add(rel);                      // Voeg extra class toe voor relatie (hoofd, partner, kind)
+    const div = document.createElement('div');                   // Maak een nieuwe <div> voor de node
+    div.className = 'tree-node';                                  // Voeg standaard class toe voor styling
+    if(rel) div.classList.add(rel);                                // Voeg optioneel relatie-class toe (bv. rel-hoofd, rel-kindid)
 
     // =======================
-    // Naam samenstellen
+    // Naam en geboortedatum
     // =======================
-    const fullName = [safe(p.Roepnaam), safe(p.Prefix), safe(p.Achternaam)] // Verzamel naam onderdelen
-                     .filter(Boolean)                                       // Verwijder lege velden
-                     .join(' ')                                             // Voeg samen met spatie
-                     .trim();                                               // Verwijder spaties voor/achter
-    const birth = formatDate(p.GeboorteDatum);           // Format geboortedatum
+    const fullName = [safe(p.Roepnaam), safe(p.Prefix), safe(p.Achternaam)] // Maak array van roepnaam, tussenvoegsel, achternaam
+                     .filter(Boolean).join(' ').trim();                  // Verwijder lege waarden, voeg samen met spatie
+    const birth = formatDate(p.GeboorteDatum);                        // Format de geboortedatum naar leesbaar formaat
 
     // =======================
-    // NODE STRUCTUUR (uniform)
+    // Flexbox layout node
     // =======================
-    div.style.display = 'flex';                          // Gebruik Flexbox layout
-    div.style.flexDirection = 'column';                  // Zet inhoud onder elkaar
-    div.style.alignItems = 'center';                     // Centreer horizontaal
-    div.style.justifyContent = 'flex-start';             // Begin bovenaan zodat alles zichtbaar blijft
-    div.style.width = '110px';                           // Vaste breedte voor ALLE nodes
-    div.style.height = '85px';                           // Compacte hoogte voor alle nodes
-    div.style.padding = '4px';                           // Binnenruimte rondom tekst
-    div.style.boxSizing = 'border-box';                  // Padding telt mee in hoogte/breedte
-    div.style.textAlign = 'center';                      // Centreer tekst
-    div.style.wordBreak = 'break-word';                  // Breek lange namen
-    div.style.overflow = 'hidden';                       // Voorkom dat tekst buiten node loopt
+    div.style.display = 'flex';               // Gebruik Flexbox voor node layout
+    div.style.flexDirection = 'column';       // Plaats inhoud verticaal onder elkaar
+    div.style.alignItems = 'center';          // Horizontaal centreren
+    div.style.justifyContent = 'flex-start';  // Verticaal bovenaan uitlijnen, zodat datum altijd zichtbaar is
+    div.style.height = '120px';               // Vaste hoogte voor consistente node grootte
+    div.style.paddingTop = '5px';             // Kleine padding bovenaan zodat de inhoud niet tegen de rand staat
 
     // =======================
-    // Node inhoud
+    // HTML inhoud van de node
     // =======================
     div.innerHTML = `
-        <span style="font-size:0.75rem;">
-            ${safe(p.ID)}                                
-        </span>
-        <span style="font-size:0.9rem; font-weight:600;">
-            ${fullName}
-        </span>
-        <span style="font-size:0.75rem; color:#555;">
-            ${birth}
-        </span>
+        <span style="font-size:0.85rem;">${safe(p.ID)}</span>          <!-- ID van persoon, kleine tekst bovenaan -->
+        <span style="font-weight:600;">${fullName}</span>               <!-- Volledige naam, semi-bold -->
+        <span style="font-size:0.8rem; color:#555; margin-top:4px;">${birth}</span>  <!-- Geboortedatum, kleine grijze tekst met beetje margin -->
     `;
 
     // =======================
-    // Optionele kleur
+    // Extra styling en data
     // =======================
-    if(color) div.style.color = color;                   // Pas tekstkleur toe indien opgegeven
-    div.dataset.id = p.ID;                               // Bewaar ID in dataset
+    if(color) div.style.color = color;         // Als er een kleur meegegeven is, gebruik die
+    div.dataset.id = p.ID;                     // Voeg het ID toe als dataset attribuut
 
     // =======================
-    // Klik event
+    // Klik event voor selectie
     // =======================
     div.addEventListener('click', () => {
-        selectedHoofdId = p.ID;                          // Zet gekozen persoon als hoofd
-        renderTree();                                    // Teken boom opnieuw
+        selectedHoofdId = p.ID;                // Zet geselecteerde hoofdID
+        renderTree();                          // Her-render de boom
     });
-    return div;                                          // Geef node terug
+
+    return div;                                // Geef de complete node terug
 }
-    
 // =======================
 // DATA HELPERS
 // =======================
