@@ -1,4 +1,4 @@
-/* ============ css/Tree.css v0.0.1 ================== */
+/* ============ css/Tree.css v0.0.2 ================== */
 /* ======================= TREE NODE BASIS ======================= */
 /* Alle layout en styling van personen nodes */
 .tree-node {
@@ -53,9 +53,15 @@
     font-style: italic;
 }
 
-/* Kind */
-.tree-node.rel-kindid {
-    background-color: #e3f2fd;     /* licht blauw */
+/* ======================= Kinderen ======================= */
+.tree-node.rel-kindid{
+    background-color:#e3f2fd;        /* donkerblauw voor kind + hoofd + partner van hoofd aanwezig */
+}
+.tree-node.rel-kindid-halfHoofd{
+    background-color:#bbdefb;        /* lichter blauw voor kind + alleen hoofd aanwezig */
+}
+.tree-node.rel-kindid-halfPartner{
+    background-color:#e3f2fd80;      /* lichtblauw transparant voor kind + alleen partner van hoofd aanwezig */
 }
 
 /* Partner van kind */
