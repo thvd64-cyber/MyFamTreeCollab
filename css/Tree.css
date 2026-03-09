@@ -1,4 +1,4 @@
-/* ============ css/Tree.css v0.0.0 ================== */
+/* ============ css/Tree.css v0.0.1 ================== */
 /* ======================= TREE NODE BASIS ======================= */
 /* Alle layout en styling van personen nodes */
 .tree-node {
@@ -20,10 +20,19 @@
 
 /* ======================= NODE TYPES ======================= */
 
-/* Hoofd persoon */
+/* ======================= Hoofd persoon ======================= */
 .tree-node.rel-hoofd {
-    background-color: #fffde7;     /* licht geel */
-    font-weight: 600;
+    background-color: #fffde7;    /* licht geel voor hoofd */
+    font-weight: 600;             /* vetgedrukt */
+}
+
+/* ======================= Hoofd + Partner Wrapper ======================= */
+.tree-root-main {
+    display: flex;                /* zet hoofd en partner naast elkaar */
+    align-items: center;          /* verticaal centreren */
+    justify-content: center;      /* horizontaal centreren in container */
+    gap: 10px;                    /* ruimte tussen hoofd en partner */
+}
 }
 
 /* Vader */
