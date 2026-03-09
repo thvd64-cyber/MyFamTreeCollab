@@ -1,4 +1,4 @@
-<!-- ======================= index.html ======================= -->
+<!-- ======================= index.html v1.0.0 ======================= -->
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -21,17 +21,17 @@ fetch('/MyFamTreeCollab/Layout/TopBar.html')  // Haalt TopBar HTML op
 </script>
 
 <!-- ======================= layout/Navbar.html ======================= -->
-<div id="Navbar-placeholder"></div>
+<div id="Navbar-placeholder"></div> <!-- plek waar Navbar komt -->
 
 <script>
-fetch('/MyFamTreeCollab/Layout/Header.html') // Header (met logo) ophalen
-    .then(resp => resp.text())
+fetch('/MyFamTreeCollab/Layout/Navbar.html') // Navbar bestand ophalen
+    .then(resp => resp.text())               // omzetten naar HTML tekst
     .then(data => {
-        const placeholder = document.getElementById('Navbar-placeholder');
-        if (placeholder) {
-            placeholder.innerHTML = data;
+        const placeholder = document.getElementById('Navbar-placeholder'); // placeholder ophalen
+        if (placeholder) {                   // controleren of element bestaat
+            placeholder.innerHTML = data;    // Navbar injecteren
         } else {
-            console.error('Navbar-placeholder niet gevonden');
+            console.error('Navbar-placeholder niet gevonden'); // Debugmelding
         }
     });
 </script>
