@@ -135,10 +135,38 @@ document.addEventListener('DOMContentLoaded', () => {
            border-radius: 5px;       /* afgeronde hoeken */
            box-sizing: border-box;   /* breedte inclusief padding/border */
        ">
-    <button id="refreshBtn">Refresh</button> <!-- Refresh tabel -->
-    <button id="addBtn">+ Toevoegen</button> <!-- Voeg persoon toe -->
-    <button id="saveBtn">Opslaan</button> <!-- Opslaan dataset -->
+    <!-- ======================= Knoppen ======================= -->
+<div style="margin-top:10px; margin-bottom:20px;">
+    <button id="refreshBtn" 
+            style="
+                height: 45px;           /* hogere knop */
+                font-size: 1.3rem;      /* grotere letters */
+                padding: 0 20px;        /* horizontale padding */
+                margin-right: 10px;     /* ruimte tussen knoppen */
+                border-radius: 5px;     /* afgeronde hoeken */
+                cursor: pointer;        /* hand-cursor */
+            ">Refresh</button>
 
+    <button id="addBtn" 
+            style="
+                height: 45px; 
+                font-size: 1.3rem; 
+                padding: 0 20px; 
+                margin-right: 10px;
+                border-radius: 5px;
+                cursor: pointer;
+            ">+ Toevoegen</button>
+
+    <button id="saveBtn" 
+            style="
+                height: 45px; 
+                font-size: 1.3rem; 
+                padding: 0 20px; 
+                border-radius: 5px;
+                cursor: pointer;
+            ">Opslaan</button>
+</div>
+    
     <!-- Zoekresultaat Formulier -->
     <div id="searchResultForm" style="display:none; margin-top:15px; border:1px solid #ccc; padding:10px;">
         <h4>Gevonden personen:</h4>
