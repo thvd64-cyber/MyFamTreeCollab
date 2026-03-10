@@ -1,163 +1,115 @@
-/* ============ css/Tree.css v0.0.4 ================== */
+/* ============ css/Tree.css v0.0.5 ================== */
 
 /* ======================= ROOT VARIABLES ======================= */
-/* Centrale kleurvariabelen voor snelle aanpassing en consistentie */
 :root{
     --color-hoofd: #fff9c4;            /* licht geel voor HoofdID */
     --color-partner-hoofd: #d1c4e9;    /* licht paars voor PHoofdID */
     --color-vader: #e8f5e9;            /* licht groen voor VHoofdID */
     --color-moeder: #e8f5e9;           /* licht groen voor MHoofdID */
-    --color-kind: #2196f3;             /* blauw voor KindID (volledig) */
-    --color-half-hoofd: #90caf9;       /* sky blauw voor kind + alleen hoofd aanwezig */
-    --color-half-partner: #bbdefb;     /* lichtblauw voor kind + alleen partner aanwezig */
+    --color-kind1: #2196f3;            /* blauw, scenario 1 relatie = HoofdID + PHoofdID */
+    --color-kind2: #90caf9;            /* sky blauw, scenario 2 relatie = HoofdID */
+    --color-kind3: #bbdefb;            /* licht blauw, scenario 3 relatie = PHoofdID */
     --color-partner: #d7d7d7;          /* lichtgrijs voor partner van kind/BZ */
-    --color-bz: #D16002;               /* oranje voor BZID */
+    --color-bz: #FFEAD5;               /* licht oranje voor BZID */
 }
 
 /* ======================= TREE NODE BASIS ======================= */
-/* Alle layout en styling van persoon-nodes */
 .tree-node {
-    display: flex;                 /* flex layout voor naam + datum */
-    flex-direction: column;        /* tekst onder elkaar */
-    align-items: center;           /* horizontaal centreren */
-    justify-content: flex-start;   /* boven uitlijnen */
-    width: 140px;                  /* vaste breedte */
-    height: 120px;                 /* vaste hoogte */
-    padding: 6px 6px;              /* text vs border ruimte in node */
-    margin: 5px;                   /* ruimte tussen nodes */
-    border-radius: 6px;            /* afgeronde hoeken */
-    border: 1px solid #999;        /* grijze rand */
-    background: #ffffff;           /* standaard achtergrond wit */
-    font-size: 0.9rem;             /* tekst grootte */
-    cursor: default;               /* muis cursor default */
-    box-sizing: border-box;        /* padding telt mee in hoogte/breedte */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: 140px;
+    height: 120px;
+    padding: 6px 6px;
+    margin: 5px;
+    border-radius: 6px;
+    border: 1px solid #999;
+    background: #ffffff;
+    font-size: 0.9rem;
+    color: #000;           /* standaard zwart voor alle tekst */
+    cursor: default;
+    box-sizing: border-box;
 }
 
 /* ======================= Hoofd + Partner ======================= */
-.tree-node.HoofdID {
-    background-color: var(--color-hoofd);          /* licht geel voor hoofd */
-    color: #000;                                   /* zwarte tekst */
-}
-
-.tree-node.PHoofdID {
-    background-color: var(--color-partner-hoofd);  /* licht paars voor partner van hoofd */
-    color: #000;                                   /* zwarte tekst */
-}
+.tree-node.HoofdID { background-color: var(--color-hoofd); }
+.tree-node.PHoofdID { background-color: var(--color-partner-hoofd); }
 
 /* ======================= Ouders ======================= */
-.tree-node.VHoofdID {
-    background-color: var(--color-vader);          /* licht groen voor vader */
-    color: #000;                                   /* zwarte tekst */
-}
-
-.tree-node.MHoofdID {
-    background-color: var(--color-moeder);         /* licht groen voor moeder */
-    color: #000;                                   /* zwarte tekst */
-}
+.tree-node.VHoofdID { background-color: var(--color-vader); }
+.tree-node.MHoofdID { background-color: var(--color-moeder); }
 
 /* ======================= Kinderen ======================= */
-.tree-node.KindID {
-    background-color: var(--color-kind);           /* blauw voor kind + hoofd + partner aanwezig */
-    color: #fff;                                   /* witte letters voor contrast */
-}
+.tree-node.kind1 { background-color: var(--color-kind1); }
+.tree-node.kind2 { background-color: var(--color-kind2); }
+.tree-node.kind3 { background-color: var(--color-kind3); }
 
-.tree-node.rel-kindid-halfHoofd {
-    background-color: var(--color-half-hoofd);     /* sky blauw voor kind + alleen hoofd aanwezig */
-    color: #000;                                   /* zwarte letters */
-}
-
-.tree-node.rel-kindid-halfPartner {
-    background-color: var(--color-half-partner);   /* lichtblauw voor kind + alleen partner aanwezig */
-    color: #000;                                   /* zwarte letters */
-}
-
-/* Partner van kind */
-.tree-node.PKindID {
-    background-color: var(--color-partner);        /* lichtgrijs voor partner kind */
-    color: #000;                                   /* zwarte letters */
-    font-style: italic;                            /* cursief zodat duidelijk partner */
-}
-
-/* ======================= Broers/Zussen (BZID) ======================= */
-.tree-node.BZID {
-    background-color: var(--color-bz);             /* oranje voor BZID */
-    color: #000;                                   /* zwarte letters */
-}
-
-.tree-node.PBZID {
-    background-color: var(--color-partner);        /* lichtgrijs voor partner van BZID */
-    color: #000;                                   /* zwarte letters */
-    font-style: italic;                            /* cursief zodat duidelijk partner */
-}
+/* Partner van kind / Broers-Zussen */
+.tree-node.PKindID { background-color: var(--color-partner); }
+.tree-node.BZID { background-color: var(--color-bz); }
+.tree-node.PBZID { background-color: var(--color-partner); }
 
 /* ======================= Hoofd + Partner Wrapper ======================= */
 .tree-root-main {
-    display: flex;                /* zet hoofd en partner naast elkaar */
-    align-items: center;          /* verticaal centreren */
-    justify-content: center;      /* horizontaal centreren in container */
-    gap: 10px;                    /* ruimte tussen hoofd en partner */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }
 
 /* ======================= TREE STRUCTURE ======================= */
-.tree-root {
-    text-align: center;
-    margin-bottom: 10px;          /* verticale ruimte onder node */
-}
-
+.tree-root { text-align: center; margin-bottom: 10px; }
 .tree-parents,
 .tree-children {
-    display: flex;                /* flex layout voor generatie */
-    justify-content: center;      /* centreren */
-    flex-wrap: wrap;              /* wrap naar nieuwe regel indien nodig */
-    margin-bottom: 10px;          /* verticale ruimte tussen generaties */
-    gap: 5px;                     /* horizontale ruimte tussen nodes */
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+    gap: 5px;
 }
 
 /* ======================= CONTAINER ======================= */
 .container {
-    display: flex;                  /* boom + BZID naast elkaar */
-    gap: 20px;                      /* ruimte tussen kolommen */
-    align-items: flex-start;         /* boven uitlijnen */
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
 }
 
 #treeContainer {
-    flex: 1;                        /* boom krijgt meeste ruimte */
-    min-height: 200px;              /* voorkomt lege container */
+    flex: 1;
+    min-height: 200px;
     margin-top: 20px;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 6px;
-    background: #fafafa;            /* licht grijs achtergrond */
+    background: #fafafa;
 }
 
 #BZBox {
-    width: 220px;                   /* vaste breedte voor BZ-box */
+    width: 220px;
     flex-shrink: 0;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 6px;
-    background: #fafafa;            /* licht grijs achtergrond */
+    background: #fafafa;
 }
 
-#BZBox .tree-node {
-    margin-bottom: 5px;             /* ruimte tussen BZ nodes */
-}
+#BZBox .tree-node { margin-bottom: 5px; }
 
 /* ======================= HOVER EFFECT ======================= */
 .tree-node:hover {
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);   /* subtiele schaduw bij hover */
-    transform: translateY(-2px);                 /* lichte opheffing */
-    transition: all 0.2s ease;                  /* soepele overgang */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    transition: all 0.2s ease;
 }
 
 /* ======================= RESPONSIVE ======================= */
 @media (max-width: 600px) {
     .tree-node {
-        width: 100px;               /* kleinere breedte op mobiel */
-        height: 90px;               /* kleinere hoogte op mobiel */
-        font-size: 0.8rem;          /* kleinere tekst */
+        width: 100px;
+        height: 90px;
+        font-size: 0.8rem;
     }
-    #BZBox {
-        width: 150px;               /* kleinere breedte BZBox */
-    }
+    #BZBox { width: 150px; }
 }
