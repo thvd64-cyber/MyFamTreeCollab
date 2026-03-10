@@ -47,22 +47,23 @@ function createTreeNode(p, rel){
     if(rel) div.classList.add(rel);                     // Voeg relatie-specifieke class toe (kleur via CSS)
 
     const fullName = [safe(p.Roepnaam), safe(p.Prefix), safe(p.Achternaam)].filter(Boolean).join(' ').trim(); // Volledige naam
+
     // Raw datum uit dataset, geen formatting
     const birth = safe(p.GeboorteDatum);               // <-- RAW datum
-    // const birth = formatDate(p.GeboorteDatum);         // Format geboorte datum
-// DEBUG: check of de datum echt uit de dataset komt
-console.log('RAW datum voor', p.ID, ':', birth);
+
+    // Debug: check of de datum echt uit de dataset komt
+    console.log('RAW datum voor', p.ID, ':', birth);
+
     div.innerHTML = `
-        <span class="id">${safe(p.ID)}</span>        <!-- ID van persoon -->
-        <span class="name">${fullName}</span>        <!-- Naam van persoon -->
-        <span class="birth">${birth}</span>          <!-- Geboortedatum -->
+        <span class="id">${safe(p.ID)}</span>
+        <span class="name">${fullName}</span>
+        <span class="birth">${birth}</span>  <!-- hier komt datum in de node -->
     `;
 
-    div.dataset.id = p.ID;                              // Bewaar ID in dataset
-
+    div.dataset.id = p.ID;
     div.addEventListener('click', () => {
-        selectedHoofdId = p.ID;                         // Update geselecteerde hoofd persoon
-        renderTree();                                   // Her-render boom
+        selectedHoofdId = p.ID;
+        renderTree();
     });
 
     return div;
