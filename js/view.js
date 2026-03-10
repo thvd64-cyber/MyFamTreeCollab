@@ -199,7 +199,7 @@ function buildTree(rootID){
 // =======================
 function liveSearch(){
     const term=safe(searchInput.value).toLowerCase();
-    document.getElementById('searchPopup')?.remove();
+    document.getElementById('searchPopup')?.remove(); // verwijder oude popup
     if(!term) return;
 
     const results=dataset.filter(p =>
@@ -213,34 +213,41 @@ function liveSearch(){
         renderTree();
     }
 
-    const rect=searchInput.getBoundingClientRect();
-    const popup=document.createElement('div');
-    popup.id='searchPopup';
-    popup.className='search-popup';       // CSS kan styling overnemen
-    popup.style.top=rect.bottom+window.scrollY+'px';
-    popup.style.left=rect.left+window.scrollX+'px';
-    popup.style.width=rect.width+'px';
+    const rect=searchInput.getBoundingClientRect(); // positie van input
+    const popup=document.createElement('div');       // maak popup div aan
+    popup.id='searchPopup';                          // geef id voor verwijderen later
+    popup.style.position='absolute';                 // absolute position
+    popup.style.background='#fff';                   // witte achtergrond
+    popup.style.border='1px solid #999';            // border
+    popup.style.zIndex=1000;                         // boven andere elementen
+    popup.style.top=rect.bottom+window.scrollY+'px';// onder input veld
+    popup.style.left=rect.left+window.scrollX+'px'; // zelfde horizontaal als input
+    popup.style.width=rect.width+'px';              // even breed als input
+    popup.style.maxHeight='200px';                  // max hoogte
+    popup.style.overflowY='auto';                   // scroll indien nodig
 
     results.forEach(p=>{
-        const row=document.createElement('div');
+        const row=document.createElement('div');    // elk resultaat in een div
         row.textContent=`${p.ID} | ${p.Roepnaam} | ${p.Achternaam}`;
+        row.style.padding='5px';                    // ruimte binnen de row
+        row.style.cursor='pointer';                 // klik cursor
         row.addEventListener('click',()=>{
             selectedHoofdId=safe(p.ID);
-            popup.remove();
-            renderTree();
+            popup.remove();                          // verwijder popup bij klik
+            renderTree();                            // render boom
         });
-        popup.appendChild(row);
+        popup.appendChild(row);                      // voeg row toe aan popup
     });
 
     if(results.length===0){
         const row=document.createElement('div');
         row.textContent='Geen resultaten';
+        row.style.padding='5px';
         popup.appendChild(row);
     }
 
-    document.body.appendChild(popup);
+    document.body.appendChild(popup);               // <-- HIER wordt de popup toegevoegd
 }
-
 // =======================
 // INIT
 // =======================
