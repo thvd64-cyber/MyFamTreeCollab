@@ -1,17 +1,17 @@
-// ======================= stamboom/view.js v1.5.7 =======================
+// ======================= stamboom/view.js v1.5.8 =======================
 // Boom rendering + Live search + Kind/Partner + BZID
 // Volledig compatibel met CSS kleuren via :root variabelen
-// Geen half-hoofd / half-partner logica meer
-
+// Correcte relatieclass voor alle nodes (VHoofdID, MHoofdID, HoofdID, PHoofdID, kind1/2/3, BZID)
+// =======================
 (function(){
 'use strict';
 
 // =======================
-// DOM-elementen
+// DOM-elementen ophalen
 // =======================
 const treeBox      = document.getElementById('treeContainer'); // Container voor boom nodes
 const BZBox        = document.getElementById('BZBox');        // Container voor BZID nodes
-const searchInput  = document.getElementById('searchPerson'); // Input voor live search
+const searchInput  = document.getElementById('searchPerson'); // Input veld voor live search
 
 // =======================
 // State
@@ -22,41 +22,41 @@ let selectedHoofdId = null;                        // ID van huidige geselecteer
 // =======================
 // Helpers
 // =======================
-function safe(val){ return val ? String(val).trim() : ''; } // Zorgt dat waarde altijd string is
+function safe(val){ return val ? String(val).trim() : ''; } // Zet elke waarde veilig om naar string
 
 function formatDate(d){
-    if(!d) return '';
-    d = String(d).trim();
+    if(!d) return '';                                      // Lege datum geeft lege string
+    d = String(d).trim();                                  // Trim whitespace
     let date =
-        /^\d{4}-\d{2}-\d{2}$/.test(d) ? new Date(d) :
-        /^\d{2}[-/]\d{2}[-/]\d{4}$/.test(d) ? new Date(d.replace(/(\d{2})[-/](\d{2})[-/](\d{4})/,'$3-$2-$1')) :
-        /^\d{4}-\d{2}$/.test(d) ? new Date(d+'-01') :
-        /^\d{4}$/.test(d) ? new Date(d+'-01-01') :
-        new Date(d);
-    if(isNaN(date.getTime())) return d;
+        /^\d{4}-\d{2}-\d{2}$/.test(d) ? new Date(d) :    // YYYY-MM-DD
+        /^\d{2}[-/]\d{2}[-/]\d{4}$/.test(d) ? new Date(d.replace(/(\d{2})[-/](\d{2})[-/](\d{4})/,'$3-$2-$1')) : // DD-MM-YYYY
+        /^\d{4}-\d{2}$/.test(d) ? new Date(d+'-01') :    // YYYY-MM
+        /^\d{4}$/.test(d) ? new Date(d+'-01-01') :       // YYYY
+        new Date(d);                                      // fallback
+    if(isNaN(date.getTime())) return d;                   // Ongeldige datum → retourneer originele string
     const options = { day:'2-digit', month:'short', year:'numeric' };
-    return date.toLocaleDateString('nl-NL', options).replace(/\./g,'');
+    return date.toLocaleDateString('nl-NL', options).replace(/\./g,''); // NL datumstring
 }
 
 // =======================
 // NODE CREATOR
 // =======================
 function createTreeNode(p, rel){ 
-    const div = document.createElement('div');          // Maak div element
-    div.className = 'tree-node';                        // Basis class voor alle nodes
+    const div = document.createElement('div');          // Maak div voor node
+    div.className = 'tree-node';                        // Voeg basis tree-node class toe
     if(rel) div.classList.add(rel);                     // Voeg relatie-specifieke class toe (kleur via CSS)
 
-    const fullName = [safe(p.Roepnaam), safe(p.Prefix), safe(p.Achternaam)].filter(Boolean).join(' ').trim(); // Volledige naam
-    const birth = formatDate(p.Geboortedatum); // Haal geboortedatum uit dataset en formatteer naar NL datum
+    const fullName = [safe(p.Roepnaam), safe(p.Prefix), safe(p.Achternaam)].filter(Boolean).join(' ').trim(); // Naam
+    const birth = formatDate(p.Geboortedatum);          // Format NL datum
 
     div.innerHTML = `
-        <span class="id">${safe(p.ID)}</span>
-        <span class="name">${fullName}</span>
-        <span class="birth">${birth}</span>  <!-- hier komt datum in de node -->
+        <span class="id">${safe(p.ID)}</span>          <!-- ID van persoon -->
+        <span class="name">${fullName}</span>          <!-- Volledige naam -->
+        <span class="birth">${birth}</span>            <!-- Geboortedatum -->
     `;
 
-    div.dataset.id = p.ID;
-    div.addEventListener('click', () => {
+    div.dataset.id = p.ID;                              // Bewaar ID in dataset attribuut
+    div.addEventListener('click', () => {              // Klik op node selecteert hoofd
         selectedHoofdId = p.ID;
         renderTree();
     });
@@ -80,44 +80,40 @@ function computeRelaties(data, hoofdId){
     const hoofd = findPerson(hoofdID);
     if(!hoofd) return [];
 
-    const VHoodID = safe(hoofd.VaderID);  
-    const MHoofdID = safe(hoofd.MoederID);  
-    const PHoofdID = safe(hoofd.PartnerID);  
+    const VHoofdID = safe(hoofd.VaderID);              // ID van vader
+    const MHoofdID = safe(hoofd.MoederID);             // ID van moeder
+    const PHoofdID = safe(hoofd.PartnerID);            // ID van partner
 
-    // Kinder IDs
-    const children = data.filter(p => safe(p.VaderID) === hoofdID || safe(p.MoederID) === hoofdID);
+    const children = data.filter(p => safe(p.VaderID) === hoofdID || safe(p.MoederID) === hoofdID); // Kinder IDs
 
-    // BZID (broer/zus) excluding hoofd, partner, kinderen
-    const BZID = data.filter(p=>{
+    const BZID = data.filter(p=>{                      // Broer/zus (exclusief hoofd, partner, kinderen)
         const pid = safe(p.ID);
         if(pid === hoofdID || pid === PHoofdID || children.some(c=>c.ID===pid)) return false;
-        const sameVader = VHoodID && safe(p.VaderID) === VHoodID;
+        const sameVader = VHoofdID && safe(p.VaderID) === VHoofdID;
         const sameMoeder = MHoofdID && safe(p.MoederID) === MHoofdID;
         return sameVader || sameMoeder;
     });
 
-    // Clone en label personen
     return data.map(p=>{
         const pid = safe(p.ID);
         const clone = {...p};
         clone.Relatie = '';
         clone._priority = 99;
 
-        if(pid === hoofdID){ clone.Relatie='HoofdID'; clone._priority=1; }
-        else if(pid === VHoodID){ clone.Relatie='VHoodID'; clone._priority=0; }
-        else if(pid === MHoofdID){ clone.Relatie='MHoofdID'; clone._priority=0; }
-        else if(pid === PHoofdID){ clone.Relatie='PHoofdID'; clone._priority=2; }
-        else if(children.some(c=>c.ID===pid)){
+        if(pid === hoofdID){ clone.Relatie='HoofdID'; clone._priority=1; }       // Hoofd node
+        else if(pid === VHoofdID){ clone.Relatie='VHoofdID'; clone._priority=0; } // Vader node
+        else if(pid === MHoofdID){ clone.Relatie='MHoofdID'; clone._priority=0; } // Moeder node
+        else if(pid === PHoofdID){ clone.Relatie='PHoofdID'; clone._priority=2; } // Partner node
+        else if(children.some(c=>c.ID===pid)){                                       // Kinderen
             clone.Relatie='KindID'; clone._priority=3;
-            // Scenario bepalen
-            if(PHoofdID && safe(p.VaderID)===hoofdID && safe(p.MoederID)===PHoofdID) clone.Relatie='kind1';
-            else if(safe(p.VaderID)===hoofdID) clone.Relatie='kind2';
-            else if(PHoofdID && safe(p.MoederID)===PHoofdID) clone.Relatie='kind3';
+            if(PHoofdID && safe(p.VaderID)===hoofdID && safe(p.MoederID)===PHoofdID) clone.Relatie='kind1'; // Scenario 1
+            else if(safe(p.VaderID)===hoofdID) clone.Relatie='kind2';                 // Scenario 2
+            else if(PHoofdID && safe(p.MoederID)===PHoofdID) clone.Relatie='kind3';   // Scenario 3
         }
-        else if(BZID.some(b=>b.ID===pid)){ clone.Relatie='BZID'; clone._priority=4; }
+        else if(BZID.some(b=>b.ID===pid)){ clone.Relatie='BZID'; clone._priority=4; } // Broer/zus
 
         return clone;
-    }).sort((a,b)=>a._priority - b._priority);
+    }).sort((a,b)=>a._priority - b._priority);         // Sorteer op prioriteit
 }
 
 // =======================
@@ -137,10 +133,10 @@ function buildTree(rootID){
     const rootWrapper = document.createElement('div');  
     rootWrapper.className='tree-root-main';  
 
-    rootWrapper.appendChild(createTreeNode(root,'HoofdID'));
+    rootWrapper.appendChild(createTreeNode(root,'HoofdID'));     // Hoofd node
     if(root.PartnerID){
         const partner = findPerson(root.PartnerID);
-        if(partner) rootWrapper.appendChild(createTreeNode(partner,'PHoofdID'));
+        if(partner) rootWrapper.appendChild(createTreeNode(partner,'PHoofdID')); // Partner node
     }
     treeBox.appendChild(rootWrapper);
 
@@ -148,11 +144,11 @@ function buildTree(rootID){
     const parents = document.createElement('div');       
     parents.className='tree-parents';  
 
-    if(root.VaderID){ const v = findPerson(root.VaderID); if(v) parents.appendChild(createTreeNode(v,'VHoodID')); }
-    if(root.MoederID){ const m = findPerson(root.MoederID); if(m) parents.appendChild(createTreeNode(m,'MHoofdID')); }
-    if(parents.children.length>0) treeBox.prepend(parents);
+    if(root.VaderID){ const v = findPerson(root.VaderID); if(v) parents.appendChild(createTreeNode(v,'VHoofdID')); } // Vader node correct class
+    if(root.MoederID){ const m = findPerson(root.MoederID); if(m) parents.appendChild(createTreeNode(m,'MHoofdID')); } // Moeder node
+    if(parents.children.length>0) treeBox.prepend(parents);    // Plaats ouders bovenaan
 
-    // Kinderen + PKindID
+    // Kinderen + partner van kind
     const children = dataRel.filter(d => ['kind1','kind2','kind3'].includes(d.Relatie));
     if(children.length>0){
         const kidsWrap=document.createElement('div');
