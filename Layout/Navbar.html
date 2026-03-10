@@ -1,7 +1,38 @@
-<!-- ======================= Layout/Navbar.html v0.0.0 ======================= -->
+<!-- ======================= Layout/Navbar.html v0.0.1 ======================= -->
 <!-- ======================= HEADER ======================= -->
-<header>
+<header class="site-header">
+    <img src="img/logo.png" alt="MyFamTreeCollab Logo" class="logo">
     <h1>MyFamTreeCollab</h1>
+</header>
+
+<!-- ======================= STYLES ======================= -->
+<style>
+/* Header layout: logo + title */
+.site-header {
+    display: flex;               /* Zet logo en titel naast elkaar */
+    align-items: center;         /* Verticale centrering */
+    gap: 12px;                   /* Ruimte tussen logo en tekst */
+    padding: 10px 20px;          /* Binnenruimte van header */
+}
+
+/* Logo styling */
+.site-header .logo {
+    height: 3em;                 /* Hoogte van het logo = 3 keer de lettergrootte van h1 */
+    width: auto;                 /* Breedte past zich aan, aspect ratio behouden */
+}
+
+/* Responsieve aanpassing voor kleinere schermen */
+@media (max-width: 600px) {
+    .site-header {
+        flex-direction: column;  /* Zet logo boven de tekst */
+        gap: 6px;                /* Minder ruimte in verticale layout */
+        text-align: center;      /* Centreer h1 onder logo */
+    }
+    .site-header .logo {
+        height: 2.5em;           /* Iets kleiner logo voor mobiel */
+    }
+}
+</style>
 
     <!-- ======================= NAVIGATION MENU ======================= -->
     <nav>
