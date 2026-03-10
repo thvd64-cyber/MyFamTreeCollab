@@ -1,9 +1,6 @@
 // =======================================
-// import.js v1.0.1
-// Importeer stamboomData vanuit CSV
-// CSV wordt verwerkt en toegevoegd aan de dataset
-// Ontbrekende ID's worden automatisch gegenereerd met idGenerator
-// Wijzigingen opslaan via StamboomStorage.set(dataset)
+// import.js v1.0.2
+// Controleer of CSV de juiste kolommen bevat
 // =======================================
 
 // Voeg click event toe aan import knop
@@ -59,6 +56,35 @@ document.getElementById("importBtn").addEventListener("click", async function ()
             const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
             const headers = lines[0].split(delimiter).map(h => h.trim()); // header keys
 
+// ======================= HEADER VALIDATOR =======================
+const requiredHeaders = [
+    "ID",
+    "Roepnaam",
+    "Prefix",
+    "Achternaam",
+    "Geboortedatum",
+    "VaderID",
+    "MoederID",
+    "PartnerID"
+]; // lijst met verplichte velden
+
+// Zoek ontbrekende kolommen
+const missingHeaders = requiredHeaders.filter(h => !headers.includes(h)); 
+
+// Als er kolommen ontbreken → import stoppen
+if (missingHeaders.length > 0) {
+
+    status.innerHTML =
+        "❌ CSV header fout. Ontbrekende kolommen: " +
+        missingHeaders.join(", ");
+
+    status.style.color = "red";
+
+    console.error("CSV header fout. Ontbrekend:", missingHeaders);
+    
+    return; // stop import
+}
+            
             lines.slice(1).forEach(line => { // loop over alle regels behalve header
                 let values = []; 
                 let current = '';
