@@ -1,4 +1,4 @@
-// ======================= stamboom/view.js v1.5.8 =======================
+// ======================= stamboom/view.js v1.5.9 =======================
 // Boom rendering + Live search + Kind/Partner + BZID
 // Volledig compatibel met CSS kleuren via :root variabelen
 // Correcte relatieclass voor alle nodes (VHoofdID, MHoofdID, HoofdID, PHoofdID, kind1/2/3, BZID)
@@ -117,64 +117,93 @@ function computeRelaties(data, hoofdId){
 }
 
 // =======================
-// BOOM BUILDER
+// BOOM BUILDER v1.5.8
 // =======================
 function buildTree(rootID){
-    treeBox.innerHTML = '';
-    BZBox.innerHTML = '';
+    treeBox.innerHTML = '';   // Maak boom container leeg
+    BZBox.innerHTML = '';     // Maak BZID container leeg
 
-    if(!rootID){ treeBox.textContent='Selecteer een persoon'; return; }
-    const root = findPerson(rootID);
-    if(!root){ treeBox.textContent='Persoon niet gevonden'; return; }
-
-    const dataRel = computeRelaties(dataset, rootID);
-
-    // Hoofd + partner
-    const rootWrapper = document.createElement('div');  
-    rootWrapper.className='tree-root-main';  
-
-    rootWrapper.appendChild(createTreeNode(root,'HoofdID'));     // Hoofd node
-    if(root.PartnerID){
-        const partner = findPerson(root.PartnerID);
-        if(partner) rootWrapper.appendChild(createTreeNode(partner,'PHoofdID')); // Partner node
+    if(!rootID){              // Check of er een root persoon geselecteerd is
+        treeBox.textContent='Selecteer een persoon';
+        return;
     }
-    treeBox.appendChild(rootWrapper);
 
-    // Ouders
-    const parents = document.createElement('div');       
-    parents.className='tree-parents';  
+    const root = findPerson(rootID);  // Zoek root persoon in dataset
+    if(!root){
+        treeBox.textContent='Persoon niet gevonden';
+        return;
+    }
 
-    if(root.VaderID){ const v = findPerson(root.VaderID); if(v) parents.appendChild(createTreeNode(v,'VHoofdID')); } // Vader node correct class
-    if(root.MoederID){ const m = findPerson(root.MoederID); if(m) parents.appendChild(createTreeNode(m,'MHoofdID')); } // Moeder node
-    if(parents.children.length>0) treeBox.prepend(parents);    // Plaats ouders bovenaan
+    const dataRel = computeRelaties(dataset, rootID);  // Bereken relaties voor rootID
 
-    // Kinderen + partner van kind
-    const children = dataRel.filter(d => ['kind1','kind2','kind3'].includes(d.Relatie));
+    // ======================= Hoofd + Partner =======================
+    const rootWrapper = document.createElement('div');  // Wrapper voor Hoofd + partner
+    rootWrapper.className='tree-root-main';             // Flex container
+
+    rootWrapper.appendChild(createTreeNode(root,'HoofdID'));  // Voeg hoofd toe
+
+    if(root.PartnerID){                               // Check of hoofd een partner heeft
+        const partner = findPerson(root.PartnerID);
+        if(partner) rootWrapper.appendChild(createTreeNode(partner,'PHoofdID')); // Voeg partner toe
+    }
+
+    treeBox.appendChild(rootWrapper);  // Voeg Hoofd + partner toe aan tree
+
+    // ======================= Ouders =======================
+    const parents = document.createElement('div');  // Wrapper voor ouders
+    parents.className='tree-parents';
+
+    if(root.VaderID){                                // Voeg vader toe als aanwezig
+        const v = findPerson(root.VaderID);
+        if(v) parents.appendChild(createTreeNode(v,'VHoodID'));
+    }
+
+    if(root.MoederID){                               // Voeg moeder toe als aanwezig
+        const m = findPerson(root.MoederID);
+        if(m) parents.appendChild(createTreeNode(m,'MHoofdID'));
+    }
+
+    if(parents.children.length>0) treeBox.prepend(parents);  // Plaats ouders bovenaan
+
+    // ======================= Kinderen + Partner =======================
+    const children = dataRel.filter(d => ['kind1','kind2','kind3'].includes(d.Relatie)); // Alle kinderen
     if(children.length>0){
-        const kidsWrap=document.createElement('div');
+        const kidsWrap=document.createElement('div');  // Wrapper voor alle kinderen
         kidsWrap.className='tree-children';
 
         children.forEach(k=>{
-            const kidGroup=document.createElement('div');
-            kidGroup.className='tree-kid-group';  
+            const kidGroup=document.createElement('div');  // Wrapper per kind + partner
+            kidGroup.className='tree-kid-group';
 
-            kidGroup.appendChild(createTreeNode(k,k.Relatie));  
+            kidGroup.appendChild(createTreeNode(k,k.Relatie));  // Voeg kind toe
 
-            if(k.PartnerID){
+            if(k.PartnerID){  // Voeg partner toe als aanwezig
                 const kPartner=findPerson(k.PartnerID);
-                if(kPartner) kidGroup.appendChild(createTreeNode(kPartner,'PKindID')); // Partner van kind
+                if(kPartner) kidGroup.appendChild(createTreeNode(kPartner,'PKindID'));
             }
 
-            kidsWrap.appendChild(kidGroup);
+            kidsWrap.appendChild(kidGroup);  // Voeg kind-groep toe aan kinderen wrapper
         });
-        treeBox.appendChild(kidsWrap);
+
+        treeBox.appendChild(kidsWrap);  // Voeg alle kinderen toe aan tree
     }
 
-    // BZID
-    const bzNodes = dataRel.filter(d => d.Relatie==='BZID');
-    bzNodes.forEach(b=>{ BZBox.appendChild(createTreeNode(b,'BZID')); });
-}
+    // ======================= BZID + Partner =======================
+    const bzNodes = dataRel.filter(d => d.Relatie==='BZID');  // Alle BZID personen
+    bzNodes.forEach(b => {
+        const bzGroup = document.createElement('div');       // Wrapper voor BZID + partner
+        bzGroup.className = 'tree-kid-group';                // Gebruik dezelfde flex styling als kinderen
 
+        bzGroup.appendChild(createTreeNode(b,'BZID'));      // Voeg BZID toe
+
+        if(b.PartnerID){                                    // Check partner van BZID
+            const bPartner = findPerson(b.PartnerID);
+            if(bPartner) bzGroup.appendChild(createTreeNode(bPartner,'PBZID')); // Voeg partner naast BZID
+        }
+
+        BZBox.appendChild(bzGroup);                         // Voeg groep toe aan BZ container
+    });
+}
 // =======================
 // LIVE SEARCH
 // =======================
