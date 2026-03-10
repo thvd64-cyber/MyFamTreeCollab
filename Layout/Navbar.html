@@ -7,10 +7,11 @@
 
 <!-- ======================= STYLES ======================= -->
 <style>
-/* Header layout: logo + title */
+/* Header layout: logo + title, links uitgelijnd */
 .site-header {
     display: flex;               /* Zet logo en titel naast elkaar */
     align-items: center;         /* Verticale centrering */
+    justify-content: flex-start; /* Links uitlijnen */
     gap: 12px;                   /* Ruimte tussen logo en tekst */
     padding: 10px 20px;          /* Binnenruimte van header */
 }
@@ -24,9 +25,9 @@
 /* Responsieve aanpassing voor kleinere schermen */
 @media (max-width: 600px) {
     .site-header {
-        flex-direction: column;  /* Zet logo boven de tekst */
+        flex-direction: column;  /* Logo boven de tekst */
+        align-items: flex-start; /* Blijft links uitgelijnd */
         gap: 6px;                /* Minder ruimte in verticale layout */
-        text-align: center;      /* Centreer h1 onder logo */
     }
     .site-header .logo {
         height: 2.5em;           /* Iets kleiner logo voor mobiel */
