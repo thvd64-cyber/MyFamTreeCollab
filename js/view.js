@@ -48,11 +48,14 @@ function createTreeNode(p, rel){
     const birth = formatDate(p.Geboortedatum);          // Formatteer geboortedatum
 
     div.innerHTML = `
-        <span class="id">${safe(p.ID)}</span>          // Toon ID
-        <span class="name">${fullName}</span>          // Toon volledige naam
-        <span class="birth">${birth}</span>            // Toon geboortedatum
+        <span class="id">${safe(p.ID)}</span>
+        <span class="name">${fullName}</span> 
+        <span class="birth">${birth}</span>
     `;
-
+             // Toon ID
+            // Toon volledige naam
+            // Toon geboortedatum
+    
     div.dataset.id = p.ID;                              // Sla ID op in dataset
     div.addEventListener('click', () => {              // Klik selecteert node als hoofd
         selectedHoofdId = safe(p.ID);                  // Gebruik safe() om spaties te verwijderen
