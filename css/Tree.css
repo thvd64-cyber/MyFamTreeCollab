@@ -32,6 +32,11 @@
     overflow: visible;   /* laat inhoud niet verbergen */
 }
 
+/* ======================= TREE NODE BIRTH ======================= */
+.tree-node .birth {
+    display: block;   /* datum altijd op nieuwe regel */
+}
+
 /* ======================= Hoofd + Partner ======================= */
 .tree-node.HoofdID { background-color: var(--color-hoofd); }
 .tree-node.PHoofdID { background-color: var(--color-partner-hoofd); }
