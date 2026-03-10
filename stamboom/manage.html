@@ -122,7 +122,19 @@ document.addEventListener('DOMContentLoaded', () => {
 <main>
 <div class="container">
     <!-- Zoekveld en knoppen -->
-    <input type="text" id="searchPerson" placeholder="Voer ID of naam in"> <!-- Live search veld -->
+  <input type="text" 
+       id="searchPerson" 
+       placeholder="Voer ID of naam in"
+       style="
+           width: calc(100% - 40px); /* 20px marge links + rechts */
+           margin: 0 20px;           /* horizontale marge */
+           height: 50px;             /* hogere input */
+           font-size: 1.4rem;        /* grotere letters */
+           padding: 8px 12px;        /* comfortabel typen */
+           border: 1px solid #999;   /* lichte rand */
+           border-radius: 5px;       /* afgeronde hoeken */
+           box-sizing: border-box;   /* breedte inclusief padding/border */
+       ">
     <button id="refreshBtn">Refresh</button> <!-- Refresh tabel -->
     <button id="addBtn">+ Toevoegen</button> <!-- Voeg persoon toe -->
     <button id="saveBtn">Opslaan</button> <!-- Opslaan dataset -->
