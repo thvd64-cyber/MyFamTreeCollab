@@ -1,19 +1,22 @@
-<!-- ======================= Layout/Footer.html v1.0.0 ======================= -->
-<footer style="background:#343a40; color:#fff; padding:15px 20px; text-align:center; font-family:Arial, sans-serif;">
-    <!-- footer element met inline CSS zodat de donkergrijze balk altijd zichtbaar is -->
+<!-- ======================= Layout/Footer.html v1.1 ======================= -->
+<footer style="background:#343a40; color:#fff; padding:15px 20px; font-family:Arial, sans-serif; display:flex; align-items:center; justify-content:space-between;"> 
+<!-- Flex layout zodat tekst links staat en logo rechts -->
 
-    <!-- Copyright regel -->
-<p style="margin:0;">
-    &copy; MyFamTreeCollab - Powered by Vorilo 
-    <img src="img/Logo2.png" alt="Vorilo Logo" style="height:25px;"> <!-- hoogte logo verkleinen -->
+<!-- ======================= COPYRIGHT + LINKS ======================= -->
+<div> <!-- Container voor tekst en links -->
+<p style="margin:0;">&copy; MyFamTreeCollab - Powered by Vorilo</p> <!-- Copyright tekst -->
+
+<p style="margin:5px 0 0 0; font-size:0.9rem;"> <!-- Kleine tekstregel voor juridische links -->
+<a href="/MyFamTreeCollab/Docs/disclaimer.html" style="color:#fff; text-decoration:underline;">Disclaimer</a> <!-- Link naar disclaimer -->
+ | 
+<a href="/MyFamTreeCollab/Docs/privacy.html" style="color:#fff; text-decoration:underline;">Privacy</a> <!-- Link naar privacy -->
+ |
+<a href="/MyFamTreeCollab/Docs/terms.html" style="color:#fff; text-decoration:underline;">Terms</a> <!-- Link naar voorwaarden -->
 </p>
-    
- <!-- Juridische links -->
-<p style="margin:5px 0 0 0; font-size:0.9rem;">
-    <a href="/MyFamTreeCollab/Docs/disclaimer.html" style="color:#fff; text-decoration:underline;">Disclaimer</a> <!-- Link naar disclaimer -->
-    | 
-    <a href="/MyFamTreeCollab/Docs/privacy.html" style="color:#fff; text-decoration:underline;">Privacy</a> <!-- Link naar privacy pagina -->
-    |
-    <a href="/MyFamTreeCollab/Docs/terms.html" style="color:#fff; text-decoration:underline;">Terms</a> <!-- Link naar voorwaarden -->
-</p>
+</div>
+
+<!-- ======================= LOGO RECHTS ======================= -->
+<img src="/img/Logo2.png" alt="Vorilo Logo" style="height:25px;"> 
+<!-- Root-pad zodat logo op alle pagina's werkt + rechts geplaatst door flexbox -->
+
 </footer>
