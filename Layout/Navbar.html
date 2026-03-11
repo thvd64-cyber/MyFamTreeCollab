@@ -1,10 +1,11 @@
-<!-- ======================= Layout/Navbar v0.0.1  logo add ======================= -->
+<!-- ======================= Layout/Navbar v0.0.2 absoluut pad logo ======================= -->
 
-<!-- ======================= HEADER ======================= -->
 <!-- ======================= HEADER ======================= -->
 <header class="site-header"> <!-- Hoofdheader container -->
     <!-- Logo + Titel -->
-    <img src="img/Logo1.png" alt="Vorilo Logo" style="height:50px; vertical-align:middle; margin-right:10px;"> <!-- Logo links, 25px hoog -->
+    <img src="/MyFamTreeCollab/img/Logo1.png" 
+         alt="Vorilo Logo" 
+         style="height:50px; vertical-align:middle; margin-right:10px;"> <!-- Absoluut pad vanaf root -->
     <h1 style="display:inline; vertical-align:middle;">MyFamTreeCollab</h1> <!-- Titel direct naast logo -->
 
     <!-- ======================= NAVIGATION MENU ======================= -->
@@ -49,75 +50,3 @@
         </ul>
     </nav>
 </header>
-
-<!-- ======================= STYLES ======================= -->
-<style>
-/* ======================= HEADER LAYOUT ======================= */
-.site-header {
-    display: flex;               /* Flex layout voor logo+h1 + menu naast elkaar */
-    align-items: center;         /* Verticale centrering van alles */
-    justify-content: space-between; /* Plaats logo+h1 links, menu rechts */
-    padding: 10px 20px;          /* Binnenruimte van header */
-}
-
-/* ======================= NAV MENU ======================= */
-.menu {
-    display: flex;               /* Menu-items horizontaal */
-    list-style: none;            /* Geen bullets */
-    padding: 0;                  /* Geen padding */
-    margin: 0;                   /* Geen margin */
-    gap: 20px;                   /* Ruimte tussen hoofdmenu items */
-}
-
-.menu > li {
-    position: relative;          /* Nodig voor dropdown positionering */
-}
-
-.menu a {
-    text-decoration: none;       /* Geen onderstreping */
-    color: #333;                 /* Tekstkleur */
-    font-weight: bold;           /* Vetgedrukte tekst */
-    padding: 5px 0;              /* Verticale padding voor klikgebied */
-}
-
-/* ======================= SUBMENU ======================= */
-.submenu {
-    display: none;               /* Verborgen standaard */
-    position: absolute;          /* Positioneer boven hoofdmenu */
-    top: 100%;                   /* Direct onder parent menu */
-    left: 0;                     /* Uitlijning links */
-    list-style: none;            /* Geen bullets */
-    background-color: #f5f5f5;  /* Achtergrond submenu */
-    padding: 10px 0;             /* Binnenruimte submenu */
-    min-width: 150px;            /* Minimale breedte submenu */
-    border: 1px solid #ddd;      /* Rand om submenu */
-    z-index: 1000;               /* Zorg dat het boven andere content blijft */
-}
-
-.submenu li {
-    padding: 5px 20px;           /* Binnenruimte van submenu items */
-}
-
-.dropdown:hover .submenu {
-    display: block;              /* Toon submenu bij hover */
-}
-
-/* ======================= RESPONSIVE ======================= */
-@media (max-width: 800px) {
-    .site-header {
-        flex-direction: column;  /* Stapel logo+h1 boven menu */
-        align-items: flex-start; /* Alles links uitgelijnd */
-        gap: 10px;               /* Verticale ruimte */
-    }
-    .menu {
-        flex-direction: column;   /* Menu-items onder elkaar */
-        gap: 10px;                /* Verticale ruimte tussen items */
-        width: 100%;              /* Volledige breedte */
-    }
-    .submenu {
-        position: static;         /* Submenu inline op mobiel */
-        border: none;             /* Geen rand */
-        padding-left: 10px;       /* Inspringen voor subitems */
-    }
-}
-</style>
