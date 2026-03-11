@@ -1,22 +1,21 @@
-<!-- ======================= Layout/Footer.html v1.1 ======================= -->
-<footer style="background:#343a40; color:#fff; padding:15px 20px; font-family:Arial, sans-serif; display:flex; align-items:center; justify-content:space-between;"> 
-<!-- Flex layout zodat tekst links staat en logo rechts -->
+<!-- ======================= Layout/Footer.html v1.3 ======================= -->
+<footer style="background:#343a40; color:#fff; padding:15px 20px; font-family:Arial, sans-serif; display:flex; align-items:center; justify-content:center; gap:20px; flex-wrap:wrap;"> 
+    <!-- Flex container: alles gecentreerd, wrap voor mobiel -->
 
-<!-- ======================= COPYRIGHT + LINKS ======================= -->
-<div> <!-- Container voor tekst en links -->
-<p style="margin:0;">&copy; MyFamTreeCollab - Powered by Vorilo</p> <!-- Copyright tekst -->
+    <!-- ======================= COPYRIGHT + LINKS ======================= -->
+    <div style="text-align:center;">
+        <p style="margin:0;">&copy; MyFamTreeCollab - Powered by Vorilo</p>
+        <p style="margin:5px 0 0 0; font-size:0.9rem;">
+            <a href="/MyFamTreeCollab/Docs/disclaimer.html" style="color:#fff; text-decoration:underline;">Disclaimer</a>
+            | 
+            <a href="/MyFamTreeCollab/Docs/privacy.html" style="color:#fff; text-decoration:underline;">Privacy</a>
+            |
+            <a href="/MyFamTreeCollab/Docs/terms.html" style="color:#fff; text-decoration:underline;">Terms</a>
+        </p>
+    </div>
 
-<p style="margin:5px 0 0 0; font-size:0.9rem;"> <!-- Kleine tekstregel voor juridische links -->
-<a href="/MyFamTreeCollab/Docs/disclaimer.html" style="color:#fff; text-decoration:underline;">Disclaimer</a> <!-- Link naar disclaimer -->
- | 
-<a href="/MyFamTreeCollab/Docs/privacy.html" style="color:#fff; text-decoration:underline;">Privacy</a> <!-- Link naar privacy -->
- |
-<a href="/MyFamTreeCollab/Docs/terms.html" style="color:#fff; text-decoration:underline;">Terms</a> <!-- Link naar voorwaarden -->
-</p>
-</div>
-
-<!-- ======================= LOGO RECHTS ======================= -->
-<img src="/img/Logo2.png" alt="Vorilo Logo" style="height:25px;"> 
-<!-- Root-pad zodat logo op alle pagina's werkt + rechts geplaatst door flexbox -->
-
+    <!-- ======================= LOGO ======================= -->
+    <div>
+        <img src="/MyFamTreeCollab/img/Logo2.png" alt="Vorilo Logo" style="height:25px;"> <!-- Absoluut pad -->
+    </div>
 </footer>
