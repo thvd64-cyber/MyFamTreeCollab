@@ -14,7 +14,6 @@
 
 <!-- ======================= layout/TopBar.html ======================= -->
 <div id="topbar-placeholder"></div> <!-- Container voor TopBar -->
-
 <script>
 fetch('/MyFamTreeCollab/Layout/TopBar.html')  // Haalt TopBar HTML op
     .then(resp => resp.text())                 // Converteert response naar tekst
@@ -40,17 +39,17 @@ fetch('/MyFamTreeCollab/Layout/Navbar.html') // Navbar bestand ophalen
 </script>
 <!-- ======================= Hoofd pagina ======================= -->
 <!-- ======================= Pagina Titel ======================= -->
-<div id="pageTitle" style="font-size:1.5rem; font-weight:bold; margin-bottom:20px;"></div> <!-- Dynamische paginatitel -->
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const pageTitleDiv = document.getElementById('pageTitle'); // Div ophalen
-    const path = window.location.pathname.split("/").pop();   // Haal bestandsnaam uit URL
-    let title = path.replace('.html','');                      // Verwijder extensie
-    title = title.replace(/[-_]/g,' ').replace(/\b\w/g, c => c.toUpperCase()); // Format: spaties + hoofdletters
-    pageTitleDiv.textContent = title;                          // Voeg titel toe
-});
-</script>
+//<div id="pageTitle" style="font-size:1.5rem; font-weight:bold; margin-bottom:20px;"></div> <!-- Dynamische paginatitel -->
+//
+//<script>
+//document.addEventListener('DOMContentLoaded', () => {
+  //  const pageTitleDiv = document.getElementById('pageTitle'); // Div ophalen
+  //  const path = window.location.pathname.split("/").pop();   // Haal bestandsnaam uit URL
+  //  let title = path.replace('.html','');                      // Verwijder extensie
+ //   title = title.replace(/[-_]/g,' ').replace(/\b\w/g, c => c.toUpperCase()); // Format: spaties + hoofdletters
+ //   pageTitleDiv.textContent = title;                          // Voeg titel toe
+//});
+//</script>
 
 <!-- ======================= Content ======================= -->
 <main id="home" style="padding:20px;">
