@@ -1,52 +1,281 @@
-<!-- ======================= manage.html v1.3.16 ======================= -->
+<!-- ======================= stamboom/manage.html v1.3.17 ======================= -->
+<!-- Samengevoegd: v1.3.16 + layout & project scripts uit v1.3.0 -->
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8"> <!-- UTF-8 tekencodering zodat alle internationale tekens correct worden weergegeven -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Manage Personen</title>
+<!-- Zorgt dat de pagina correct schaalt op mobiel, tablet en desktop -->
+
+<title>MyFamTreeCollab - Manage</title>
+<!-- Titel die zichtbaar is in browser tab -->
+
+<!-- ======================= GLOBAL CSS ======================= -->
+<link rel="stylesheet" href="../css/style.css">
+<!-- Algemene project stylesheet met layout, menu, container styling -->
+
+<!-- ======================= PAGINA STIJL ======================= -->
 <style>
 /* ======================= BASIS STIJL ======================= */
-body{font-family:Arial,sans-serif;margin:20px;background:#f9f9f9;color:#333;}
-table{width:100%;border-collapse:collapse;margin-bottom:20px;}
-th,td{border:1px solid #ccc;padding:6px;text-align:left;vertical-align:top;}
-th{background:#eee;}
-textarea{font-family:inherit;font-size:1rem;padding:4px;}
-.rel-hoofdid{background:#d1e7dd;}  /* HoofdID */
-.rel-vhoofdid,.rel-mhoofdid{background:#f8d7da;} /* ouders */
-.rel-phoofdid,.rel-kindpartnerid,.rel-bzpartnerid{background:#fff3cd;} /* partners */
-.rel-kindid{background:#cff4fc;} /* kinderen */
-.rel-bzid{background:#e2e3e5;} /* broers/zussen */
+/* Algemene pagina styling */
+body{
+font-family:Arial,sans-serif; /* standaard font */
+margin:20px; /* ruimte rondom pagina */
+background:#f9f9f9; /* lichte achtergrond */
+color:#333; /* standaard tekstkleur */
+}
+
+/* ======================= TABEL BASIS ======================= */
+/* Hoofd tabel waarin personen worden beheerd */
+#manageTable{
+width:100%; /* tabel vult volledige breedte */
+border-collapse:collapse; /* randen van cellen samenvoegen */
+margin-top:20px; /* ruimte boven tabel */
+background-color:transparent; /* transparante achtergrond */
+}
+
+/* Algemene tabel cellen */
+th,td{
+border:1px solid #ccc; /* dunne rand */
+padding:6px; /* ruimte in cel */
+text-align:left; /* tekst links uitlijnen */
+vertical-align:top; /* tekst boven uitlijnen */
+}
+
+/* Header cellen */
+th{
+background:#eee; /* licht grijze achtergrond voor headers */
+}
+
+/* ======================= TEXTAREA CELLEN ======================= */
+/* Textarea gebruikt om tabeldata direct te kunnen aanpassen */
+#manageTable td textarea{
+background-color:transparent; /* geen achtergrond zodat kleur relatie zichtbaar blijft */
+border:none; /* geen rand */
+width:100%; /* volledige breedte van cel */
+box-sizing:border-box; /* padding blijft binnen celbreedte */
+cursor:text; /* tekst cursor */
+resize:vertical; /* alleen verticaal vergroten */
+font-family:inherit; /* zelfde font als tabel */
+font-size:1rem; /* standaard tekstgrootte */
+padding:4px; /* kleine interne marge */
+}
+
+/* ======================= ROW HOVER ======================= */
+/* lichte highlight wanneer muis over een rij beweegt */
+#manageTable tr:hover{
+background-color:rgba(0,0,0,0.05);
+}
+
+/* ======================= RELATIE KLEUREN ======================= */
+/* kleuren maken relaties visueel herkenbaar */
+/* HoofdID */
+.rel-hoofdid{
+background:#fffde7; /* licht geel */
+font-weight:600; /* iets dikkere tekst */
+}
+/* ouders */
+.rel-vhoofdid,
+.rel-mhoofdid{
+background:#e8f5e9; /* licht groen */
+font-weight:500;
+}
+/* partner van hoofd */
+.rel-phoofdid{
+background:#f3e5f5; /* licht paars */
+font-style:italic; /* cursief */
+}
+/* kinderen */
+.rel-kindid{
+background:#e3f2fd; /* licht blauw */
+}
+/* verschillende scenario's voor kinderen */
+.rel-kindid.scenario-1{
+background:#e3f2fd;
+}
+.rel-kindid.scenario-2{
+background:#eef7fe;
+}
+.rel-kindid.scenario-3{
+background:#f7fbff;
+}
+/* partner van kind */
+.rel-kindpartnerid{
+background:#d0ebff;
+font-style:italic;
+}
+/* broers en zussen */
+.rel-bzid{
+background:#fff3e0;
+font-weight:500;
+}
+/* partner van broer/zus */
+.rel-bzpartnerid{
+background:#fbe9e7;
+font-style:italic;
+}
+
+/* ======================= CONTROLS ======================= */
+/* zoekveld styling */
+#searchPerson{
+width:calc(100% - 40px); /* volledige breedte minus marges */
+margin:0 20px; /* links en rechts ruimte */
+height:50px; /* groter zoekveld */
+font-size:1.4rem; /* grotere tekst */
+padding:8px 12px; /* interne ruimte */
+border:1px solid #999; /* rand */
+border-radius:5px; /* afgeronde hoeken */
+box-sizing:border-box;
+}
 
 /* ======================= KNOPPEN ======================= */
-button{margin-right:5px;padding:6px 12px;font-size:1rem;cursor:pointer;}
-#searchPerson{padding:6px 8px;width:250px;font-size:1rem;}
+/* algemene knop styling */
+button{
+height:45px; /* vaste knophoogte */
+font-size:1.2rem; /* grote tekst */
+padding:0 20px; /* horizontale padding */
+border-radius:5px; /* afgeronde knoppen */
+cursor:pointer; /* handcursor */
+margin-right:10px; /* ruimte tussen knoppen */
+}
 </style>
 </head>
 <body>
 
-<!-- ======================= HEADER ======================= -->
-<h1>Manage Personen</h1>
+<!-- ======================= TOPBAR ======================= -->
+<div id="topbar-placeholder"></div>
+<!-- Placeholder waar TopBar.html wordt geladen -->
 
-<!-- ======================= CONTROLS ======================= -->
-<input type="text" id="searchPerson" placeholder="Zoek persoon...">
-<button id="addBtn">+ Voeg rij toe</button>
-<button id="saveBtn">💾 Opslaan</button>
-<button id="refreshBtn">🔄 Vernieuwen</button>
+<script>
+fetch('/MyFamTreeCollab/Layout/TopBar.html') 
+<!-- haalt externe HTML file op -->
+.then(resp => resp.text()) 
+<!-- zet response om naar tekst -->
+.then(data => document.getElementById('topbar-placeholder').innerHTML = data); 
+<!-- plaatst HTML in placeholder -->
+</script>
 
-<!-- ======================= TABEL ======================= -->
-<table id="manageTable">
-    <thead>
-        <tr></tr> <!-- Header wordt dynamisch gegenereerd via JS -->
-    </thead>
-    <tbody>
-        <!-- Rijen worden dynamisch gerenderd via JS -->
-    </tbody>
+<!-- ======================= NAVBAR ======================= -->
+<div id="Navbar-placeholder"></div>
+<!-- Placeholder voor navigatie menu -->
+
+<script>
+fetch('/MyFamTreeCollab/Layout/Navbar.html') 
+<!-- laad navbar component -->
+.then(resp => resp.text()) 
+.then(data => document.getElementById('Navbar-placeholder').innerHTML = data); 
+<!-- inject navbar in pagina -->
+</script>
+
+<!-- ======================= PAGINA TITEL ======================= -->
+<div id="pageTitle"
+style="font-size:1.5rem;font-weight:bold;margin-bottom:15px;">
+
+Manage Stamboom
+<!-- Titel boven de beheerpagina -->
+</div>
+
+<!-- ======================= MAIN CONTENT ======================= -->
+<main>
+<div class="container">
+<!-- container zorgt voor consistente layout met andere pagina’s -->
+
+<!-- ======================= SEARCH ======================= -->
+<input
+type="text"
+id="searchPerson"
+placeholder="Voer ID of naam in"
+/>
+<!-- Live zoekveld waarmee personen gefilterd worden -->
+
+<!-- ======================= BUTTONS ======================= -->
+<div style="margin-top:10px;margin-bottom:20px;">
+<!-- container voor actieknoppen -->
+
+<button id="refreshBtn">
+🔄 Refresh
+</button>
+<!-- laad tabel opnieuw vanuit storage -->
+
+<button id="addBtn">
++ Toevoegen
+</button>
+<!-- voeg nieuwe persoon rij toe -->
+
+<button id="saveBtn">
+💾 Opslaan
+</button>
+<!-- sla wijzigingen op in storage -->
+
+</div>
+
+<!-- ======================= SEARCH RESULT FORM ======================= -->
+
+<div
+id="searchResultForm"
+style="display:none;margin-top:15px;border:1px solid #ccc;padding:10px;"
+>
+<!-- resultaatblok dat verschijnt bij live search -->
+<h4>Gevonden personen:</h4>
+<form id="resultForm">
+<table id="resultTable">
+<thead>
+<tr>
+
+<th>ID</th>
+<!-- unieke persoons ID -->
+<th>Roepnaam</th>
+<!-- voornaam -->
+<th>Achternaam</th>
+<!-- familienaam -->
+</tr>
+</thead>
+
+<tbody>
+<!-- wordt dynamisch gevuld via manage.js -->
+</tbody>
 </table>
+</form>
+</div>
 
-<!-- ======================= INCLUDE JS ======================= -->
-<script src="manage.js"></script>
-<!-- manage.js v1.3.15 drop-in bevat alle logica inclusief INIT, live search en storage -->
+<!-- ======================= MANAGE TABLE ======================= -->
+<table id="manageTable">
+<thead>
+<tr>
+<!-- kolom headers worden automatisch gegenereerd via schema.js -->
+</tr>
+</thead>
+<tbody>
+<!-- personen rijen worden via manage.js gerenderd -->
+</tbody>
+</table>
+</div>
+</main>
 
+<!-- ======================= PROJECT SCRIPTS ======================= -->
+<script src="../js/schema.js"></script>
+<!-- definieert kolom structuur van CSV / data model -->
+
+<script src="../js/idGenerator.js"></script>
+<!-- genereert automatisch ID wanneer deze ontbreekt -->
+
+<script src="../js/storage.js"></script>
+<!-- regelt opslag en ophalen van data (localStorage / CSV) -->
+
+<script src="../js/manage.js"></script>
+<!-- bevat logica voor tabel render, zoeken en opslaan -->
+
+<!-- ======================= FOOTER ======================= -->
+<div id="footer-placeholder"></div>
+<!-- placeholder waar Footer.html wordt geladen -->
+
+<script>
+fetch('/MyFamTreeCollab/Layout/Footer.html')
+<!-- laad footer component -->
+.then(resp => resp.text())
+.then(data => document.getElementById('footer-placeholder').innerHTML = data);
+<!-- inject footer HTML -->
+</script>
 </body>
 </html>
