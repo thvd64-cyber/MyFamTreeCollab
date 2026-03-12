@@ -1,152 +1,117 @@
-// ======================================= js/import.js v1.0.4 =======================================
-// Drop-in upgrade v1.0.4: Veilige check StamboomStorage + DOMContentLoaded + inline uitleg
+/* ======================= js/import.js v1.0.5 ======================= */
+/* Drop-in voor schema.js v0.0.2
+   - Dynamische headers
+   - ID generatie
+   - Migratie oude CSV
+   - Alle extra kolommen worden opgeslagen maar UI gebruikt alleen schema velden
+*/
 
-/* ======================= DOM READY INIT ======================= */
-document.addEventListener('DOMContentLoaded', () => {
+document.getElementById("importBtn").addEventListener("click", async function () {
 
-    // Haal de import-knop en status-element op
-    const importBtn = document.getElementById("importBtn");
-    const status = document.getElementById("importStatus");
+    const status = document.getElementById("importStatus"); // element voor statusmeldingen
 
-    if (!importBtn || !status) {
-        console.error("❌ Import knop of status-element niet gevonden op de pagina.");
-        return;
-    }
+    try {
 
-    /* ======================= IMPORT CLICK HANDLER ======================= */
-    importBtn.addEventListener("click", async function () {
-
-        // -------------------------------
-        // Check of StamboomStorage bestaat
-        // -------------------------------
-        if (typeof window.StamboomStorage === "undefined") {
+        /* ======================= STORAGE CHECK ======================= */
+        if(typeof StamboomStorage === "undefined"){
             status.innerHTML = "❌ StamboomStorage niet beschikbaar. Laad eerst storage.js!";
             status.style.color = "red";
             console.error("StamboomStorage is undefined. Zorg dat storage.js vóór import.js geladen wordt.");
-            return; // stop hier
+            return;
         }
 
-        // -------------------------------
-        // Bestand ophalen uit file input
-        // -------------------------------
+        /* ======================= FILE PICK ======================= */
         const fileInput = document.getElementById("importFile");
-        const file = fileInput ? fileInput.files[0] : null;
-
-        if (!file) {
+        const file = fileInput.files[0];
+        if(!file){
             status.innerHTML = "❌ Geen bestand geselecteerd.";
             status.style.color = "red";
             return;
         }
 
-        // -------------------------------
-        // CSV lezen met FileReader
-        // -------------------------------
+        /* ======================= FILE READER ======================= */
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function(e){
             const text = e.target.result;
 
-            // -------------------------------
-            // Detecteer delimiter automatisch (; , \t)
-            // -------------------------------
-            function detectDelimiter(csvText) {
+            /* ======================= DETECT DELIMITER ======================= */
+            function detectDelimiter(csvText){
                 const firstLine = csvText.split("\n")[0];
                 const delimiters = [';', ',', '\t'];
                 let maxCount = 0, chosen = ',';
-                delimiters.forEach(d => {
+                delimiters.forEach(d=>{
                     const count = firstLine.split(d).length;
-                    if (count > maxCount) { maxCount = count; chosen = d; }
+                    if(count > maxCount){ maxCount = count; chosen = d; }
                 });
                 return chosen;
             }
 
             const delimiter = detectDelimiter(text);
 
-            // -------------------------------
-            // CSV splitsen in regels
-            // -------------------------------
-            const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-            if (lines.length < 2) {
+            /* ======================= SPLIT LINES ======================= */
+            const lines = text.split("\n").map(l=>l.trim()).filter(l=>l.length>0);
+            if(lines.length < 2){
                 status.innerHTML = "❌ CSV bevat geen data.";
                 status.style.color = "red";
                 return;
             }
 
-            // Header
-            const headers = lines[0].split(delimiter).map(h => h.trim());
+            /* ======================= PARSE HEADERS ======================= */
+            const headers = lines[0].split(delimiter).map(h=>h.trim());
 
-            // -------------------------------
-            // Controle verplichte velden uit schema
-            // -------------------------------
-            const requiredHeaders = window.StamboomSchema?.fields || [];
+            /* ======================= CHECK VERPLICHTE HEADERS ======================= */
+            const requiredHeaders = window.StamboomSchema.fields.slice(); // 14 velden
             const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
-            if (missingHeaders.length > 0) {
+            if(missingHeaders.length>0){
                 status.innerHTML = "❌ CSV header fout. Ontbrekende kolommen: " + missingHeaders.join(", ");
                 status.style.color = "red";
                 console.error("CSV header fout. Ontbrekend:", missingHeaders);
                 return;
             }
 
-            // -------------------------------
-            // Parse CSV naar objecten
-            // -------------------------------
+            /* ======================= PARSE CSV TO OBJECTS ======================= */
             let newData = [];
-
-            lines.slice(1).forEach(line => {
-                let values = [];
-                let current = '';
-                let insideQuotes = false;
-
-                for (let i = 0; i < line.length; i++) {
+            lines.slice(1).forEach(line=>{
+                let values = [], current='', insideQuotes=false;
+                for(let i=0;i<line.length;i++){
                     const char = line[i];
-                    if (char === '"') insideQuotes = !insideQuotes;
-                    else if (char === delimiter && !insideQuotes) {
-                        values.push(current);
-                        current = '';
-                    } else {
-                        current += char;
-                    }
+                    if(char === '"') insideQuotes = !insideQuotes;
+                    else if(char === delimiter && !insideQuotes){ values.push(current); current=''; }
+                    else current += char;
                 }
-                values.push(current);
+                values.push(current); // laatste waarde
+                values = values.map(v => v.replace(/^"(.*)"$/,'$1').trim());
 
-                values = values.map(v => v.replace(/^"(.*)"$/, '$1').trim());
-
-                // Maak object volgens schema
-                const obj = window.StamboomSchema?.empty?.() || {};
-                headers.forEach((header, i) => {
-                    if (header in obj) obj[header] = values[i] !== undefined ? values[i] : "";
+                /* ======================= MAP CSV NAAR STORAGE ======================= */
+                const obj = {};
+                headers.forEach((header,i)=>{
+                    obj[header] = values[i] !== undefined ? values[i] : "";
                 });
+
+                /* ======================= GENERATE MISSING ID ======================= */
+                if(!obj.ID || obj.ID.trim()===""){
+                    obj.ID = window.genereerCode ? window.genereerCode(obj, StamboomStorage.get().concat(newData)) : 'P'+Date.now();
+                }
 
                 newData.push(obj);
             });
 
-            // -------------------------------
-            // Bestaande data ophalen
-            // -------------------------------
-            let existingData = StamboomStorage.get ? StamboomStorage.get() : [];
-
-            // -------------------------------
-            // ID genereren indien leeg
-            // -------------------------------
-            newData.forEach(item => {
-                if (!item.ID || item.ID.trim() === "") {
-                    item.ID = window.genereerCode ? window.genereerCode(item, existingData.concat(newData)) : "ID-LEEG";
-                }
-            });
-
-            // -------------------------------
-            // Combineren en opslaan
-            // -------------------------------
+            /* ======================= COMBINE EN OPSLAAN ======================= */
+            const existingData = StamboomStorage.get();
             const combinedData = existingData.concat(newData);
-            if (StamboomStorage.set) StamboomStorage.set(combinedData);
+            StamboomStorage.set(combinedData);
 
-            // -------------------------------
-            // Succesmelding
-            // -------------------------------
+            /* ======================= SUCCESS ======================= */
             status.innerHTML = `✅ CSV succesvol geïmporteerd. ${newData.length} rijen toegevoegd.`;
             status.style.color = "green";
             console.log("CSV import completed:", newData);
         };
 
         reader.readAsText(file);
-    });
+
+    } catch(error){
+        status.innerHTML = "❌ Import mislukt.";
+        status.style.color = "red";
+        console.error(error);
+    }
 });
