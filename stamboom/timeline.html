@@ -1,154 +1,202 @@
-<!-- ======================= stamboon/timeline.html v0.0.0 ======================= -->
+<!-- ======================= stamboom/timeline.html v0.0.0 ======================= -->
+<!-- Eerste werkende versie van een horizontale tijdlijn voor personen -->
+<!-- Gebruikt: Roepnaam, Prefix, Achternaam, Geboortedatum -->
+<!-- Startpunt: selectie via Live Search ID -->
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Persoon Tijdlijn</title>
-<style>
-body{font-family:Arial,sans-serif;margin:20px;}
-#searchPerson{padding:6px 8px;width:250px;font-size:1rem;margin-right:8px;}
-button{padding:6px 12px;font-size:1rem;cursor:pointer;}
-#timelineContainer{margin-top:30px;overflow-x:auto;border-top:1px solid #333;position:relative;height:150px;}
-.timeline-line{position:absolute;top:40px;width:100%;height:2px;background:#333;}
-.timeline-point{position:absolute;top:20px;width:12px;height:12px;background:#007bff;border-radius:50%;text-align:center;}
-.timeline-label{position:absolute;top:35px;font-size:0.9rem;white-space:nowrap;}
-</style>
+<meta charset="UTF-8"> <!-- UTF-8 tekencodering voor internationale namen -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Zorgt dat layout mobiel werkt -->
+<title>MyFamTreeCollab - Timeline</title> <!-- Titel in browser tab -->
+<link rel="stylesheet" href="../css/style.css"> <!-- Verbindt globale stylesheet -->
 </head>
 <body>
 
-<h2>Persoon Tijdlijn</h2>
-<input type="text" id="searchPerson" placeholder="Zoek ID...">
-<button id="showTimeline">▶ Toon Tijdlijn</button>
-
-<div id="timelineContainer">
-    <div class="timeline-line"></div>
-</div>
+<!-- ======================= layout/TopBar.html ======================= -->
+<!-- Placeholder waar TopBar automatisch wordt geladen -->
+<div id="topbar-placeholder"></div>
 
 <script>
-/* ======================= DATA ======================= */
-// Dummy CSV import / client-side dataset
-let dataset = [
-    {ID:'JVD001',Roepnaam:'Jan',Prefix:'van',Achternaam:'Dijk',Geboortedatum:'1843-05-12',VaderID:'',MoederID:'',PartnerID:''},
-    {ID:'MDB002',Roepnaam:'Maria',Prefix:'de',Achternaam:'Boer',Geboortedatum:'1872-11-03',VaderID:'',MoederID:'',PartnerID:''},
-    {ID:'PVD003',Roepnaam:'Piet',Prefix:'van',Achternaam:'Dijk',Geboortedatum:'1901-07-22',VaderID:'JVD001',MoederID:'MDB002',PartnerID:''}
+fetch('/MyFamTreeCollab/Layout/TopBar.html') // haalt TopBar layout bestand op
+.then(resp => resp.text()) // response omzetten naar HTML tekst
+.then(data => {
+document.getElementById('topbar-placeholder').innerHTML = data; // injecteer TopBar
+});
+</script>
+
+<!-- ======================= layout/Navbar.html ======================= -->
+<div id="Navbar-placeholder"></div>
+
+<script>
+fetch('/MyFamTreeCollab/Layout/Navbar.html') // navbar bestand ophalen
+.then(resp => resp.text()) // omzetten naar HTML
+.then(data => {
+const placeholder = document.getElementById('Navbar-placeholder'); // placeholder element ophalen
+if (placeholder) { // controleren of element bestaat
+placeholder.innerHTML = data; // navbar injecteren
+}
+});
+</script>
+
+<!-- ======================= Pagina Titel ======================= -->
+<div id="pageTitle"
+style="font-size:1.5rem; font-weight:bold; margin-bottom:15px;"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+const pageTitleDiv = document.getElementById('pageTitle'); // titel container
+const title = "Timeline"; // paginatitel handmatig instellen
+pageTitleDiv.textContent = title
+.replace(/[-_]/g,' ') // koppelteken of underscore vervangen door spatie
+.replace(/\b\w/g, c => c.toUpperCase()); // eerste letter van elk woord hoofdletter
+});
+</script>
+
+<!-- ======================= MAIN CONTENT ======================= -->
+<!-- ======================= LIVE SEARCH INPUT ======================= -->
+<!-- Zelfde principe als in View/Manage pagina -->
+<input type="text"
+id="liveSearchInput"
+placeholder="Zoek ID..."> <!-- gebruiker kan ID typen -->
+
+<!-- Zoekresultaten container -->
+<div id="searchResults"></div>
+
+<!-- ======================= TIMELINE CONTAINER ======================= -->
+<!-- Hier wordt de SVG tijdlijn dynamisch geplaatst -->
+<div id="timelineContainer"></div>
+
+<!-- ======================= CSS ======================= -->
+<style>
+/* ======================= TIMELINE CONTAINER ======================= */
+/* Scrollbare container zodat grote tijdlijnen zichtbaar blijven */
+#timelineContainer{
+overflow-x:auto; /* horizontaal scrollen mogelijk */
+border:1px solid #ccc; /* licht kader rond tijdlijn */
+padding:20px; /* binnenruimte */
+margin-top:20px; /* afstand boven */
+}
+
+/* ======================= LABEL TEKST ======================= */
+/* naam labels boven timeline punten */
+.timelineLabel{
+font-size:12px; /* kleine tekst */
+fill:#333; /* donkere grijze kleur */
+}
+</style>
+
+<!-- ======================= Scripts ======================= -->
+<script>
+// ======================= DATA STRUCTUUR (TEST DATA) =======================
+// In latere versies komt dit uit de CSV import dataset
+const peopleData = [
+{ID:"JVD001",Roepnaam:"Jan",Prefix:"van",Achternaam:"Dijk",Geboortedatum:"1843-05-12"},
+{ID:"MDB002",Roepnaam:"Maria",Prefix:"de",Achternaam:"Boer",Geboortedatum:"1872-03-21"},
+{ID:"PVD003",Roepnaam:"Piet",Prefix:"van",Achternaam:"Dijk",Geboortedatum:"1901-01-03"},
+{ID:"AJ004",Roepnaam:"Anna",Prefix:"",Achternaam:"Jansen",Geboortedatum:"1935-07-19"}
 ];
 
-/* ======================= HELPERS ======================= */
-const safe = val => val ? String(val).trim() : '';
-function parseDate(d){ return d ? new Date(d) : new Date(0); }
-function formatYear(d){ return d.getFullYear(); }
+// ======================= LIVE SEARCH =======================
+// eenvoudige ID zoekfunctie
+document.getElementById("liveSearchInput").addEventListener("input",function(){
+const search = this.value.toLowerCase(); // input tekst naar lowercase
+const results = peopleData.filter(p =>
+p.ID.toLowerCase().includes(search) // controleer of ID matcht
+);
 
-/* ======================= LIVE SEARCH HERGEBRUIK ======================= */
-const searchInput = document.getElementById('searchPerson');
-let selectedID = null;
-
-searchInput.addEventListener('input', ()=>{
-    const term = safe(searchInput.value).toLowerCase();
-    document.getElementById('searchPopup')?.remove();
-    if(!term) return;
-
-    const results = dataset.filter(p => safe(p.ID).toLowerCase().includes(term) ||
-                                        safe(p.Roepnaam).toLowerCase().includes(term) ||
-                                        safe(p.Achternaam).toLowerCase().includes(term));
-    const rect = searchInput.getBoundingClientRect();
-    const popup = document.createElement('div');
-    popup.id='searchPopup';
-    popup.style.position='absolute';
-    popup.style.background='#fff';
-    popup.style.border='1px solid #999';
-    popup.style.zIndex=1000;
-    popup.style.top = rect.bottom + window.scrollY + 'px';
-    popup.style.left = Math.max(rect.left + window.scrollX, 5) + 'px';
-    popup.style.width = rect.width + 'px';
-    popup.style.maxHeight = '300px';
-    popup.style.overflowY = 'auto';
-    popup.style.fontSize = '1.1rem';
-    popup.style.padding = '4px';
-
-    if(results.length === 0){
-        const row = document.createElement('div');
-        row.textContent = 'Geen resultaten';
-        row.style.padding='4px';
-        popup.appendChild(row);
-    } else {
-        results.forEach(p => {
-            const row = document.createElement('div');
-            row.textContent = `${p.ID} | ${p.Roepnaam} ${p.Prefix} ${p.Achternaam}`;
-            row.style.cursor='pointer';
-            row.style.padding='4px';
-            row.addEventListener('click', ()=>{
-                selectedID = safe(p.ID);
-                searchInput.value = selectedID;
-                popup.remove();
-            });
-            popup.appendChild(row);
-        });
-    }
-    document.body.appendChild(popup);
+renderSearch(results); // zoekresultaten tonen
 });
 
-// Sluit popup bij klik buiten
-document.addEventListener('click', e=>{
-    const popup=document.getElementById('searchPopup');
-    if(popup && !popup.contains(e.target) && e.target!==searchInput) popup.remove();
+// ======================= SEARCH RESULT WEERGAVE =======================
+function renderSearch(results){
+const box = document.getElementById("searchResults"); // resultaten container
+box.innerHTML = ""; // container leegmaken
+results.forEach(p=>{
+const div = document.createElement("div"); // nieuw resultaat element
+div.textContent = p.ID+" - "+p.Roepnaam+" "+p.Achternaam; // tekst in lijst
+div.style.cursor="pointer"; // cursor veranderen bij hover
+div.onclick = ()=> drawTimeline(peopleData,p); // bij klik timeline tekenen
+box.appendChild(div); // resultaat toevoegen aan container
 });
-
-/* ======================= TIMELINE LOGICA ======================= */
-document.getElementById('showTimeline').addEventListener('click', ()=>{
-    if(!selectedID) { alert('Selecteer een persoon via ID'); return; }
-
-    // Selecteer persoon + opvolgende kinderen via ID
-    const main = dataset.find(p=>safe(p.ID)===selectedID);
-    if(!main) { alert('Persoon niet gevonden'); return; }
-
-    // Verzamel personen op basis van geboortedatum (chronologisch)
-    const people = dataset
-        .filter(p=>{
-            // Alleen personen die hoofd + directe nakomelingen (relaties) bevat
-            return p.ID === main.ID || p.VaderID===main.ID || p.MoederID===main.ID;
-        })
-        .sort((a,b)=>parseDate(a.Geboortedatum)-parseDate(b.Geboortedatum));
-
-    renderTimeline(people);
-});
-
-/* ======================= RENDER FUNCTIE ======================= */
-function renderTimeline(people){
-    const container = document.getElementById('timelineContainer');
-    container.innerHTML='<div class="timeline-line"></div>'; // reset
-
-    if(people.length===0) return;
-
-    // Bereken min/max datum
-    const dates = people.map(p=>parseDate(p.Geboortedatum));
-    const minDate = new Date(Math.min(...dates));
-    const maxDate = new Date(Math.max(...dates));
-
-    const totalYears = maxDate.getFullYear() - minDate.getFullYear();
-    const width = Math.max(800, totalYears*5); // px breedte per jaar
-    container.style.width = width + 'px';
-    container.style.position='relative';
-
-    people.forEach((p,index)=>{
-        const d = parseDate(p.Geboortedatum);
-        const x = ((d - minDate)/(maxDate - minDate)) * width;
-
-        // Punt
-        const point = document.createElement('div');
-        point.className='timeline-point';
-        point.style.left = x + 'px';
-        container.appendChild(point);
-
-        // Label
-        const label = document.createElement('div');
-        label.className='timeline-label';
-        label.style.left = x + 'px';
-        label.style.top = (30 + index*20) + 'px'; // offset zodat lijnen niet overlappen
-        label.textContent = `${p.Roepnaam} ${p.Prefix} ${p.Achternaam} (${formatYear(d)})`;
-        container.appendChild(label);
-    });
 }
+
+// ======================= TIJDLIJN TEKENEN =======================
+function drawTimeline(data,focusPerson){
+const container = document.getElementById("timelineContainer"); // timeline container
+container.innerHTML=""; // vorige timeline verwijderen
+
+// ======================= SVG CANVAS MAKEN =======================
+const svg = document.createElementNS("http://www.w3.org/2000/svg","svg"); // svg element maken
+svg.setAttribute("width","3000"); // breed canvas voor tijdlijn
+svg.setAttribute("height","200"); // hoogte canvas
+container.appendChild(svg); // svg toevoegen aan container
+
+// ======================= JAAR RANGE BEREKENEN =======================
+const years = data.map(p=> new Date(p.Geboortedatum).getFullYear()); // geboortejaren verzamelen
+const minYear = Math.min(...years); // oudste geboortejaar
+const maxYear = Math.max(...years); // jongste geboortejaar
+
+// ======================= JAAR NAAR PIXEL POSITIE =======================
+function yearToX(year){
+return ((year-minYear)/(maxYear-minYear))*2800+50; // jaar omrekenen naar x positie
+}
+
+// ======================= BASIS TIJDLIJN LIJN =======================
+const line = document.createElementNS("http://www.w3.org/2000/svg","line");
+line.setAttribute("x1","50"); // beginpunt lijn
+line.setAttribute("y1","100");
+line.setAttribute("x2","2850"); // eindpunt lijn
+line.setAttribute("y2","100");
+line.setAttribute("stroke","black"); // lijnkleur
+
+svg.appendChild(line); // lijn toevoegen
+
+// ======================= PERSONEN TEKENEN =======================
+data.forEach(p=>{
+const year = new Date(p.Geboortedatum).getFullYear(); // geboortejaar ophalen
+const x = yearToX(year); // horizontale positie berekenen
+const y = 100; // vaste hoogte op timeline
+
+// ======================= PUNT =======================
+const circle = document.createElementNS("http://www.w3.org/2000/svg","circle");
+circle.setAttribute("cx",x); // x positie
+circle.setAttribute("cy",y); // y positie
+circle.setAttribute("r","6"); // radius punt
+
+// geselecteerde persoon highlighten
+if(p.ID === focusPerson.ID){
+circle.setAttribute("fill","red"); // geselecteerde persoon rood
+}else{
+
+circle.setAttribute("fill","black"); // overige personen zwart
+}
+svg.appendChild(circle);
+
+// ======================= NAAM LABEL =======================
+const name = p.Roepnaam+" "+(p.Prefix||"")+" "+p.Achternaam; // volledige naam samenstellen
+const label = document.createElementNS("http://www.w3.org/2000/svg","text");
+
+label.setAttribute("x",x+8); // label rechts van punt
+label.setAttribute("y",y-10); // label iets boven punt
+label.setAttribute("class","timelineLabel"); // css class toepassen
+label.textContent = name+" ("+year+")"; // label tekst
+svg.appendChild(label); // label toevoegen
+});
+}
+    
 </script>
+<!-- ======================= layout/Footer.html ======================= -->
+<div id="footer-placeholder"></div>
+
+<script>
+fetch('/MyFamTreeCollab/Layout/Footer.html') // footer layout ophalen
+.then(resp => resp.text()) // response naar HTML
+.then(data => {
+document.getElementById('footer-placeholder').innerHTML = data; // footer injecteren
+});
+</script>
+
+
 </body>
 </html>
