@@ -1,48 +1,46 @@
-// =======================================
-// import.js v1.0.2
-// Controleer of CSV de juiste kolommen bevat
-// =======================================
+// ======================================= js/import.js v1.0.3 =======================================
+// Drop-in voor schema.js v0.0.2, Dynamische headers, ID generatie, Migratie oude CSV (extra velden worden genegeerd)
 
-// Voeg click event toe aan import knop
 document.getElementById("importBtn").addEventListener("click", async function () {
 
-    // Status element voor berichten aan de gebruiker
-    const status = document.getElementById("importStatus");
+    const status = document.getElementById("importStatus"); // element voor statusmeldingen
 
     try {
 
         // -------------------------------
-        // Controleer of StamboomStorage bestaat
+        // Controle of storage beschikbaar is
         // -------------------------------
-        if (typeof StamboomStorage === "undefined") { // Reference check
-            status.innerHTML = "❌ StamboomStorage is niet beschikbaar. Laad eerst storage.js!";
+        if (typeof StamboomStorage === "undefined") {
+            status.innerHTML = "❌ StamboomStorage niet beschikbaar. Laad eerst storage.js!";
             status.style.color = "red";
             console.error("StamboomStorage is undefined. Zorg dat storage.js vóór import.js geladen wordt.");
-            return; // Stop de functie als storage niet bestaat
+            return;
         }
 
         // -------------------------------
-        // Gebruik bestand uit file input
+        // Bestand ophalen uit file input
         // -------------------------------
-        const fileInput = document.getElementById("importFile"); // Haal de file input op
-        const file = fileInput.files[0]; // Pak het eerste bestand in de input
-        if (!file) { // Controleer of de gebruiker daadwerkelijk een bestand heeft geselecteerd
-            status.innerHTML = "❌ Geen bestand geselecteerd."; // Toon foutmelding
-            status.style.color = "red"; // Rood voor fout
-            return; // Stop de functie
+        const fileInput = document.getElementById("importFile");
+        const file = fileInput.files[0];
+        if (!file) {
+            status.innerHTML = "❌ Geen bestand geselecteerd.";
+            status.style.color = "red";
+            return;
         }
 
         // -------------------------------
         // CSV lezen met FileReader
         // -------------------------------
-        const reader = new FileReader(); // Maak een nieuwe FileReader aan
+        const reader = new FileReader();
         reader.onload = function(e) {
-            const text = e.target.result; // De inhoud van het CSV-bestand als tekst
+            const text = e.target.result;
 
-            // ======================= CSV verwerken met automatische delimiter en lege cellen =======================
+            // -------------------------------
+            // Detecteer delimiter automatisch (; , \t)
+            // -------------------------------
             function detectDelimiter(csvText) {
-                const firstLine = csvText.split("\n")[0]; // neem header
-                const delimiters = [';', ',', '\t']; // mogelijke delimiters
+                const firstLine = csvText.split("\n")[0];
+                const delimiters = [';', ',', '\t'];
                 let maxCount = 0, chosen = ',';
                 delimiters.forEach(d => {
                     const count = firstLine.split(d).length;
@@ -51,98 +49,101 @@ document.getElementById("importBtn").addEventListener("click", async function ()
                 return chosen;
             }
 
-            const delimiter = detectDelimiter(text); // detecteer delimiter automatisch
-            let newData = [];
+            const delimiter = detectDelimiter(text);
+
+            // -------------------------------
+            // CSV splitsen in regels
+            // -------------------------------
             const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-            const headers = lines[0].split(delimiter).map(h => h.trim()); // header keys
+            if(lines.length < 2){
+                status.innerHTML = "❌ CSV bevat geen data.";
+                status.style.color = "red";
+                return;
+            }
 
-// ======================= HEADER VALIDATOR =======================
-const requiredHeaders = [
-    "ID",
-    "Roepnaam",
-    "Prefix",
-    "Achternaam",
-    "Geboortedatum",
-    "VaderID",
-    "MoederID",
-    "PartnerID"
-]; // lijst met verplichte velden
+            // Header
+            const headers = lines[0].split(delimiter).map(h => h.trim());
 
-// Zoek ontbrekende kolommen
-const missingHeaders = requiredHeaders.filter(h => !headers.includes(h)); 
+            // -------------------------------
+            // Controle verplichte velden uit schema
+            // -------------------------------
+            const requiredHeaders = window.StamboomSchema.fields.slice(); // dynamisch uit schema
+            const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+            if (missingHeaders.length > 0) {
+                status.innerHTML = "❌ CSV header fout. Ontbrekende kolommen: " + missingHeaders.join(", ");
+                status.style.color = "red";
+                console.error("CSV header fout. Ontbrekend:", missingHeaders);
+                return;
+            }
 
-// Als er kolommen ontbreken → import stoppen
-if (missingHeaders.length > 0) {
+            // -------------------------------
+            // Parse CSV naar objecten
+            // -------------------------------
+            let newData = [];
 
-    status.innerHTML =
-        "❌ CSV header fout. Ontbrekende kolommen: " +
-        missingHeaders.join(", ");
-
-    status.style.color = "red";
-
-    console.error("CSV header fout. Ontbrekend:", missingHeaders);
-    
-    return; // stop import
-}
-            
-            lines.slice(1).forEach(line => { // loop over alle regels behalve header
-                let values = []; 
+            lines.slice(1).forEach(line => {
+                let values = [];
                 let current = '';
                 let insideQuotes = false;
 
                 for (let i = 0; i < line.length; i++) {
                     const char = line[i];
-                    if (char === '"') insideQuotes = !insideQuotes; // toggle quotes
-                    else if (char === delimiter && !insideQuotes) { // delimiter buiten quotes
-                        values.push(current); // voeg huidige waarde toe
-                        current = ''; // reset voor volgende cel
+                    if (char === '"') insideQuotes = !insideQuotes;
+                    else if (char === delimiter && !insideQuotes) {
+                        values.push(current);
+                        current = '';
                     } else {
-                        current += char; // voeg karakter toe aan huidige cel
+                        current += char;
                     }
                 }
                 values.push(current); // laatste waarde toevoegen
 
-                // verwijder eventuele quotes rond waarde
+                // verwijder quotes rond waarden
                 values = values.map(v => v.replace(/^"(.*)"$/, '$1').trim());
 
-                // object aanmaken
-                let obj = {};
-                headers.forEach((header, i) => obj[header] = values[i] !== undefined ? values[i] : "");
-                newData.push(obj); // voeg object toe aan nieuwe data
+                // -------------------------------
+                // Maak object volgens schema
+                // -------------------------------
+                const obj = window.StamboomSchema.empty(); // vult alle velden, default lege strings
+                headers.forEach((header, i) => {
+                    if(header in obj) obj[header] = values[i] !== undefined ? values[i] : "";
+                });
+
+                newData.push(obj);
             });
 
             // -------------------------------
-            // Combineren met bestaande data en ID genereren
+            // Bestaande data ophalen
             // -------------------------------
-            let existingData = StamboomStorage.get ? StamboomStorage.get() : []; // Haal bestaande dataset op (of lege array)
+            let existingData = StamboomStorage.get ? StamboomStorage.get() : [];
 
-            // Loop over nieuwe data en genereer ID als deze ontbreekt
+            // -------------------------------
+            // ID genereren indien leeg
+            // -------------------------------
             newData.forEach(item => {
-                if (!item.ID || item.ID.trim() === "") { // Check of ID leeg is
-                    // Genereer unieke ID met idGenerator op basis van bestaande dataset + nieuwe data
+                if(!item.ID || item.ID.trim() === ""){
                     item.ID = window.genereerCode(item, existingData.concat(newData));
                 }
             });
 
-            // Voeg nieuwe data toe aan bestaande data
-            let combinedData = existingData.concat(newData);
-
-            // Sla gecombineerde dataset op in centrale storage
+            // -------------------------------
+            // Combineren en opslaan
+            // -------------------------------
+            const combinedData = existingData.concat(newData);
             if (StamboomStorage.set) StamboomStorage.set(combinedData);
 
             // -------------------------------
-            // Statusmelding
+            // Succesmelding
             // -------------------------------
-            status.innerHTML = "✅ CSV succesvol geïmporteerd en opgeslagen."; // Toon succesmelding
-            status.style.color = "green"; // Groen voor succes
+            status.innerHTML = `✅ CSV succesvol geïmporteerd. ${newData.length} rijen toegevoegd.`;
+            status.style.color = "green";
+            console.log("CSV import completed:", newData);
         };
 
-        reader.readAsText(file); // Start het uitlezen van het CSV-bestand
-
+        reader.readAsText(file);
     } catch (error) {
-        // Fallback voor onverwachte fouten
-        status.innerHTML = "❌ Import mislukt."; // Toon foutmelding
-        status.style.color = "red"; // Rood voor fout
-        console.error(error); // Log de fout in console voor debugging
+        status.innerHTML = "❌ Import mislukt.";
+        status.style.color = "red";
+        console.error(error);
     }
 });
