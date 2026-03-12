@@ -1,119 +1,149 @@
-// ======================= js/storage.js v0.0.2 =======================
-// Persistent storage voor MyFamTreeCollab
-// Compatibel met schema.js v0.0.2
-// Features:
-// - Migratie van oude 19 kolommen → nieuwe 14 kolommen (FIELDS uit schema.js)
-// - Dynamische ID-generatie bij ontbrekende IDs
-// - Veilige JSON parsing + fallback
-// - Publieke API: get, set, add, update, clear
-// ======================= versiebeheer =======================
-// v0.0.2 - 2026-03-12
-// - Kolommen dynamisch via schema.js
-// - Migratie oude CSV records
-// - Integratie ID-generator window.genereerCode
+// ======================================= js/import.js v1.0.3 =======================================
+// Drop-in voor schema.js v0.0.2, Dynamische headers, ID generatie, Migratie oude CSV (extra velden worden genegeerd)
 
-(function(){ 
-    'use strict'; // strikte modus voor veiligere JS uitvoering
+document.getElementById("importBtn").addEventListener("click", async function () {
 
-    const STORAGE_KEY = 'stamboomData'; // localStorage sleutel
+    const status = document.getElementById("importStatus"); // element voor statusmeldingen
 
-    // =========================
-    // interne helper: veilig JSON parsen
-    // =========================
-    function safeParse(json){
-        try { return JSON.parse(json); }
-        catch(e){ console.warn('Storage corrupte JSON. Reset.'); return []; }
-    }
+    try {
 
-    // =========================
-    // migratie functie oude records
-    // =========================
-    function migrateLegacy(record) {
-        const migrated = {};
-        // FIELDS komt uit schema.js v0.0.2
-        if (!window.StamboomSchema || !window.StamboomSchema.fields) {
-            console.error("StamboomSchema niet geladen!");
-            return {};
+        // -------------------------------
+        // Controle of storage beschikbaar is
+        // -------------------------------
+        if (typeof StamboomStorage === "undefined") {
+            status.innerHTML = "❌ StamboomStorage niet beschikbaar. Laad eerst storage.js!";
+            status.style.color = "red";
+            console.error("StamboomStorage is undefined. Zorg dat storage.js vóór import.js geladen wordt.");
+            return;
         }
-        window.StamboomSchema.fields.forEach(field => {
-            migrated[field] = record[field] ?? ""; // vul lege velden
-        });
-        return migrated;
-    }
 
-    // =========================
-    // dataset ophalen
-    // =========================
-    function get() {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        let parsed = safeParse(raw);
-        if (!Array.isArray(parsed)) parsed = [];
-        // voer migratie uit op alle records
-        parsed = parsed.map(migrateLegacy);
-        // genereer ID als ontbrekend
-        parsed.forEach(item => {
-            if (!item.ID || item.ID.trim() === "") {
-                item.ID = window.genereerCode ? window.genereerCode(item, parsed) : 'P'+Date.now();
+        // -------------------------------
+        // Bestand ophalen uit file input
+        // -------------------------------
+        const fileInput = document.getElementById("importFile");
+        const file = fileInput.files[0];
+        if (!file) {
+            status.innerHTML = "❌ Geen bestand geselecteerd.";
+            status.style.color = "red";
+            return;
+        }
+
+        // -------------------------------
+        // CSV lezen met FileReader
+        // -------------------------------
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+
+            // -------------------------------
+            // Detecteer delimiter automatisch (; , \t)
+            // -------------------------------
+            function detectDelimiter(csvText) {
+                const firstLine = csvText.split("\n")[0];
+                const delimiters = [';', ',', '\t'];
+                let maxCount = 0, chosen = ',';
+                delimiters.forEach(d => {
+                    const count = firstLine.split(d).length;
+                    if (count > maxCount) { maxCount = count; chosen = d; }
+                });
+                return chosen;
             }
-        });
-        return parsed;
-    }
 
-    // =========================
-    // volledige dataset vervangen
-    // =========================
-    function set(dataset){
-        if (!Array.isArray(dataset)){ 
-            console.warn('set() verwacht array'); 
-            return false; 
-        }
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(dataset));
-        return true;
-    }
+            const delimiter = detectDelimiter(text);
 
-    // =========================
-    // persoon toevoegen
-    // =========================
-    function add(person){
-        if(typeof person !== 'object' || person===null){ console.warn('add() verwacht object'); return false; }
-        const dataset = get();
-        if(!person.ID || person.ID.trim() === "") {
-            person.ID = window.genereerCode ? window.genereerCode(person, dataset) : 'P'+Date.now();
-        }
-        dataset.push(person);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(dataset));
-        return true;
-    }
+            // -------------------------------
+            // CSV splitsen in regels
+            // -------------------------------
+            const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+            if(lines.length < 2){
+                status.innerHTML = "❌ CSV bevat geen data.";
+                status.style.color = "red";
+                return;
+            }
 
-    // =========================
-    // persoon updaten op basis van ID
-    // =========================
-    function update(personID, updates){
-        const dataset = get();
-        const idx = dataset.findIndex(p => p.ID === personID);
-        if(idx === -1) return false;
-        dataset[idx] = {...dataset[idx], ...updates};
-        set(dataset);
-        return true;
-    }
+            // Header
+            const headers = lines[0].split(delimiter).map(h => h.trim());
 
-    // =========================
-    // volledige storage leegmaken
-    // =========================
-    function clear(){
-        localStorage.removeItem(STORAGE_KEY);
-        return true;
-    }
+            // -------------------------------
+            // Controle verplichte velden uit schema
+            // -------------------------------
+            const requiredHeaders = window.StamboomSchema.fields.slice(); // dynamisch uit schema
+            const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+            if (missingHeaders.length > 0) {
+                status.innerHTML = "❌ CSV header fout. Ontbrekende kolommen: " + missingHeaders.join(", ");
+                status.style.color = "red";
+                console.error("CSV header fout. Ontbrekend:", missingHeaders);
+                return;
+            }
 
-    // =========================
-    // publieke API
-    // =========================
-    window.StamboomStorage = {
-        get,
-        set,
-        add,
-        update,
-        clear,
-        version: "v0.0.2"
-    };
-})();
+            // -------------------------------
+            // Parse CSV naar objecten
+            // -------------------------------
+            let newData = [];
+
+            lines.slice(1).forEach(line => {
+                let values = [];
+                let current = '';
+                let insideQuotes = false;
+
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    if (char === '"') insideQuotes = !insideQuotes;
+                    else if (char === delimiter && !insideQuotes) {
+                        values.push(current);
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                values.push(current); // laatste waarde toevoegen
+
+                // verwijder quotes rond waarden
+                values = values.map(v => v.replace(/^"(.*)"$/, '$1').trim());
+
+                // -------------------------------
+                // Maak object volgens schema
+                // -------------------------------
+                const obj = window.StamboomSchema.empty(); // vult alle velden, default lege strings
+                headers.forEach((header, i) => {
+                    if(header in obj) obj[header] = values[i] !== undefined ? values[i] : "";
+                });
+
+                newData.push(obj);
+            });
+
+            // -------------------------------
+            // Bestaande data ophalen
+            // -------------------------------
+            let existingData = StamboomStorage.get ? StamboomStorage.get() : [];
+
+            // -------------------------------
+            // ID genereren indien leeg
+            // -------------------------------
+            newData.forEach(item => {
+                if(!item.ID || item.ID.trim() === ""){
+                    item.ID = window.genereerCode(item, existingData.concat(newData));
+                }
+            });
+
+            // -------------------------------
+            // Combineren en opslaan
+            // -------------------------------
+            const combinedData = existingData.concat(newData);
+            if (StamboomStorage.set) StamboomStorage.set(combinedData);
+
+            // -------------------------------
+            // Succesmelding
+            // -------------------------------
+            status.innerHTML = `✅ CSV succesvol geïmporteerd. ${newData.length} rijen toegevoegd.`;
+            status.style.color = "green";
+            console.log("CSV import completed:", newData);
+        };
+
+        reader.readAsText(file);
+    } catch (error) {
+        status.innerHTML = "❌ Import mislukt.";
+        status.style.color = "red";
+        console.error(error);
+    }
+});
