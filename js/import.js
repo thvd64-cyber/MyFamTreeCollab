@@ -1,9 +1,10 @@
-/* ======================= js/import.js v1.0.6 ======================= */
+/* ======================= js/import.js v1.0.7 ======================= */
 /* Drop-in voor schema.js v0.0.2 en storage.js v0.0.3
    - Automatische delimiter detectie
-   - Ondersteuning voor extra kolommen
+   - Ondersteuning voor extra kolommen (max 22)
    - ID generatie indien leeg
    - Compatibel met dynamische storage.js
+   - Alleen de eerste 14 velden worden verwerkt
 */
 
 document.getElementById("importBtn").addEventListener("click", async function () {
@@ -60,7 +61,13 @@ document.getElementById("importBtn").addEventListener("click", async function ()
             const headers = lines[0].split(delimiter).map(h => h.trim());
 
             /* ======================= CHECK VERPLICHTE HEADERS ======================= */
-            const requiredHeaders = window.StamboomSchema.fields.slice(); // 14 velden
+            if(!window.StamboomSchema || !window.StamboomSchema.fields){
+                console.error("StamboomSchema niet geladen");
+                status.innerHTML = "❌ Interne fout: StamboomSchema niet beschikbaar";
+                status.style.color = "red";
+                return;
+            }
+            const requiredHeaders = window.StamboomSchema.fields.slice(0,14); // alleen eerste 14 velden verplicht
             const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
             if(missingHeaders.length > 0){
                 status.innerHTML = "❌ CSV header fout. Ontbrekende kolommen: " + missingHeaders.join(", ");
@@ -84,9 +91,13 @@ document.getElementById("importBtn").addEventListener("click", async function ()
 
                 /* ======================= MAP CSV NAAR STORAGE ======================= */
                 const obj = {};
-                headers.forEach((header,i) => {
-                    obj[header] = values[i] !== undefined ? values[i] : "";
-                });
+                // alleen de eerste 14 velden verwerken
+                for(let j=0; j<14; j++){
+                    obj[window.StamboomSchema.fields[j]] = values[j] !== undefined ? values[j] : "";
+                }
+
+                // extra kolommen bewaren tot veld 22, niet verwerkt
+                obj._extra = values.slice(14,22);
 
                 /* ======================= GENERATE MISSING ID ======================= */
                 if(!obj.ID || obj.ID.trim()===""){
