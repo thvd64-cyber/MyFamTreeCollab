@@ -1,9 +1,9 @@
-/* ======================= js/import.js v1.0.5 ======================= */
-/* Drop-in voor schema.js v0.0.2
-   - Dynamische headers
-   - ID generatie
-   - Migratie oude CSV
-   - Alle extra kolommen worden opgeslagen maar UI gebruikt alleen schema velden
+/* ======================= js/import.js v1.0.6 ======================= */
+/* Drop-in voor schema.js v0.0.2 en storage.js v0.0.3
+   - Automatische delimiter detectie
+   - Ondersteuning voor extra kolommen
+   - ID generatie indien leeg
+   - Compatibel met dynamische storage.js
 */
 
 document.getElementById("importBtn").addEventListener("click", async function () {
@@ -35,11 +35,11 @@ document.getElementById("importBtn").addEventListener("click", async function ()
             const text = e.target.result;
 
             /* ======================= DETECT DELIMITER ======================= */
-            function detectDelimiter(csvText){
-                const firstLine = csvText.split("\n")[0];
-                const delimiters = [';', ',', '\t'];
+            function detectDelimiter(csvText) {
+                const firstLine = csvText.split("\n")[0]; // neem header
+                const delimiters = [';', ',', '\t']; // mogelijke delimiters
                 let maxCount = 0, chosen = ',';
-                delimiters.forEach(d=>{
+                delimiters.forEach(d => {
                     const count = firstLine.split(d).length;
                     if(count > maxCount){ maxCount = count; chosen = d; }
                 });
@@ -49,7 +49,7 @@ document.getElementById("importBtn").addEventListener("click", async function ()
             const delimiter = detectDelimiter(text);
 
             /* ======================= SPLIT LINES ======================= */
-            const lines = text.split("\n").map(l=>l.trim()).filter(l=>l.length>0);
+            const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
             if(lines.length < 2){
                 status.innerHTML = "❌ CSV bevat geen data.";
                 status.style.color = "red";
@@ -57,12 +57,12 @@ document.getElementById("importBtn").addEventListener("click", async function ()
             }
 
             /* ======================= PARSE HEADERS ======================= */
-            const headers = lines[0].split(delimiter).map(h=>h.trim());
+            const headers = lines[0].split(delimiter).map(h => h.trim());
 
             /* ======================= CHECK VERPLICHTE HEADERS ======================= */
             const requiredHeaders = window.StamboomSchema.fields.slice(); // 14 velden
             const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
-            if(missingHeaders.length>0){
+            if(missingHeaders.length > 0){
                 status.innerHTML = "❌ CSV header fout. Ontbrekende kolommen: " + missingHeaders.join(", ");
                 status.style.color = "red";
                 console.error("CSV header fout. Ontbrekend:", missingHeaders);
@@ -71,8 +71,8 @@ document.getElementById("importBtn").addEventListener("click", async function ()
 
             /* ======================= PARSE CSV TO OBJECTS ======================= */
             let newData = [];
-            lines.slice(1).forEach(line=>{
-                let values = [], current='', insideQuotes=false;
+            lines.slice(1).forEach(line => {
+                let values = [], current = '', insideQuotes = false;
                 for(let i=0;i<line.length;i++){
                     const char = line[i];
                     if(char === '"') insideQuotes = !insideQuotes;
@@ -84,7 +84,7 @@ document.getElementById("importBtn").addEventListener("click", async function ()
 
                 /* ======================= MAP CSV NAAR STORAGE ======================= */
                 const obj = {};
-                headers.forEach((header,i)=>{
+                headers.forEach((header,i) => {
                     obj[header] = values[i] !== undefined ? values[i] : "";
                 });
 
