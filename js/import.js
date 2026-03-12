@@ -1,7 +1,6 @@
 // ======================================= js/import.js v1.0.4 =======================================
 // Drop-in voor schema.js v0.0.2
 // Dynamische headers, ID generatie, Migratie oude CSV (extra velden worden genegeerd)
-// Inclusief case-insensitive header check en robuuste CSV parsing
 
 document.getElementById("importBtn").addEventListener("click", async function () {
 
@@ -69,19 +68,14 @@ document.getElementById("importBtn").addEventListener("click", async function ()
             const headers = lines[0].split(delimiter).map(h => h.trim());
 
             // -------------------------------
-            // Controle verplichte velden uit schema (case-insensitive)
+            // Controle verplichte velden uit schema
             // -------------------------------
             const requiredHeaders = window.StamboomSchema.fields.slice(); // dynamisch uit schema
-            const missingHeaders = requiredHeaders.filter(rh => 
-                !headers.some(h => h.trim().toLowerCase() === rh.trim().toLowerCase())
-            );
-
+            const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
             if (missingHeaders.length > 0) {
                 status.innerHTML = "❌ CSV header fout. Ontbrekende kolommen: " + missingHeaders.join(", ");
                 status.style.color = "red";
                 console.error("CSV header fout. Ontbrekend:", missingHeaders);
-                console.log("Detected headers:", headers);
-                console.log("Required headers:", requiredHeaders);
                 return;
             }
 
@@ -107,19 +101,15 @@ document.getElementById("importBtn").addEventListener("click", async function ()
                 }
                 values.push(current); // laatste waarde toevoegen
 
-                // verwijder quotes rond waarden en trim
+                // verwijder quotes rond waarden
                 values = values.map(v => v.replace(/^"(.*)"$/, '$1').trim());
 
                 // -------------------------------
                 // Maak object volgens schema
                 // -------------------------------
                 const obj = window.StamboomSchema.empty(); // vult alle velden, default lege strings
-
-                // vul alleen velden die in schema bestaan
                 headers.forEach((header, i) => {
-                    // match case-insensitive
-                    const schemaKey = Object.keys(obj).find(k => k.toLowerCase() === header.toLowerCase());
-                    if(schemaKey) obj[schemaKey] = values[i] !== undefined ? values[i] : "";
+                    if(header in obj) obj[header] = values[i] !== undefined ? values[i] : "";
                 });
 
                 newData.push(obj);
