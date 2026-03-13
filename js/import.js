@@ -1,10 +1,10 @@
-/* ======================= js/import.js v1.0.7 ======================= */
-/* Drop-in voor schema.js v0.0.2 en storage.js v0.0.3
+/* ======================= js/import.js v1.0.8 ======================= */
+/* Drop-in voor schema.js v0.0.2 en storage.js v0.0.4
    - Automatische delimiter detectie
-   - Ondersteuning voor extra kolommen (max 22)
+   - Dynamische field mapping op basis van schema.js
+   - Extra kolommen tot 22 opgeslagen als _extra
    - ID generatie indien leeg
    - Compatibel met dynamische storage.js
-   - Alleen de eerste 14 velden worden verwerkt
 */
 
 document.getElementById("importBtn").addEventListener("click", async function () {
@@ -18,6 +18,14 @@ document.getElementById("importBtn").addEventListener("click", async function ()
             status.innerHTML = "❌ StamboomStorage niet beschikbaar. Laad eerst storage.js!";
             status.style.color = "red";
             console.error("StamboomStorage is undefined. Zorg dat storage.js vóór import.js geladen wordt.");
+            return;
+        }
+
+        /* ======================= SCHEMA CHECK ======================= */
+        if(!window.StamboomSchema || !Array.isArray(window.StamboomSchema.fields)){
+            status.innerHTML = "❌ StamboomSchema niet geladen!";
+            status.style.color = "red";
+            console.error("StamboomSchema niet beschikbaar");
             return;
         }
 
@@ -60,15 +68,8 @@ document.getElementById("importBtn").addEventListener("click", async function ()
             /* ======================= PARSE HEADERS ======================= */
             const headers = lines[0].split(delimiter).map(h => h.trim());
 
-            /* ======================= CHECK VERPLICHTE HEADERS ======================= */
-            if(!window.StamboomSchema || !window.StamboomSchema.fields){
-                console.error("StamboomSchema niet geladen");
-                status.innerHTML = "❌ Interne fout: StamboomSchema niet beschikbaar";
-                status.style.color = "red";
-                return;
-            }
-            const requiredHeaders = window.StamboomSchema.fields.slice(0,14); // alleen eerste 14 velden verplicht
-            const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+            /* ======================= HEADER VALIDATION ======================= */
+            const missingHeaders = window.StamboomSchema.fields.filter(f => !headers.includes(f));
             if(missingHeaders.length > 0){
                 status.innerHTML = "❌ CSV header fout. Ontbrekende kolommen: " + missingHeaders.join(", ");
                 status.style.color = "red";
@@ -78,6 +79,8 @@ document.getElementById("importBtn").addEventListener("click", async function ()
 
             /* ======================= PARSE CSV TO OBJECTS ======================= */
             let newData = [];
+            const schemaLength = window.StamboomSchema.fields.length;
+
             lines.slice(1).forEach(line => {
                 let values = [], current = '', insideQuotes = false;
                 for(let i=0;i<line.length;i++){
@@ -89,17 +92,16 @@ document.getElementById("importBtn").addEventListener("click", async function ()
                 values.push(current); // laatste waarde
                 values = values.map(v => v.replace(/^"(.*)"$/,'$1').trim());
 
-                /* ======================= MAP CSV NAAR STORAGE ======================= */
+                /* ======================= MAP CSV NAAR SCHEMA ======================= */
                 const obj = {};
-                // alleen de eerste 14 velden verwerken
-                for(let j=0; j<14; j++){
+                for(let j=0; j<schemaLength; j++){
                     obj[window.StamboomSchema.fields[j]] = values[j] !== undefined ? values[j] : "";
                 }
 
-                // extra kolommen bewaren tot veld 22, niet verwerkt
-                obj._extra = values.slice(14,22);
+                // extra kolommen tot veld 22 bewaren
+                obj._extra = values.slice(schemaLength, 22);
 
-                /* ======================= GENERATE MISSING ID ======================= */
+                /* ======================= ID GENERATIE ======================= */
                 if(!obj.ID || obj.ID.trim()===""){
                     obj.ID = window.genereerCode ? window.genereerCode(obj, StamboomStorage.get().concat(newData)) : 'P'+Date.now();
                 }
@@ -107,7 +109,7 @@ document.getElementById("importBtn").addEventListener("click", async function ()
                 newData.push(obj);
             });
 
-            /* ======================= COMBINE EN OPSLAAN ======================= */
+            /* ======================= COMBINE MET BESTAANDE DATA ======================= */
             const existingData = StamboomStorage.get();
             const combinedData = existingData.concat(newData);
             StamboomStorage.set(combinedData);
