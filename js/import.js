@@ -1,27 +1,26 @@
-/* ======================= js/import.js v2.0.1 ======================= */
-/* Robuuste CSV/TXT importer voor MyFamTreeCollab
-   - werkt met schema.js v0.1.x en storage.js
-   - automatische delimiter detectie
+/* ======================= js/import.js v2.0.2 ======================= */
+/* Drop-in CSV/TXT importer voor MyFamTreeCollab
+   - ondersteunt schema.js v0.1.x
    - BOM verwijdering
-   - max 22 kolommen
-   - eerste 14 velden volgens schema
-   - extra kolommen in _extra
-   - ID generatie indien leeg
-   - inline uitleg toegevoegd
+   - delimiter detectie: comma, semicolon, tab
+   - quotes en embedded commas correct
+   - eerste 14 schema velden worden herkend
+   - extra kolommen 15-22 opgeslagen in _extra
+   - automatische ID generatie indien leeg
+   - datum dd-mm-yyyy → yyyy-mm-dd
+   - inline uitleg toegevoegd voor onderhoud
 */
 
 // ======================= START IMPORT =======================
-// wacht tot de pagina volledig geladen is
 document.addEventListener("DOMContentLoaded", function() {
 
-    // zoek de import knop
-    const btn = document.getElementById("importBtn");
+    const btn = document.getElementById("importBtn"); // import knop
     if(!btn){
         console.error("importBtn niet gevonden");
         return;
     }
 
-    btn.addEventListener("click", async function() { // klik handler
+    btn.addEventListener("click", async function() {
 
         const status = document.getElementById("importStatus"); // status element
 
@@ -42,7 +41,10 @@ document.addEventListener("DOMContentLoaded", function() {
                 console.error("StamboomSchema ontbreekt");
                 return;
             }
-            const schema = window.StamboomSchema;
+
+            const schema = window.StamboomSchema;             // schema referentie
+            const coreCount = schema.fields.length;           // eerste 14 velden
+            const maxColumns = 22;                             // max kolommen totaal
 
             /* ======================= FILE PICK ======================= */
             const fileInput = document.getElementById("importFile");
@@ -60,7 +62,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 let text = e.target.result;
 
                 /* ======================= BOM VERWIJDEREN ======================= */
-                text = text.replace(/^\uFEFF/, ""); // verwijder UTF-8 BOM
+                text = text.replace(/^\uFEFF/, "");
 
                 /* ======================= DELIMITER DETECTIE ======================= */
                 function detectDelimiter(csv){
@@ -82,9 +84,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 /* ======================= SPLIT LINES ======================= */
                 const lines = text
-                    .split(/\r?\n/)               // split op Windows/Mac
-                    .map(l => l.trim())           // verwijder whitespace
-                    .filter(l => l.length);       // verwijder lege regels
+                    .split(/\r?\n/)        // Windows/Mac line endings
+                    .map(l => l.trim())    // whitespace verwijderen
+                    .filter(l => l.length); // lege regels overslaan
 
                 if(lines.length < 2){
                     status.innerHTML = "❌ CSV bevat geen data";
@@ -92,14 +94,13 @@ document.addEventListener("DOMContentLoaded", function() {
                     return;
                 }
 
-                /* ======================= HEADER ANALYSE ======================= */
+                /* ======================= HEADER NORMALISATIE ======================= */
                 let headerLine = lines[0];
 
-                // vervang eventuele ; door , voor schema parser
-                headerLine = headerLine.replace(/;/g, ",");
+                // vervang tabs en ; door , zodat schema normalizeHeader werkt
+                headerLine = headerLine.replace(/\t/g, ",").replace(/;/g, ",");
 
                 const headerInfo = schema.normalizeHeader(headerLine);
-
                 if(headerInfo.type === "unknown"){
                     status.innerHTML = "❌ Onbekende CSV header";
                     status.style.color = "red";
@@ -110,34 +111,30 @@ document.addEventListener("DOMContentLoaded", function() {
                 /* ======================= DATA PARSING ======================= */
                 const newRows = [];
                 const existing = StamboomStorage.get();
-                const coreCount = schema.fields.length;       // eerste 14 velden
-                const maxColumns = 22;                        // max kolommen totaal
 
                 lines.slice(1).forEach((line, index) => {
-                    if(!line.trim()) return; // sla lege regels over
 
-                    /* ======================= CSV SPLIT ======================= */
+                    if(!line.trim()) return; // lege regel overslaan
+
+                    /* ======================= CSV SPLIT + QUOTES ======================= */
                     let values = [];
                     let current = "";
                     let insideQuotes = false;
 
-                    for(let i=0; i<line.length; i++){
+                    for(let i=0;i<line.length;i++){
                         const char = line[i];
-                        if(char === '"') {
-                            insideQuotes = !insideQuotes; // toggle quote
-                        } else if(char === delimiter && !insideQuotes) {
+                        if(char === '"') insideQuotes = !insideQuotes;
+                        else if(char === delimiter && !insideQuotes){
                             values.push(current);
                             current = "";
-                        } else {
-                            current += char;
-                        }
+                        } else current += char;
                     }
                     values.push(current);
 
-                    // verwijder omringende quotes
+                    // verwijder surrounding quotes en dubbele quotes
                     values = values.map(v => v.replace(/^"(.*)"$/,'$1').replace(/""/g,'"').trim());
 
-                    // truncate extra kolommen
+                    // truncate naar maxColumns
                     if(values.length > maxColumns) values.length = maxColumns;
 
                     /* ======================= SCHEMA PARSER ======================= */
@@ -150,14 +147,22 @@ document.addEventListener("DOMContentLoaded", function() {
                     /* ======================= EXTRA KOLOMMEN ======================= */
                     obj._extra = values.slice(coreCount, maxColumns);
 
+                    /* ======================= DATUM CONVERSIE dd-mm-yyyy → yyyy-mm-dd ======================= */
+                    ["Geboortedatum","Overlijdensdatum"].forEach(f => {
+                        if(obj[f] && /^\d{1,2}-\d{1,2}-\d{4}$/.test(obj[f])){
+                            const parts = obj[f].split("-");
+                            obj[f] = `${parts[2].padStart(4,"0")}-${parts[1].padStart(2,"0")}-${parts[0].padStart(2,"0")}`;
+                        }
+                    });
+
                     /* ======================= ID GENERATIE ======================= */
-                    if(!obj.ID || obj.ID.trim() === ""){
+                    if(!obj.ID || obj.ID.trim()===""){
                         obj.ID = window.genereerCode ?
                             window.genereerCode(obj, existing.concat(newRows)) :
                             "P"+Date.now()+Math.floor(Math.random()*1000);
                     }
 
-                    /* ======================= VALIDATIE ======================= */
+                    /* ======================= BASIS VALIDATIE ======================= */
                     if(!schema.validate(obj)){
                         console.warn("Ongeldige persoon overgeslagen:", obj);
                         return;
@@ -166,7 +171,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     newRows.push(obj);
                 });
 
-                /* ======================= COMBINE DATA ======================= */
+                /* ======================= COMBINEER EN OPSLAAN ======================= */
                 StamboomStorage.set(existing.concat(newRows));
 
                 /* ======================= SUCCESS ======================= */
@@ -178,7 +183,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             reader.readAsText(file); // start lezen
 
-        } catch(err) {
+        } catch(err){
             status.innerHTML = "❌ Import fout";
             status.style.color = "red";
             console.error(err);
