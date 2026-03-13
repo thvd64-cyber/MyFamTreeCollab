@@ -1,22 +1,22 @@
-/* ======================= manage.js v1.3.17 ======================= */
-/* Drop-in, 14 kolommen, INIT + live search fix + popup + CSV compatible */
+/* ======================= manage.js v1.3.18 ======================= */
+/* Drop-in, 14 kolommen, live search, add/save/refresh, export JSON+CSV, inline uitleg */
 
 (function(){
 'use strict';
 
 /* ======================= HELPERS ======================= */
-function safe(val){ return val ? String(val).trim() : ''; } // veilige string
+function safe(val){ return val ? String(val).trim() : ''; } // Veilige string
 function parseDate(d){ 
     if(!d) return new Date(0); 
     const parts = d.split('-'); 
     if(parts.length!==3) return new Date(0); 
-    return new Date(parts.reverse().join('-')); 
+    return new Date(parts.reverse().join('-')); // dd-mm-yyyy -> yyyy-mm-dd
 }
 
 /* ======================= STORAGE ======================= */
 const StamboomStorage = {
-    get:()=> JSON.parse(localStorage.getItem('stamboom_v0_0_2')||'[]'),
-    set:(data)=> localStorage.setItem('stamboom_v0_0_2', JSON.stringify(data))
+    get:()=> JSON.parse(localStorage.getItem('stamboom_v0_0_2')||'[]'), // Haal dataset op
+    set:(data)=> localStorage.setItem('stamboom_v0_0_2', JSON.stringify(data)) // Sla dataset op
 };
 
 /* ======================= KOLONNEN ======================= */
@@ -29,20 +29,20 @@ const COLUMNS=[
 ];
 
 /* ======================= STATE ======================= */
-let dataset = StamboomStorage.get(); 
-let selectedHoofdId = dataset.length>0?dataset[0].ID:null; 
-let tempRowCount=0; 
+let dataset = StamboomStorage.get();             // Huidige dataset
+let selectedHoofdId = dataset.length>0?dataset[0].ID:null; // Start selectie eerste persoon
+let tempRowCount = 0;                            // Voor tijdelijk toegevoegde rijen
 
 /* ======================= MIGRATIE ======================= */
 function migrateDataset(oldData){
     return oldData.map(p=>{
         const clone = {...p};
-        COLUMNS.forEach(c=>{ if(!(c.key in clone)) clone[c.key]=''; });
+        COLUMNS.forEach(c=>{ if(!(c.key in clone)) clone[c.key]=''; }); // Voeg ontbrekende kolommen toe
         return clone;
     });
 }
-dataset = migrateDataset(dataset); 
-StamboomStorage.set(dataset);
+dataset = migrateDataset(dataset);
+StamboomStorage.set(dataset); // Sla gemigreerde dataset op
 
 /* ======================= ID GENERATOR ======================= */
 function genereerCode(persoon,bestaande){
@@ -51,24 +51,26 @@ function genereerCode(persoon,bestaande){
     let code;
     do { code = letters + Math.floor(100+Math.random()*900); } 
     while(bestaandeIDs.has(code));
-    return code;
+    return code; // Unieke ID
 }
 
 /* ======================= DOM ELEMENTEN ======================= */
-const tableBody   = document.querySelector('#manageTable tbody');
+const tableBody   = document.querySelector('#manageTable tbody'); 
 const theadRow    = document.querySelector('#manageTable thead tr');
 const addBtn      = document.getElementById('addBtn');
 const saveBtn     = document.getElementById('saveBtn');
 const refreshBtn  = document.getElementById('refreshBtn');
+const jsonBtn     = document.getElementById('exportJSON');
+const csvBtn      = document.getElementById('exportCSV');
 const searchInput = document.getElementById('searchPerson');
 
 /* ======================= BUILD HEADER ======================= */
 function buildHeader(){
-    theadRow.innerHTML='';
+    theadRow.innerHTML=''; // Clear existing
     COLUMNS.forEach(col=>{
-        const th=document.createElement('th');
-        th.textContent=col.key;
-        theadRow.appendChild(th);
+        const th = document.createElement('th');
+        th.textContent = col.key;
+        theadRow.appendChild(th); // Voeg header toe
     });
 }
 
@@ -77,10 +79,12 @@ function computeRelaties(data,hoofdId){
     if(!hoofdId) return [];
     const hoofd = data.find(p=>p.ID===hoofdId); if(!hoofd) return [];
     const VHoofdID=hoofd.VaderID,MHoofdID=hoofd.MoederID,PHoofdID=hoofd.PartnerID;
+
     const KindID=data.filter(p=>p.VaderID===hoofdId || p.MoederID===hoofdId || (PHoofdID && (p.VaderID===PHoofdID||p.MoederID===PHoofdID))).map(p=>p.ID);
     const BZID=data.filter(p=>{ const pid=p.ID; if(pid===hoofdId || KindID.includes(pid)||pid===PHoofdID) return false; return (VHoofdID && p.VaderID===VHoofdID) || (MHoofdID && p.MoederID===MHoofdID); }).map(p=>p.ID);
     const KindPartnerID=KindID.map(id=>{const k=data.find(p=>p.ID===id); return k&&k.PartnerID?k.PartnerID:null;}).filter(Boolean);
     const BZPartnerID=BZID.map(id=>{const s=data.find(p=>p.ID===id); return s&&s.PartnerID?s.PartnerID:null;}).filter(Boolean);
+
     return data.map(p=>{
         const pid=p.ID, clone={...p}; clone.Relatie=''; clone._priority=99;
         if(pid===hoofdId){clone.Relatie='HoofdID'; clone._priority=1;}
@@ -110,21 +114,27 @@ function renderTable(dataset){
     const contextData=computeRelaties(dataset,selectedHoofdId);
     if(!contextData.length){ showPlaceholder('Geen personen gevonden'); return; }
 
-    tableBody.innerHTML='';
+    tableBody.innerHTML=''; // Clear body
     const renderQueue=[];
 
+    // Ouders eerst
     contextData.filter(p=>p.Relatie==='VHoofdID'||p.Relatie==='MHoofdID').forEach(p=>renderQueue.push(p));
+    // Hoofd
     const hoofd=contextData.find(p=>p.Relatie==='HoofdID'); if(hoofd) renderQueue.push(hoofd);
+    // Partner
     contextData.filter(p=>p.Relatie==='PHoofdID').forEach(p=>renderQueue.push(p));
+    // Kind + Partner
     contextData.filter(p=>p.Relatie==='KindID').forEach(k=>{
         renderQueue.push(k);
         const kp=contextData.find(p=>p.Relatie==='KindPartnerID' && p.ID===k.PartnerID); if(kp) renderQueue.push(kp);
     });
+    // BZID + Partner
     contextData.filter(p=>p.Relatie==='BZID').forEach(s=>{
         renderQueue.push(s);
         const bzP=contextData.find(p=>p.Relatie==='BZPartnerID' && p.ID===s.PartnerID); if(bzP) renderQueue.push(bzP);
     });
 
+    // Render elke rij
     renderQueue.forEach(p=>{
         const tr=document.createElement('tr');
         let relatieLabel='';
@@ -159,142 +169,138 @@ function renderTable(dataset){
 function showPlaceholder(msg){
     tableBody.innerHTML='';
     const tr=document.createElement('tr');
-    const td=document.createElement('td'); 
-    td.colSpan=COLUMNS.length; 
-    td.textContent=msg; 
+    const td=document.createElement('td');
+    td.colSpan=COLUMNS.length;
     td.style.textAlign='center';
-    tr.appendChild(td); 
+    td.textContent=msg;
+    tr.appendChild(td);
     tableBody.appendChild(tr);
 }
 
 /* ======================= ADD ROW ======================= */
 function addRow(){
-    if(tempRowCount>=10){alert('Maximaal 10 rijen toegevoegd. Klik Opslaan om verder te gaan.'); return;}
+    if(tempRowCount>=10){ alert('Maximaal 10 rijen toegevoegd. Klik Opslaan.'); return; }
     const tr=document.createElement('tr');
     COLUMNS.forEach(col=>{
         const td=document.createElement('td');
-        if(col.readonly){ td.textContent=''; } 
-        else { 
-            const ta=document.createElement('textarea'); 
-            ta.value=''; 
-            ta.dataset.field=col.key; 
-            ta.style.width='100%'; 
-            ta.style.boxSizing='border-box'; 
-            ta.style.resize='vertical'; 
-            td.appendChild(ta); 
+        if(col.readonly){ td.textContent=''; }
+        else{
+            const ta=document.createElement('textarea');
+            ta.value=''; ta.dataset.field=col.key;
+            ta.style.width='100%'; ta.style.boxSizing='border-box'; ta.style.resize='vertical';
+            td.appendChild(ta);
         }
         tr.appendChild(td);
     });
-    tableBody.appendChild(tr); 
-    tempRowCount++; 
+    tableBody.appendChild(tr); tempRowCount++;
     adjustTextareas();
 }
 
 /* ======================= SAVE DATASET ======================= */
 function saveDatasetMerged(){
     try{
-        const rows=tableBody.querySelectorAll('tr');
-        const idMap=new Map(dataset.map(p=>[p.ID,p]));
+        const rows = tableBody.querySelectorAll('tr');
+        const idMap = new Map(dataset.map(p=>[p.ID,p]));
         rows.forEach(tr=>{
             const persoon={};
             COLUMNS.forEach((col,i)=>{
                 const cell=tr.cells[i];
                 if(col.readonly){if(col.key==='ID') persoon.ID=safe(cell.textContent);}
-                else{const ta=cell.querySelector('textarea'); persoon[col.key]=ta?ta.value.trim():'';}
+                else{ const ta=cell.querySelector('textarea'); persoon[col.key]=ta?ta.value.trim():''; }
             });
             if(!persoon.ID) persoon.ID=genereerCode(persoon, Array.from(idMap.values()));
             idMap.set(persoon.ID,{...idMap.get(persoon.ID),...persoon});
         });
-        dataset=Array.from(idMap.values()); 
-        StamboomStorage.set(dataset); 
+        dataset=Array.from(idMap.values());
+        StamboomStorage.set(dataset);
         tempRowCount=0;
-        alert('Dataset succesvol opgeslagen (merged met bestaande data)');
-    }catch(e){alert(`Opslaan mislukt: ${e.message}`); console.error(e);}
+        alert('Dataset succesvol opgeslagen');
+    }catch(e){ alert('Opslaan mislukt: '+e.message); console.error(e); }
 }
 
 /* ======================= REFRESH ======================= */
 function refreshTable(){ 
-    dataset=StamboomStorage.get(); 
-    if(!selectedHoofdId && dataset.length>0) selectedHoofdId=dataset[0].ID; 
-    renderTable(dataset); 
+    dataset = StamboomStorage.get();
+    if(!selectedHoofdId && dataset.length>0) selectedHoofdId=dataset[0].ID;
+    renderTable(dataset);
+}
+
+/* ======================= EXPORT JSON ======================= */
+function exportJSON(){
+    const dataStr = JSON.stringify(dataset,null,2);
+    const blob = new Blob([dataStr],{type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url; a.download='stamboom.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+}
+
+/* ======================= EXPORT CSV ======================= */
+function exportCSV(){
+    const header = COLUMNS.map(c=>`"${c.key}"`).join(',');
+    const rows = dataset.map(p=>COLUMNS.map(c=>`"${(p[c.key]||'').replace(/"/g,'""')}"`).join(','));
+    const csvStr = [header,...rows].join('\r\n');
+    const blob = new Blob([csvStr],{type:'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url; a.download='stamboom.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
 }
 
 /* ======================= LIVE SEARCH ======================= */
 function liveSearch(){
-    const term=safe(searchInput.value).toLowerCase(); 
-
-    // verwijder oude popup
-    document.getElementById('searchPopup')?.remove(); 
-
+    const term = safe(searchInput.value).toLowerCase();
+    document.getElementById('searchPopup')?.remove();
     if(!term) return;
-
-    // filter dataset
-    const results=dataset.filter(p=>safe(p.ID).toLowerCase().includes(term) 
-        || safe(p.Roepnaam).toLowerCase().includes(term) 
+    const results = dataset.filter(p=>safe(p.ID).toLowerCase().includes(term)
+        || safe(p.Roepnaam).toLowerCase().includes(term)
         || safe(p.Achternaam).toLowerCase().includes(term));
-
-    // input positie
-    const rect=searchInput.getBoundingClientRect();
-
-    const popup=document.createElement('div'); 
-    popup.id='searchPopup'; 
-    popup.style.position='absolute';
-    popup.style.background='#fff'; 
-    popup.style.border='1px solid #999';
-    popup.style.zIndex=1000;
-    popup.style.top=rect.bottom+window.scrollY+'px';
-    popup.style.left=Math.max(rect.left+window.scrollX,5)+'px';
-    popup.style.width=rect.width+'px';
-    popup.style.maxHeight='300px';
-    popup.style.overflowY='auto';
-    popup.style.fontSize='1.3rem';
-    popup.style.padding='8px';
-    popup.style.borderRadius='5px';
-    popup.style.boxShadow='0 3px 6px rgba(0,0,0,0.2)';
+    const rect = searchInput.getBoundingClientRect();
+    const popup = document.createElement('div');
+    popup.id='searchPopup';
+    popup.style.position='absolute'; popup.style.background='#fff';
+    popup.style.border='1px solid #999'; popup.style.zIndex=1000;
+    popup.style.top=rect.bottom+window.scrollY+5+'px';
+    popup.style.left=Math.max(rect.left+window.scrollX,20)+'px';
+    popup.style.width=(rect.width*1.2)+'px';
+    popup.style.maxHeight='600px'; popup.style.overflowY='auto';
+    popup.style.fontSize='1.5rem'; popup.style.padding='8px';
+    popup.style.borderRadius='5px'; popup.style.boxShadow='0 3px 6px rgba(0,0,0,0.2)';
 
     if(results.length===0){
-        const row=document.createElement('div'); 
-        row.textContent='Geen resultaten'; 
-        row.style.padding='8px'; 
-        row.style.fontSize='1.3rem';
+        const row=document.createElement('div'); row.textContent='Geen resultaten';
+        row.style.padding='8px'; row.style.fontSize='1.3rem';
         popup.appendChild(row);
     } else {
         results.forEach(p=>{
-            const row=document.createElement('div'); 
-            row.textContent=`${p.ID} | ${p.Roepnaam} | ${p.Achternaam}`; 
-            row.style.padding='8px'; 
-            row.style.cursor='pointer'; 
-            row.style.fontSize='1.3rem';
+            const row=document.createElement('div');
+            row.textContent=`${p.ID} | ${p.Roepnaam} | ${p.Achternaam}`;
+            row.style.padding='8px'; row.style.cursor='pointer'; row.style.fontSize='1.3rem';
             row.addEventListener('click',()=>{
-                selectedHoofdId=safe(p.ID); 
-                popup.remove(); 
-                renderTable(dataset);
+                selectedHoofdId=safe(p.ID); popup.remove(); renderTable(dataset);
             });
             popup.appendChild(row);
         });
     }
-
     document.body.appendChild(popup);
 }
 
 /* ======================= INIT ======================= */
 function init(){
-    buildHeader(); 
-    renderTable(dataset);
-
-    // event listeners
-    searchInput.addEventListener('input',liveSearch);
+    buildHeader(); renderTable(dataset);
     addBtn.addEventListener('click',addRow);
     saveBtn.addEventListener('click',saveDatasetMerged);
     refreshBtn.addEventListener('click',refreshTable);
-
-    // klik buiten popup sluit
+    jsonBtn.addEventListener('click',exportJSON);
+    csvBtn.addEventListener('click',exportCSV);
+    searchInput.addEventListener('input',liveSearch);
     document.addEventListener('click',e=>{
-        const popup=document.getElementById('searchPopup'); 
+        const popup=document.getElementById('searchPopup');
         if(popup && !popup.contains(e.target) && e.target!==searchInput) popup.remove();
     });
 }
-
 init();
 
 })();
