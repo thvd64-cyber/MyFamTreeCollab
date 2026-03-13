@@ -1,212 +1,266 @@
-// ======================= js/schema.js v0.0.2 =======================
-// Schema manager voor MyFamTreeCollab
-// Beheert: datastructuur, CSV parsing, schema validatie (14 & 19), legacy migratie
+// ======================= js/schema.js v0.1.0 =======================
+// Centrale datastructuur voor MyFamTreeCollab
+// Beheert: schema velden, CSV parsing, header validatie en legacy migratie
 
-(function () { // start van self-executing functie zodat variabelen niet globaal lekken
-'use strict'; // activeert strengere JavaScript controle om fouten te voorkomen
+(function(){ // self-executing functie voorkomt globale variabelen
 
-// ======================= SCHEMA VERSION =======================
-// versienummer van de datastructuur zodat migraties mogelijk zijn
-const SCHEMA_VERSION = "0.0.2"; // huidige schema versie van de datastructuur
+'use strict'; // activeert strengere JS validatie
 
-// ======================= HUIDIGE DATA STRUCTUUR =======================
-// dit bepaalt EXACT welke kolommen in CSV en objecten bestaan
+// ======================= SCHEMA INFO =======================
+
+const SCHEMA_VERSION = "0.1.0"; // versie van datastructuur
+
+const MAX_COLUMNS = 22; // maximale aantal kolommen toegestaan in CSV
+
+// ======================= HOOFDVELDEN (1–14) =======================
+// deze velden hebben betekenis voor de applicatie
+
 const FIELDS = [
+
 "ID",               // uniek persoon ID
 "Doopnaam",         // officiële naam
-"Roepnaam",         // naam die dagelijks gebruikt wordt
-"Prefix",           // tussenvoegsel zoals van / de / van der
+"Roepnaam",         // roepnaam
+"Prefix",           // tussenvoegsel
 "Achternaam",       // familienaam
 "Geslacht",         // M / V / X
-"Geboortedatum",    // formaat yyyy-mm-dd
-"Geboorteplaats",   // plaats van geboorte
-"Overlijdensdatum", // formaat yyyy-mm-dd
-"Overlijdensplaats",// plaats van overlijden
-"VaderID",          // verwijzing naar vader
-"MoederID",         // verwijzing naar moeder
-"PartnerID",        // partners gescheiden met |
+"Geboortedatum",    // yyyy-mm-dd
+"Geboorteplaats",   // plaats geboorte
+"Overlijdensdatum", // yyyy-mm-dd
+"Overlijdensplaats",// plaats overlijden
+"VaderID",          // verwijzing vader
+"MoederID",         // verwijzing moeder
+"PartnerID",        // meerdere partners met |
 "Opmerkingen"       // vrije tekst
-];
-  
-// maak globaal beschikbaar voor import.js
-window.StamboomSchema = { fields: FIELDS };
-  
-// ======================= LEGACY HEADERS =======================
-// oude datastructuren die automatisch gemigreerd kunnen worden
-const LEGACY_HEADERS = [
-[
-"ID",
-"Doopnaam",
-"Roepnaam",
-"Prefix",
-"Achternaam",
-"Geslacht",
-"Geboortedatum",
-"Geboorteplaats",
-"Overlijdensdatum",
-"Overlijdensplaats",
-"VaderID",
-"MoederID",
-"PartnerID",
-"Huwelijksdatum",
-"Huwelijksplaats",
-"Opmerkingen",
-"Huisadressen",
-"ContactInfo",
-"URL"
-]
+
 ];
 
-// ======================= DATUM VELDEN =======================
-// velden die automatisch als datum worden behandeld
+const CORE_FIELD_COUNT = FIELDS.length; // aantal schema velden (14)
+
+// ======================= LEGACY HEADERS =======================
+// oudere CSV structuren die automatisch gemigreerd worden
+
+const LEGACY_HEADERS = [
+
+[
+"ID","Doopnaam","Roepnaam","Prefix","Achternaam","Geslacht",
+"Geboortedatum","Geboorteplaats","Overlijdensdatum","Overlijdensplaats",
+"VaderID","MoederID","PartnerID",
+"Huwelijksdatum","Huwelijksplaats",
+"Opmerkingen","Huisadressen","ContactInfo","URL"
+]
+
+];
+
+// ======================= SPECIALE VELDEN =======================
+
 const DATE_FIELDS = [
+
 "Geboortedatum",    // geboortedatum moet datum parsing krijgen
 "Overlijdensdatum"  // overlijdensdatum moet datum parsing krijgen
+
 ];
 
-// ======================= GESLACHT DEFINITIES =======================
-// toegestane waarden voor geslacht
 const GESLACHT_VALUES = {
 
-nl: ["M","V","X"], // Nederlands formaat
-en: ["M","F","X"]  // Engels formaat
+nl:["M","V","X"],   // Nederlandse waarden
+en:["M","F","X"]    // Engelse waarden
+
 };
 
-const DEFAULT_GESLACHT = "X"; // standaard waarde wanneer niets ingevuld is
+const DEFAULT_GESLACHT = "X"; // standaard waarde
 
-// ======================= HEADER GENERATOR =======================
-// maakt CSV header regel op basis van FIELDS
-function getHeader(){
+// ======================= CSV HELPER =======================
 
-return FIELDS.join(","); // combineert alle velden tot CSV header
+// split CSV regel maar laat komma's binnen quotes intact
+function splitCSV(line){
+
+return line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+
 }
 
-// ======================= HEADER VALIDATOR =======================
-// controleert of header exact overeenkomt met huidig schema
+// verwijdert CSV quotes en escaped quotes
+function cleanValue(value){
+
+return (value || "")
+.replace(/^"|"$/g,"") // verwijder begin en eind quotes
+.replace(/""/g,'"'); // converteer dubbele quotes
+
+}
+
+// ======================= HEADER VALIDATIE =======================
+
+// controleert alleen eerste 14 kolommen
 function validateHeader(headerLine){
-return headerLine.trim() === getHeader(); // vergelijkt CSV header met schema
-}
 
-// ======================= HEADER NORMALIZER =======================
-// detecteert huidig of legacy schema
-function normalizeHeader(headerLine){
-const header = headerLine.split(",").map(h => h.trim()); // split CSV header naar array
+const header = splitCSV(headerLine).map(h=>h.trim());
 
-if(header.join(",") === FIELDS.join(",")) // controle of header huidige structuur is
-return {type:"current", header}; // markeer als huidige versie
-
-for(const legacy of LEGACY_HEADERS){ // loop door alle legacy schema's
-
-if(header.join(",") === legacy.join(",")) // check of header legacy schema is
-return {type:"legacy", header}; // markeer als legacy
-}
-return {type:"unknown", header}; // onbekend schema
-}
-
-// ======================= LEEG PERSOON OBJECT =======================
-// maakt een nieuw leeg persoon object volgens schema
-function createEmptyPersoon(){
-const obj = {}; // maak leeg object
-FIELDS.forEach(field => obj[field] = ""); // initialiseer elk veld leeg
-obj.Geslacht = DEFAULT_GESLACHT; // zet standaard geslacht
-return obj; // retourneer object
-}
-
-// ======================= BASIS VALIDATIE =======================
-// minimale validatie van persoon object
-function validatePerson(obj, lang="nl"){
-if(!obj.ID) return false; // ID moet bestaan
-if(!GESLACHT_VALUES[lang].includes(obj.Geslacht)) // controleer geldige geslacht waarde
+for(let i=0;i<CORE_FIELD_COUNT;i++) // controleer alleen kernvelden
+if(header[i] !== FIELDS[i])
 return false;
-return true; // object is geldig
+
+return true; // header is geldig
+
 }
 
-// ======================= LEGACY MIGRATOR =======================
-// converteert oude CSV rijen naar nieuwe structuur
-function migrateLegacyRow(values, header){
-const obj = {}; // maak nieuw object
-FIELDS.forEach(field => { // loop door alle velden van huidige schema
-const index = header.indexOf(field); // zoek veld positie in legacy header
-if(index !== -1) // als veld bestaat
-obj[field] = values[index]; // kopieer waarde
+// ======================= HEADER TYPE DETECTIE =======================
 
-else
-obj[field] = ""; // anders leeg veld
+function normalizeHeader(headerLine){
+
+const header = splitCSV(headerLine).map(h=>h.trim());
+
+if(validateHeader(headerLine)) // check huidige schema
+return {type:"current", header};
+
+for(const legacy of LEGACY_HEADERS) // check legacy headers
+
+if(header.join(",") === legacy.join(","))
+
+return {type:"legacy", header};
+
+return {type:"unknown", header};
+
+}
+
+// ======================= LEEG OBJECT =======================
+
+function createEmptyPersoon(){
+
+const obj = {}; // maak nieuw object
+
+FIELDS.forEach(field => obj[field] = ""); // initialiseer velden
+
+obj.Geslacht = DEFAULT_GESLACHT; // standaard geslacht
+
+return obj;
+
+}
+
+// ======================= VALIDATIE =======================
+
+function validatePerson(obj, lang="nl"){
+
+if(!obj.ID) return false; // ID verplicht
+
+if(!GESLACHT_VALUES[lang].includes(obj.Geslacht)) // geslacht check
+return false;
+
+return true;
+
+}
+
+// ======================= LEGACY MIGRATIE =======================
+
+function migrateLegacyRow(values, header){
+
+const obj = createEmptyPersoon(); // maak leeg schema object
+
+FIELDS.forEach(field=>{ // loop door schema velden
+
+const index = header.indexOf(field); // zoek positie in legacy header
+
+if(index !== -1)
+obj[field] = cleanValue(values[index]); // kopieer waarde
+
 });
-return obj; // retourneer geconverteerd object
+
+return obj;
+
 }
 
 // ======================= CSV → OBJECT =======================
-// converteert CSV rij naar persoon object
+
 function csvRowToObject(row, headerInfo){
-const values = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); // split CSV maar negeer komma's binnen quotes
 
-if(headerInfo.type === "legacy") // als CSV legacy structuur heeft
-return migrateLegacyRow(values, headerInfo.header); // voer migratie uit
+const values = splitCSV(row); // split CSV regel
 
-if(values.length !== FIELDS.length){ // controleer kolom aantal
-console.error(`CSV kolom mismatch: verwacht ${FIELDS.length}, kreeg ${values.length}`);
-return null;
-}
+if(values.length > MAX_COLUMNS) // limiet controle
+values.length = MAX_COLUMNS;
 
-const obj = {}; // maak leeg object
+if(headerInfo.type === "legacy") // legacy structuur
+return migrateLegacyRow(values, headerInfo.header);
 
-FIELDS.forEach((field,i)=>{ // loop door velden
-let value = values[i] || ""; // pak waarde
-value = value.replace(/^"|"$/g,"").replace(/""/g,'"'); // verwijder CSV quotes
-if(DATE_FIELDS.includes(field) && value){ // als veld datum is
-const date = new Date(value); // probeer datum te maken
-obj[field] = isNaN(date) ? "" : date; // valide datum of leeg
+const obj = createEmptyPersoon(); // maak nieuw object
+
+FIELDS.forEach((field,i)=>{ // vul schema velden
+
+let value = cleanValue(values[i]); // haal waarde op
+
+if(DATE_FIELDS.includes(field) && value){ // datum parsing
+
+const date = new Date(value);
+
+obj[field] = isNaN(date) ? "" : date;
+
 }
 else{
-obj[field] = value; // gewone tekst waarde
+
+obj[field] = value;
+
 }
+
 });
-return obj; // retourneer object
+
+return obj;
+
 }
 
 // ======================= OBJECT → CSV =======================
-// converteert persoon object naar CSV rij
-function objectToCSVRow(obj){
-return FIELDS.map(field=>{ // loop door velden
-let value = obj[field] ?? ""; // pak veldwaarde
-if(DATE_FIELDS.includes(field) && value instanceof Date) // als datum object
-value = value.toISOString().split("T")[0]; // converteer naar yyyy-mm-dd
 
-return `"${String(value).replace(/"/g,'""')}"`; // escape quotes
-}).join(","); // combineer tot CSV rij
+function objectToCSVRow(obj){
+
+return FIELDS.map(field=>{ // loop door schema velden
+
+let value = obj[field] ?? "";
+
+if(DATE_FIELDS.includes(field) && value instanceof Date)
+
+value = value.toISOString().split("T")[0]; // datum formaat
+
+return `"${String(value).replace(/"/g,'""')}"`; // CSV escape
+
+}).join(",");
+
 }
 
 // ======================= PARTNER HELPERS =======================
-// functies om meerdere partners te verwerken
+
 function parsePartners(partnerField){
-return partnerField ? partnerField.split("|").map(s=>s.trim()).filter(Boolean) : [];
-}
-function stringifyPartners(partnersArray){
-return partnersArray.join("|");
+
+return partnerField
+? partnerField.split("|").map(s=>s.trim()).filter(Boolean)
+: [];
+
 }
 
-// ======================= EXTRA HELPERS =======================
-function getFieldCount(){
-return FIELDS.length; // aantal velden in schema
+function stringifyPartners(arr){
+
+return arr.join("|");
+
 }
 
-// ======================= GLOBAL EXPORT =======================
-// maakt schema beschikbaar voor andere scripts
+// ======================= EXPORT =======================
+
 window.StamboomSchema = {
 
 version: SCHEMA_VERSION, // schema versie
-fields: FIELDS, // lijst velden
-header: getHeader, // header generator
-validateHeader, // header validator
-normalizeHeader, // detecteert schema type
-empty: createEmptyPersoon, // leeg object generator
-validate: validatePerson, // validatie
-toCSV: objectToCSVRow, // object naar CSV
-fromCSV: csvRowToObject, // CSV naar object
-count: getFieldCount, // veld aantal
+fields: FIELDS, // kernvelden
+coreFieldCount: CORE_FIELD_COUNT, // aantal schema velden
+maxColumns: MAX_COLUMNS, // maximaal aantal CSV kolommen
+
+validateHeader, // header validatie
+normalizeHeader, // header type detectie
+
+empty: createEmptyPersoon, // leeg object
+validate: validatePerson, // basis validatie
+
+fromCSV: csvRowToObject, // CSV → object
+toCSV: objectToCSVRow, // object → CSV
+
 parsePartners, // partner parser
-stringifyPartners, // partner stringifier
-GESLACHT_VALUES // geslacht opties
+stringifyPartners, // partner formatter
+
+GESLACHT_VALUES // toegestane geslacht waarden
+
 };
-})(); // einde self-executing functie
+
+})(); // einde schema module
