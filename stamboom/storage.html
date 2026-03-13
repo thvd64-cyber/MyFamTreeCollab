@@ -1,5 +1,5 @@
-<!-- ======================= storage.html v0.0.2 ======================= -->
-<!-- Dynamische kolommen, Migratie van oude CSV's, ID-generatie uniform, Filterbare tabel, Reset knop, Versiebeheer -->
+<!-- ======================= js.storage.html v0.0.3 ======================= -->
+<!-- Dynamische kolommen, Migratie van oude CSV's, ID-generatie uniform, Filterbare tabel, Export (new) & Reset knop, Versiebeheer -->
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -135,6 +135,16 @@ document.addEventListener('DOMContentLoaded', function(){
         applyFilters();
     }
 
+    <!-- ======================= EXPORT EN RESET KNOPPEN ======================= -->
+<div id="buttonsContainer" style="margin:10px 0;">
+    <!-- EXPORT knoppen bovenaan -->
+    <button id="exportJSONBtn">Export JSON</button>
+    <button id="exportCSVBtn">Export CSV</button>
+
+    <!-- RESET knop -->
+    <button id="resetBtn">Reset Stamboom</button>
+</div>
+    
     // reset knop functionaliteit
     resetBtn.addEventListener('click', function(){
         if(!StamboomStorage.get().length) return;
