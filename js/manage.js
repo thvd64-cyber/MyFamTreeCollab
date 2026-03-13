@@ -51,12 +51,8 @@ const COLUMNS = [
     { key: 'VaderID', readonly: false },
     { key: 'MoederID', readonly: false },
     { key: 'PartnerID', readonly: false },
-    { key: 'Huwelijksdatum', readonly: false },
-    { key: 'Huwelijksplaats', readonly: false },
     { key: 'Opmerkingen', readonly: false },
-    { key: 'Huisadressen', readonly: false },
-    { key: 'ContactInfo', readonly: false },
-    { key: 'UR', readonly: false }
+ }
 ];
 
 // =======================
