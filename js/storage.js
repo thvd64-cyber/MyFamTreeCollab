@@ -1,9 +1,8 @@
-/* ======================= js/storage.js v0.0.5c ======================= */
+/* ======================= js/storage.js v0.0.4 ======================= */
 /* Persistent storage voor MyFamTreeCollab, volledig schema-driven
    - Maakt gebruik van window.StamboomSchema.fields
    - Automatische migratie van legacy en nieuwe records
    - Publieke API: get, set, add, update, clear
-   - Nieuwe ID-generator: 4 letters uit specifieke velden + 3 cijfers
 */
 
 (function(){
@@ -14,7 +13,7 @@ const STORAGE_KEY = 'stamboomData'; // localStorage sleutel
 
 /* ======================= SAFE JSON PARSING ======================= */
 function safeParse(json){
-    if(!json) return []; // lege string → lege array
+    if(!json) return [];
     try { 
         return JSON.parse(json); // probeer JSON te parsen
     }
@@ -24,39 +23,9 @@ function safeParse(json){
     }
 }
 
-/* ======================= CUSTOM CODE GENERATOR =====================*== */
-/* Genereert een code van 4 letters uit specifieke velden + 3 cijfers */
-function generateCustomCode(record, existingIDs = []){
-    // Pak de velden 2, 3, 5 en 6 uit het record (Object.keys(record) index)
-    const fields = [
-        record[Object.keys(record)[1]] || '', // 2e cel
-        record[Object.keys(record)[2]] || '', // 3e cel
-        record[Object.keys(record)[4]] || '', // 5e cel
-        record[Object.keys(record)[5]] || ''  // 6e cel
-    ];
-
-    // Pak de eerste letter van elk veld en zet om naar hoofdletter
-    let letters = fields.map(f => f.charAt(0).toUpperCase()).join('');
-
-    // Vul aan met X als niet genoeg letters aanwezig
-    letters = letters.padEnd(4, 'X');
-
-    // Voeg 3 willekeurige cijfers toe en controleer uniciteit
-    let code;
-    let attempts = 0;
-    do {
-        const numbers = String(Math.floor(Math.random() * 1000)).padStart(3,'0'); // altijd 3 cijfers
-        code = letters + numbers; // combineer letters + cijfers
-        attempts++;
-        if(attempts > 1000) throw new Error('Geen unieke code gevonden na 1000 pogingen'); // safety
-    } while(existingIDs.includes(code)); // check dubbele ID
-
-    return code; // retourneer unieke code
-}
-
 /* ======================= MIGRATIE FUNCTIE ======================= */
 function migrate(record){
-    if(!record || typeof record !== "object") return {}; // ongeldig record → leeg object
+    if(!record || typeof record !== "object") return {};
     
     const migrated = {...record}; // maak kopie zodat originele objecten niet gewijzigd worden
 
@@ -69,23 +38,21 @@ function migrate(record){
         console.error("StamboomSchema niet geladen!");
     }
 
-    // genereer unieke ID indien ontbrekend
+    // genereer ID indien ontbrekend
     if(!migrated.ID || migrated.ID.trim() === ""){
-        const dataset = get(); // huidige dataset ophalen
-        const existingIDs = dataset.map(p => p.ID); // alle bestaande IDs
-        migrated.ID = generateCustomCode(migrated, existingIDs); // genereer unieke code
+        migrated.ID = window.genereerCode ? window.genereerCode(migrated, []) : 'P'+Date.now();
     }
 
-    return migrated; // retourneer gemigreerd record
+    return migrated;
 }
 
 /* ======================= GET ======================= */
 function get(){
     let raw = localStorage.getItem(STORAGE_KEY); // haal JSON string
     let parsed = safeParse(raw); // parse JSON
-    if(!Array.isArray(parsed)) parsed = []; // fallback naar lege array
+    if(!Array.isArray(parsed)) parsed = [];
 
-    // voer migratie uit op alle records zodat alles conform schema is
+    // voer migratie uit op alle records
     parsed = parsed.map(r => migrate(r));
 
     return parsed; // return array van records
@@ -97,7 +64,7 @@ function set(dataset){
         console.warn('set() verwacht array'); 
         return false; 
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(dataset)); // sla array op als JSON
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(dataset)); // sla op
     return true;
 }
 
@@ -108,17 +75,17 @@ function add(person){
         return false; 
     }
     const dataset = get(); // huidige dataset ophalen
-    const migrated = migrate(person); // voer migratie en ID-generatie uit
-    dataset.push(migrated); // voeg record toe
+    const migrated = migrate(person); // migratie uitvoeren
+    dataset.push(migrated); // toevoegen
     localStorage.setItem(STORAGE_KEY, JSON.stringify(dataset)); // opslaan
     return true;
 }
 
 /* ======================= UPDATE ======================= */
 function update(personID, updates){
-    const dataset = get(); // huidige dataset ophalen
+    const dataset = get();
     const idx = dataset.findIndex(p => p.ID === personID); // zoek persoon
-    if(idx === -1) return false; // record niet gevonden
+    if(idx === -1) return false;
     dataset[idx] = {...dataset[idx], ...updates}; // merge updates
     set(dataset); // opslaan
     return true;
@@ -126,7 +93,7 @@ function update(personID, updates){
 
 /* ======================= CLEAR ======================= */
 function clear(){
-    localStorage.removeItem(STORAGE_KEY); // verwijder key uit localStorage
+    localStorage.removeItem(STORAGE_KEY); // verwijder key
     return true;
 }
 
@@ -137,7 +104,7 @@ window.StamboomStorage = {
     add,
     update,
     clear,
-    version: "v0.0.5" // nieuwe versie
+    version: "v0.0.4"
 };
 
 console.log("StamboomStorage geladen:", window.StamboomStorage.version);
