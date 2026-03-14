@@ -1,8 +1,8 @@
-/* ======================= js/storage.js v0.0.4 ======================= */
+/* ======================= js/storage.js v0.0.5 ======================= */
 /* Persistent storage voor MyFamTreeCollab, volledig schema-driven
    - Maakt gebruik van window.StamboomSchema.fields
-   - Automatische migratie van legacy en nieuwe records
-   - Publieke API: get, set, add, update, clear
+   - Automatische migratie van legacy en nieuwe records en id generatie
+   - Publieke API: get, set, add, update, clear 
 */
 
 (function(){
@@ -23,6 +23,32 @@ function safeParse(json){
     }
 }
 
+/* ======================= GENERATE UNIQUE ID ======================= */
+// Functie genereert een uniek ID op basis van cellen 2,3,5,6 en oplopende 3-cijfer code
+window.genereerCode = function(person, allPersons){
+    // ======================= PREPARE LETTERS =======================
+    const c2 = person.Doopnaam && person.Doopnaam.trim() !== "" ? person.Doopnaam.trim()[0].toUpperCase() : 'X'; // eerste letter Doopnaam of X
+    const c3 = person.Roepnaam && person.Roepnaam.trim() !== "" ? person.Roepnaam.trim()[0].toUpperCase() : 'X'; // eerste letter Roepnaam of X
+    const c5 = person.Achternaam && person.Achternaam.trim() !== "" ? person.Achternaam.trim()[0].toUpperCase() : 'X'; // eerste letter Achternaam of X
+    const c6 = person.Geslacht && person.Geslacht.trim() !== "" ? person.Geslacht.trim()[0].toUpperCase() : 'X'; // eerste letter Geslacht of X
+
+    // ======================= BASE PREFIX =======================
+    const prefix = `${c2}${c3}${c5}${c6}`; // samenvoegen van letters tot basis prefix
+
+    // ======================= INITIALISE SEQUENCE =======================
+    let seq = 1; // start van 3-cijferse oplopende code
+    let newID = ''; // variabele voor volledige ID
+
+    // ======================= GENERATE UNIQUE ID LOOP =======================
+    do {
+        const code = seq.toString().padStart(3,'0'); // 3-cijfer code met voorloopnullen
+        newID = `${prefix}${code}`; // volledige ID samenstellen
+        seq++; // volgende nummer voor poging als ID niet uniek is
+    } while(allPersons.some(p => p.ID === newID)); // check: ID uniek tegen bestaande + import personen
+
+    return newID; // retourneer unieke ID
+};
+
 /* ======================= MIGRATIE FUNCTIE ======================= */
 function migrate(record){
     if(!record || typeof record !== "object") return {};
@@ -38,9 +64,10 @@ function migrate(record){
         console.error("StamboomSchema niet geladen!");
     }
 
-    // genereer ID indien ontbrekend
+    // ======================= ASSIGN ID =======================
     if(!migrated.ID || migrated.ID.trim() === ""){
-        migrated.ID = window.genereerCode ? window.genereerCode(migrated, []) : 'P'+Date.now();
+        const allPersons = get(); // huidige dataset ophalen voor uniekheidscheck
+        migrated.ID = window.genereerCode(migrated, allPersons); // genereer uniek ID volgens nieuwe regels
     }
 
     return migrated;
@@ -75,7 +102,7 @@ function add(person){
         return false; 
     }
     const dataset = get(); // huidige dataset ophalen
-    const migrated = migrate(person); // migratie uitvoeren
+    const migrated = migrate(person); // migratie uitvoeren incl. ID
     dataset.push(migrated); // toevoegen
     localStorage.setItem(STORAGE_KEY, JSON.stringify(dataset)); // opslaan
     return true;
@@ -104,7 +131,7 @@ window.StamboomStorage = {
     add,
     update,
     clear,
-    version: "v0.0.4"
+    version: "v0.0.5"
 };
 
 console.log("StamboomStorage geladen:", window.StamboomStorage.version);
