@@ -45,8 +45,13 @@ fetch('/MyFamTreeCollab/Layout/Navbar.html') // Laad Navbar HTML via fetch
         </div>
 
         <!-- ======================= File select + Import knop ======================= -->
-        <input type="file" id="importFile" accept=".csv"> <!-- Bestandskiezer: alleen CSV-bestanden toegestaan -->
-        <button id="importBtn">Importeer CSV</button> <!-- Knop die de import.js functie triggerd -->
+      input type="file" id="importFile" accept=".csv" 
+       style="display:block; margin-bottom:20px; width:100%;"> <!-- 
+       display:block → zorgt dat de file input op een aparte regel staat 
+       margin-bottom:20px → vergroot de afstand tussen de file input en de knop
+       width:100% → maakt de file input breed genoeg zodat lange bestandsnamen zichtbaar zijn 
+        -->
+        <button id="importBtn">Importeer CSV</button> <!-- Knop voor het starten van de CSV-import -->
 
         <!-- ======================= Statusmelding ======================= -->
         <p id="importStatus"></p> <!-- Hier wordt status van de import weergegeven (succes of fout) -->
