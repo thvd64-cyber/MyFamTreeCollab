@@ -1,7 +1,7 @@
-/* ======================= js/storage.js v0.0.5 ======================= */
+/* ======================= js/storage.js v0.0.5a ======================= */
 /* Persistent storage voor MyFamTreeCollab, volledig schema-driven
    - Maakt gebruik van window.StamboomSchema.fields
-   - Automatische migratie van legacy en nieuwe records en id generatie
+   - Automatische migratie van legacy en nieuwe records
    - Publieke API: get, set, add, update, clear 
 */
 
@@ -23,8 +23,26 @@ function safeParse(json){
     }
 }
 
+/* ======================= MIGRATIE FUNCTIE ======================= */
+function migrate(record){
+    if(!record || typeof record !== "object") return {};
+    
+    const migrated = {...record}; // maak kopie zodat originele objecten niet gewijzigd worden
+
+    // Zorg dat alle velden uit schema aanwezig zijn
+    if(window.StamboomSchema && Array.isArray(window.StamboomSchema.fields)){
+        window.StamboomSchema.fields.forEach(field => {
+            if(!(field in migrated)) migrated[field] = ""; // ontbrekende velden aanvullen
+        });
+    } else {
+        console.error("StamboomSchema niet geladen!");
+    }
+
+    return migrated;
+}
+
 /* ======================= GENERATE UNIQUE ID ======================= */
-// Functie genereert een uniek ID op basis van cellen 2,3,5,6 en oplopende 3-cijfer code
+// Functie genereert een uniek ID op basis van cel2,3,5,6 + oplopende 3-cijfer code
 window.genereerCode = function(person, allPersons){
     // ======================= PREPARE LETTERS =======================
     const c2 = person.Doopnaam && person.Doopnaam.trim() !== "" ? person.Doopnaam.trim()[0].toUpperCase() : 'X'; // eerste letter Doopnaam of X
@@ -48,30 +66,6 @@ window.genereerCode = function(person, allPersons){
 
     return newID; // retourneer unieke ID
 };
-
-/* ======================= MIGRATIE FUNCTIE ======================= */
-function migrate(record){
-    if(!record || typeof record !== "object") return {};
-    
-    const migrated = {...record}; // maak kopie zodat originele objecten niet gewijzigd worden
-
-    // Zorg dat alle velden uit schema aanwezig zijn
-    if(window.StamboomSchema && Array.isArray(window.StamboomSchema.fields)){
-        window.StamboomSchema.fields.forEach(field => {
-            if(!(field in migrated)) migrated[field] = ""; // ontbrekende velden aanvullen
-        });
-    } else {
-        console.error("StamboomSchema niet geladen!");
-    }
-
-    // ======================= ASSIGN ID =======================
-    if(!migrated.ID || migrated.ID.trim() === ""){
-        const allPersons = get(); // huidige dataset ophalen voor uniekheidscheck
-        migrated.ID = window.genereerCode(migrated, allPersons); // genereer uniek ID volgens nieuwe regels
-    }
-
-    return migrated;
-}
 
 /* ======================= GET ======================= */
 function get(){
@@ -102,7 +96,7 @@ function add(person){
         return false; 
     }
     const dataset = get(); // huidige dataset ophalen
-    const migrated = migrate(person); // migratie uitvoeren incl. ID
+    const migrated = migrate(person); // migratie uitvoeren
     dataset.push(migrated); // toevoegen
     localStorage.setItem(STORAGE_KEY, JSON.stringify(dataset)); // opslaan
     return true;
