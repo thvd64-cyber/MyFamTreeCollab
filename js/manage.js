@@ -1,4 +1,4 @@
-/* ======================= manage.js v1.3.19 ======================= */
+/* ======================= manage.js v1.3.19a ======================= */
 /* Drop-in, 14 kolommen, live search, add/save/refresh, export JSON & CSV, inline uitleg */
 
 (function(){
@@ -48,33 +48,82 @@ function buildHeader(){
     });
 }
 
-/* ======================= RELATIE ENGINE ======================= */
-function computeRelaties(data,hoofdId){
-    if(!hoofdId) return [];                                                     // Stop bij geen selectie
-    const hoofd = data.find(p=>safe(p.ID)===safe(hoofdId)); if(!hoofd) return [];
-    const VHoofdID = safe(hoofd.VaderID), MHoofdID = safe(hoofd.MoederID), PHoofdID = safe(hoofd.PartnerID);
-    const KindID = data.filter(p=>safe(p.VaderID)===hoofdId || safe(p.MoederID)===hoofdId).map(p=>p.ID);
+/* ======================= RELATIE ENGINE (aangepast) ======================= */
+function computeRelaties(data, hoofdId){
+    if(!hoofdId) return []; // Stop als er geen hoofd geselecteerd is
+
+    const hoofd = data.find(p=>safe(p.ID)===safe(hoofdId)); // Zoek het hoofd
+    if(!hoofd) return []; // Stop als hoofd niet in dataset staat
+
+    const VHoofdID = safe(hoofd.VaderID);    // ID van vader van hoofd
+    const MHoofdID = safe(hoofd.MoederID);   // ID van moeder van hoofd
+    const PHoofdID = safe(hoofd.PartnerID);  // ID van partner van hoofd
+
+    // ======================= KINDEREN =======================
+    // Vind alle kinderen van hoofd of partner van hoofd
+    const children = data.filter(p=>safe(p.VaderID)===hoofdId || safe(p.MoederID)===hoofdId || 
+                                    safe(p.VaderID)===PHoofdID || safe(p.MoederID)===PHoofdID);
+
+    // Maak een mapping van KindID naar de juiste Relatie-code
+    const KindRelaties = children.map(k=>{
+        const kVader = safe(k.VaderID);  // Vader van kind
+        const kMoeder = safe(k.MoederID); // Moeder van kind
+        let relatie='';
+        
+        // Regel: beide ouders = hoofd + partner
+        if((kVader===hoofdId && kMoeder===PHoofdID) || (kVader===PHoofdID && kMoeder===hoofdId)){
+            relatie='KindID';
+        }
+        // Alleen hoofd als ouder
+        else if(kVader===hoofdId || kMoeder===hoofdId){
+            relatie='HKindID';
+        }
+        // Alleen partner van hoofd als ouder
+        else if(kVader===PHoofdID || kMoeder===PHoofdID){
+            relatie='PHKindID';
+        }
+        return {id:safe(k.ID), relatie, partnerID:safe(k.PartnerID)};
+    });
+
+    // ======================= BZ (Broer/Zus) =======================
     const BZID = data.filter(p=>{
-        const pid=safe(p.ID); 
-        if(pid===hoofdId || pid===PHoofdID || KindID.includes(pid)) return false;
+        const pid = safe(p.ID);
+        // Sluit hoofd, partner en kinderen uit
+        if(pid===hoofdId || pid===PHoofdID || KindRelaties.some(k=>k.id===pid)) return false;
         return (VHoofdID && safe(p.VaderID)===VHoofdID) || (MHoofdID && safe(p.MoederID)===MHoofdID);
     }).map(p=>p.ID);
 
-    const KindPartnerID = KindID.map(id=>{ const k=data.find(p=>p.ID===id); return k && k.PartnerID ? k.PartnerID : null; }).filter(Boolean);
-    const BZPartnerID = BZID.map(id=>{ const s=data.find(p=>p.ID===id); return s && s.PartnerID ? s.PartnerID : null; }).filter(Boolean);
+    // ======================= PARTNERS =======================
+    // Partner van hoofd
+    const hoofdPartner = PHoofdID ? [PHoofdID] : [];
+    // Partner van kinderen
+    const KindPartnerID = KindRelaties.map(k=>k.partnerID).filter(Boolean);
+    // Partner van BZ
+    const BZPartnerID = BZID.map(id=>{
+        const p = data.find(x=>x.ID===id);
+        return p && p.PartnerID ? p.PartnerID : null;
+    }).filter(Boolean);
 
+    // ======================= CLONEN EN RELATIE TOEVOEGEN =======================
     return data.map(p=>{
-        const pid=safe(p.ID);
-        const clone={...p}; clone.Relatie=''; clone._priority=99;
-        if(pid===hoofdId){clone.Relatie='HoofdID'; clone._priority=1;}
-        else if(pid===VHoofdID || pid===MHoofdID){clone.Relatie=pid===VHoofdID?'VHoofdID':'MHoofdID'; clone._priority=0;}
-        else if(pid===PHoofdID){clone.Relatie='PHoofdID'; clone._priority=2;}
-        else if(KindID.includes(pid)){clone.Relatie='KindID'; clone._priority=3;}
-        else if(KindPartnerID.includes(pid)){clone.Relatie='KindPartnerID'; clone._priority=3.5;}
-        else if(BZID.includes(pid)){clone.Relatie='BZID'; clone._priority=4;}
-        else if(BZPartnerID.includes(pid)){clone.Relatie='BZPartnerID'; clone._priority=4.5;}
+        const pid = safe(p.ID);
+        const clone = {...p}; // Kopieer persoon
+        clone.Relatie = '';
+        clone._priority = 99;
+
+        // Prioriteit en label instellen
+        if(pid===hoofdId){ clone.Relatie='HoofdID'; clone._priority=1; } // Hoofd eerst
+        else if(pid===PHoofdID){ clone.Relatie='PHoofdID'; clone._priority=2; } // Partner van hoofd
+        else if(KindRelaties.some(k=>k.id===pid)){ // Kinderen
+            const kr = KindRelaties.find(k=>k.id===pid);
+            clone.Relatie = kr.relatie; // KindID, HKindID of PHKindID
+            clone._priority = 3;
+        }
+        else if(BZID.includes(pid)){ clone.Relatie='BZID'; clone._priority=4; } // Broer/zus
+        else if(BZPartnerID.includes(pid)){ clone.Relatie='BZPartnerID'; clone._priority=4.5; } // Partner broer/zus
+
         return clone;
-    }).sort((a,b)=>a._priority - b._priority);                                  // Sorteer op prioriteit
+    }).sort((a,b)=>a._priority - b._priority); // Sorteer op prioriteit
 }
 
 /* ======================= TEXTAREA HOOGTE ======================= */
