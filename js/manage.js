@@ -1,4 +1,4 @@
-/* ======================= manage.js v1.3.20 ======================= */
+/* ======================= manage.js v1.3.19 ======================= */
 /* Drop-in, 14 kolommen, live search, add/save/refresh, export JSON & CSV, inline uitleg */
 
 (function(){
@@ -49,53 +49,30 @@ function buildHeader(){
 }
 
 /* ======================= RELATIE ENGINE ======================= */
-function computeRelaties(data, hoofdId){
+function computeRelaties(data,hoofdId){
     if(!hoofdId) return [];                                                     // Stop bij geen selectie
     const hoofd = data.find(p=>safe(p.ID)===safe(hoofdId)); if(!hoofd) return [];
     const VHoofdID = safe(hoofd.VaderID), MHoofdID = safe(hoofd.MoederID), PHoofdID = safe(hoofd.PartnerID);
-
-    /* ======================= KIND / HKIND / PHKIND LOGICA ======================= */
-    // 1️⃣ KindID → kind van hoofd + partner
-    const KindID = data
-        .filter(p => safe(p.VaderID) === hoofdId && safe(p.MoederID) === PHoofdID) // Alleen kinderen van beide
-        .map(p => p.ID);                                                         // Haal ID's op
-
-    // 2️⃣ HKindID → kind van hoofd alleen (niet partner)
-    const HKindID = data
-        .filter(p => safe(p.VaderID) === hoofdId && safe(p.MoederID) !== PHoofdID) // Alleen kinderen van hoofd
-        .map(p => p.ID);
-
-    // 3️⃣ PHKindID → partner van KindID
-    const PHKindID = KindID.map(id => {                                           
-        const k = data.find(p => p.ID === id);                                    // Zoek kind object
-        return k && k.PartnerID ? k.PartnerID : null;                             // Geef partner ID of null
-    }).filter(Boolean);                                                           // Verwijder nulls
-
-    /* ======================= BROER/ZUS EN PARTNERS blijven ongewijzigd ======================= */
+    const KindID = data.filter(p=>safe(p.VaderID)===hoofdId || safe(p.MoederID)===hoofdId).map(p=>p.ID);
     const BZID = data.filter(p=>{
         const pid=safe(p.ID); 
-        if(pid===hoofdId || pid===PHoofdID || KindID.includes(pid) || HKindID.includes(pid)) return false;
+        if(pid===hoofdId || pid===PHoofdID || KindID.includes(pid)) return false;
         return (VHoofdID && safe(p.VaderID)===VHoofdID) || (MHoofdID && safe(p.MoederID)===MHoofdID);
     }).map(p=>p.ID);
 
-    const BZPartnerID = BZID.map(id=>{
-        const s = data.find(p=>p.ID===id);
-        return s && s.PartnerID ? s.PartnerID : null;
-    }).filter(Boolean);
+    const KindPartnerID = KindID.map(id=>{ const k=data.find(p=>p.ID===id); return k && k.PartnerID ? k.PartnerID : null; }).filter(Boolean);
+    const BZPartnerID = BZID.map(id=>{ const s=data.find(p=>p.ID===id); return s && s.PartnerID ? s.PartnerID : null; }).filter(Boolean);
 
-    /* ======================= BOUW RELATIE OBJECT ======================= */
     return data.map(p=>{
-        const pid = safe(p.ID);
-        const clone={...p}; clone.Relatie=''; clone._priority=99;        // Clone voor render, dataset blijft intact
-
+        const pid=safe(p.ID);
+        const clone={...p}; clone.Relatie=''; clone._priority=99;
         if(pid===hoofdId){clone.Relatie='HoofdID'; clone._priority=1;}
+        else if(pid===VHoofdID || pid===MHoofdID){clone.Relatie=pid===VHoofdID?'VHoofdID':'MHoofdID'; clone._priority=0;}
         else if(pid===PHoofdID){clone.Relatie='PHoofdID'; clone._priority=2;}
         else if(KindID.includes(pid)){clone.Relatie='KindID'; clone._priority=3;}
-        else if(HKindID.includes(pid)){clone.Relatie='HKindID'; clone._priority=3.5;}
-        else if(PHKindID.includes(pid)){clone.Relatie='PHKindID'; clone._priority=4;}
-        else if(BZID.includes(pid)){clone.Relatie='BZID'; clone._priority=4.5;}
-        else if(BZPartnerID.includes(pid)){clone.Relatie='BZPartnerID'; clone._priority=5;}
-
+        else if(KindPartnerID.includes(pid)){clone.Relatie='KindPartnerID'; clone._priority=3.5;}
+        else if(BZID.includes(pid)){clone.Relatie='BZID'; clone._priority=4;}
+        else if(BZPartnerID.includes(pid)){clone.Relatie='BZPartnerID'; clone._priority=4.5;}
         return clone;
     }).sort((a,b)=>a._priority - b._priority);                                  // Sorteer op prioriteit
 }
@@ -125,7 +102,7 @@ function renderTable(ds){
     contextData.filter(p=>p.Relatie==='PHoofdID').forEach(p=>renderQueue.push(p));
     contextData.filter(p=>p.Relatie==='KindID').forEach(k=>{
         renderQueue.push(k);
-        const kp=contextData.find(p=>p.Relatie==='PHKindID' && p.ID===k.PartnerID); if(kp) renderQueue.push(kp);
+        const kp=contextData.find(p=>p.Relatie==='KindPartnerID' && p.ID===k.PartnerID); if(kp) renderQueue.push(kp);
     });
     contextData.filter(p=>p.Relatie==='BZID').forEach(s=>{
         renderQueue.push(s);
@@ -153,8 +130,7 @@ function renderTable(ds){
                 const ta=document.createElement('textarea');
                 ta.value=p[col.key]||'';
                 ta.dataset.field=col.key;
-                ta.style.width='100%'; ta.style.boxSizing='border-box'; 
-                ta.style.resize='vertical';
+                ta.style.width='100%'; ta.style.boxSizing='border-box'; ta.style.resize='vertical';
                 td.appendChild(ta);
             }
             tr.appendChild(td);
@@ -188,7 +164,7 @@ function addRow(){
             const ta=document.createElement('textarea');
             ta.value='';
             ta.dataset.field=col.key;
-            ta.style.width='100%'; td.style.boxSizing='border-box';
+            ta.style.width='100%'; ta.style.boxSizing='border-box';
             ta.style.resize='vertical';
             td.appendChild(ta);
         }
