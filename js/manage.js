@@ -1,5 +1,5 @@
-/* ======================= manage.js v1.3.19 ======================= */
-/* Drop-in, 14 kolommen, live search, add/save/refresh, export JSON & CSV, inline uitleg */
+/* ======================= manage.js v1.3.20 ======================= */
+/* KindID, HKindID, PHKindID
 
 (function(){
 'use strict';
@@ -49,32 +49,60 @@ function buildHeader(){
 }
 
 /* ======================= RELATIE ENGINE ======================= */
-function computeRelaties(data,hoofdId){
-    if(!hoofdId) return [];                                                     // Stop bij geen selectie
-    const hoofd = data.find(p=>safe(p.ID)===safe(hoofdId)); if(!hoofd) return [];
-    const VHoofdID = safe(hoofd.VaderID), MHoofdID = safe(hoofd.MoederID), PHoofdID = safe(hoofd.PartnerID);
-    const KindID = data.filter(p=>safe(p.VaderID)===hoofdId || safe(p.MoederID)===hoofdId).map(p=>p.ID);
+function computeRelaties(data, hoofdId){
+    if(!hoofdId) return [];                               // Stop bij geen selectie
+    const hoofd = data.find(p=>safe(p.ID)===safe(hoofdId)); 
+    if(!hoofd) return [];
+
+    const VHoofdID = safe(hoofd.VaderID);
+    const MHoofdID = safe(hoofd.MoederID);
+    const PHoofdID = safe(hoofd.PartnerID);
+
+    // 1️⃣ KindID → kind van hoofd en partner
+    const KindID = data
+        .filter(p => safe(p.VaderID) === hoofdId && safe(p.MoederID) === PHoofdID)
+        .map(p => p.ID);
+
+    // 2️⃣ HKindID → kind van hoofd (alleen hoofd)
+    const HKindID = data
+        .filter(p => safe(p.VaderID) === hoofdId && safe(p.MoederID) !== PHoofdID)
+        .map(p => p.ID);
+
+    // 3️⃣ PHKindID → partner van KindID
+    const PHKindID = KindID.map(id => {
+        const k = data.find(p => p.ID === id);
+        return k && k.PartnerID ? k.PartnerID : null;
+    }).filter(Boolean);
+
+    // BZID en BZPartnerID blijven zoals eerder (broers/zussen)
     const BZID = data.filter(p=>{
-        const pid=safe(p.ID); 
-        if(pid===hoofdId || pid===PHoofdID || KindID.includes(pid)) return false;
+        const pid = safe(p.ID); 
+        if(pid===hoofdId || pid===PHoofdID || KindID.includes(pid) || HKindID.includes(pid)) return false;
         return (VHoofdID && safe(p.VaderID)===VHoofdID) || (MHoofdID && safe(p.MoederID)===MHoofdID);
     }).map(p=>p.ID);
 
-    const KindPartnerID = KindID.map(id=>{ const k=data.find(p=>p.ID===id); return k && k.PartnerID ? k.PartnerID : null; }).filter(Boolean);
-    const BZPartnerID = BZID.map(id=>{ const s=data.find(p=>p.ID===id); return s && s.PartnerID ? s.PartnerID : null; }).filter(Boolean);
+    const BZPartnerID = BZID.map(id=>{
+        const s = data.find(p=>p.ID===id);
+        return s && s.PartnerID ? s.PartnerID : null;
+    }).filter(Boolean);
 
+    // Bouw dynamische relaties
     return data.map(p=>{
-        const pid=safe(p.ID);
-        const clone={...p}; clone.Relatie=''; clone._priority=99;
-        if(pid===hoofdId){clone.Relatie='HoofdID'; clone._priority=1;}
-        else if(pid===VHoofdID || pid===MHoofdID){clone.Relatie=pid===VHoofdID?'VHoofdID':'MHoofdID'; clone._priority=0;}
-        else if(pid===PHoofdID){clone.Relatie='PHoofdID'; clone._priority=2;}
-        else if(KindID.includes(pid)){clone.Relatie='KindID'; clone._priority=3;}
-        else if(KindPartnerID.includes(pid)){clone.Relatie='KindPartnerID'; clone._priority=3.5;}
-        else if(BZID.includes(pid)){clone.Relatie='BZID'; clone._priority=4;}
-        else if(BZPartnerID.includes(pid)){clone.Relatie='BZPartnerID'; clone._priority=4.5;}
+        const pid = safe(p.ID);
+        const clone = {...p}; 
+        clone.Relatie=''; 
+        clone._priority=99;
+
+        if(pid===hoofdId){ clone.Relatie='HoofdID'; clone._priority=1; }
+        else if(pid===PHoofdID){ clone.Relatie='PHoofdID'; clone._priority=2; }
+        else if(KindID.includes(pid)){ clone.Relatie='KindID'; clone._priority=3; }
+        else if(HKindID.includes(pid)){ clone.Relatie='HKindID'; clone._priority=3.5; }
+        else if(PHKindID.includes(pid)){ clone.Relatie='PHKindID'; clone._priority=4; }
+        else if(BZID.includes(pid)){ clone.Relatie='BZID'; clone._priority=4.5; }
+        else if(BZPartnerID.includes(pid)){ clone.Relatie='BZPartnerID'; clone._priority=5; }
+
         return clone;
-    }).sort((a,b)=>a._priority - b._priority);                                  // Sorteer op prioriteit
+    }).sort((a,b)=>a._priority - b._priority);
 }
 
 /* ======================= TEXTAREA HOOGTE ======================= */
