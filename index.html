@@ -1,4 +1,4 @@
-<!-- ======================= index.html v1.1.1 ======================= -->
+<!-- ======================= index.html v1.1.2 ======================= -->
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -70,18 +70,14 @@ document.addEventListener('DOMContentLoaded', () => {
     </section>
 
   <!-- ======================= Fototjes boven Start Nu ======================= -->
-<section style="display:flex; justify-content:center; gap:20px; margin:30px 0;">
-
-  <!-- Foto 1 -->
-  <div style="flex:1; aspect-ratio:4/3; display:flex; align-items:center; justify-content:center; border:2px solid #ccc; overflow:hidden;">
-    <img src="img/FotoGezin1.png" alt="Foto 1" style="width:100%; height:100%; object-fit:cover;">
-  </div>
-
-  <!-- Foto 2 -->
-  <div style="flex:1; aspect-ratio:4/3; display:flex; align-items:center; justify-content:center; border:2px dashed #aaa; overflow:hidden;">
-    <img src="img/Stats1.png" alt="Foto 2" style="width:100%; height:100%; object-fit:cover;">
-  </div>
-
+<!-- ======================= Fototjes boven Start Nu ======================= -->
+<section class="foto-rij">
+    <div>
+        <img src="img/FotoGezin1.png" alt="Foto 1">
+    </div>
+    <div>
+        <img src="img/Stats1.png" alt="Foto 2">
+    </div>
 </section>
 
     <!-- Start Nu sectie met opvallende knop -->
@@ -99,22 +95,18 @@ document.addEventListener('DOMContentLoaded', () => {
 <section id="fotoSectionOnder" style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap; margin:30px 0;"></section>
 
 <script>
-// ======================= Fototjes onder dynamisch & responsive =======================
-<section style="display:flex; justify-content:center; gap:20px; margin:30px 0;">
-    
-  <!-- Foto 3 -->
-  <div style="flex:1; aspect-ratio:4/3; display:flex; align-items:center; justify-content:center; border:2px solid #ccc; overflow:hidden;">
-    <img src="img/Manage1.png" alt="Foto 3" style="width:100%; height:100%; object-fit:cover;">
-  </div>
 
-  <!-- Foto 4 -->
-  <div style="flex:1; aspect-ratio:4/3; display:flex; align-items:center; justify-content:center; border:2px dashed #aaa; overflow:hidden;">
-    <img src="img/View1.png" alt="Foto 4" style="width:100%; height:100%; object-fit:cover;">
-  </div>
-
+<!-- ======================= Fototjes onder Start Nu ======================= -->
+<section class="foto-rij">
+    <div>
+        <img src="img/Manage1.png" alt="Foto 3">
+    </div>
+    <div>
+        <img src="img/View1.png" alt="Foto 4">
+    </div>
 </section>
 
-    <!-- Nieuws & Updates -->
+    <!-- ======================= Nieuws & Updates ======================= -->
     <section>
         <h2>Nieuws & Updates</h2>
         <p>Bekijk de laatste functies, tips en updates om uw stamboom nog beter te beheren.</p>
