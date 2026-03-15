@@ -4,11 +4,45 @@
 <head>
     <meta charset="UTF-8"> <!-- Tekencodering UTF-8 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Responsief op mobiel/tablet/desktop -->
-    <!-- Browser tab titel -->
-    <title>MyFamTreeCollab - Home</title>
-    <!-- Browser tab logo (favicon) -->
+    <title>MyFamTreeCollab - Home</title> <!-- Browser tab titel -->
     <link rel="icon" type="img/Tree_Vorilo (5.1).png" href="img/Tree_Vorilo (5.1).png">
-    <link rel="stylesheet" href="css/style.css"> <!-- Verbindt de externe CSS voor volledige styling -->
+    <link rel="stylesheet" href="css/style.css"> <!-- Verbindt de externe CSS -->
+
+    <!-- ======================= Inline CSS voor Foto Grid ======================= -->
+    <style>
+        .foto-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center; 
+        }
+
+        .foto-grid div {
+            flex: 1 1 45%;
+            aspect-ratio: 4/3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px solid #ccc;
+        }
+
+        .foto-grid div:nth-child(2n) {
+            border-style: dashed;
+        }
+
+        .foto-grid div img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        @media (max-width: 768px) {
+            .foto-grid div {
+                flex: 1 1 100%;
+            }
+        }
+    </style>
 </head>
 <body>
 
