@@ -1,4 +1,4 @@
-<!-- ======================= index.html v1.1.2 ======================= -->
+<!-- ======================= index.html v1.1.3 ======================= -->
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -10,36 +10,38 @@
 
     <!-- ======================= Inline CSS voor Foto Grid ======================= -->
     <style>
+        /* ======================= Foto Grid ======================= */
         .foto-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center; 
+            display: flex;           /* Flexbox zodat foto’s naast elkaar komen */
+            flex-wrap: wrap;         /* Laat foto’s op mobiel onder elkaar vallen */
+            gap: 20px;               /* Ruimte tussen de foto’s */
+            justify-content: center; /* Centrer de rij */
         }
 
         .foto-grid div {
-            flex: 1 1 45%;
-            aspect-ratio: 4/3;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            border: 2px solid #ccc;
+            flex: 1 1 45%;           /* Twee foto’s per rij op breed scherm */
+            aspect-ratio: 4/3;       /* Zorgt voor vaste hoogte-breedte verhouding */
+            display: flex;           /* Voor centreren van de afbeelding */
+            align-items: center;     /* Verticaal centreren */
+            justify-content: center; /* Horizontaal centreren */
+            overflow: hidden;        /* Zorgt dat afbeelding binnen container blijft */
+            border: 2px solid #ccc;  /* Standaard rand */
         }
 
         .foto-grid div:nth-child(2n) {
-            border-style: dashed;
+            border-style: dashed;    /* Elke tweede foto krijgt dashed rand */
         }
 
         .foto-grid div img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            width: 100%;             /* Vult container breedte */
+            height: 100%;            /* Vult container hoogte */
+            object-fit: cover;       /* Houdt verhouding en vult container */
         }
 
+        /* ======================= Mobiel aanpassing ======================= */
         @media (max-width: 768px) {
             .foto-grid div {
-                flex: 1 1 100%;
+                flex: 1 1 100%;      /* Op smalle schermen 1 foto per rij */
             }
         }
     </style>
@@ -50,38 +52,37 @@
 <div id="topbar-placeholder"></div> <!-- Container voor TopBar -->
 <script>
 fetch('/MyFamTreeCollab/Layout/TopBar.html')  // Haalt TopBar HTML op
-    .then(resp => resp.text())                 // Converteert response naar tekst
+    .then(resp => resp.text())
     .then(data => {
-        document.getElementById('topbar-placeholder').innerHTML = data; // Plaats TopBar in placeholder
+        document.getElementById('topbar-placeholder').innerHTML = data; // Plaats TopBar
     });
 </script>
 
 <!-- ======================= layout/Navbar.html ======================= -->
-<div id="Navbar-placeholder"></div> <!-- plek waar Navbar komt -->
-
+<div id="Navbar-placeholder"></div> <!-- Container voor Navbar -->
 <script>
-fetch('/MyFamTreeCollab/Layout/Navbar.html') // Navbar bestand ophalen
-    .then(resp => resp.text())               // omzetten naar HTML tekst
+fetch('/MyFamTreeCollab/Layout/Navbar.html') // Navbar ophalen
+    .then(resp => resp.text())
     .then(data => {
-        const placeholder = document.getElementById('Navbar-placeholder'); // placeholder ophalen
-        if (placeholder) {                   // controleren of element bestaat
-            placeholder.innerHTML = data;    // Navbar injecteren
+        const placeholder = document.getElementById('Navbar-placeholder');
+        if (placeholder) {
+            placeholder.innerHTML = data; // Inject Navbar
         } else {
-            console.error('Navbar-placeholder niet gevonden'); // Debugmelding
+            console.error('Navbar-placeholder niet gevonden');
         }
     });
 </script>
+
 <!-- ======================= Hoofd pagina ======================= -->
 <!-- ======================= Pagina Titel ======================= -->
 <div id="pageTitle" style="font-size:1.5rem; font-weight:bold; margin-bottom:20px;"></div> <!-- Dynamische paginatitel -->
-
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const pageTitleDiv = document.getElementById('pageTitle'); // Div ophalen
-    const path = window.location.pathname.split("/").pop();   // Haal bestandsnaam uit URL
-    let title = path.replace('.html','');                      // Verwijder extensie
-    title = title.replace(/[-_]/g,' ').replace(/\b\w/g, c => c.toUpperCase()); // Format: spaties + hoofdletters
-    pageTitleDiv.textContent = title;                          // Voeg titel toe
+    const pageTitleDiv = document.getElementById('pageTitle');
+    const path = window.location.pathname.split("/").pop();
+    let title = path.replace('.html','');
+    title = title.replace(/[-_]/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+    pageTitleDiv.textContent = title;
 });
 </script>
 
@@ -103,18 +104,17 @@ document.addEventListener('DOMContentLoaded', () => {
         </p>
     </section>
 
-  <!-- ======================= Fototjes boven Start Nu ======================= -->
-<!-- ======================= Fototjes boven Start Nu ======================= -->
-<section class="foto-rij">
-    <div>
-        <img src="img/FotoGezin1.png" alt="Foto 1">
-    </div>
-    <div>
-        <img src="img/Stats1.png" alt="Foto 2">
-    </div>
-</section>
+    <!-- ======================= Foto's boven Start Nu ======================= -->
+    <section class="foto-grid">
+        <div>
+            <img src="img/FotoGezin1.png" alt="Foto 1">
+        </div>
+        <div>
+            <img src="img/Stats1.png" alt="Foto 2">
+        </div>
+    </section>
 
-    <!-- Start Nu sectie met opvallende knop -->
+    <!-- ======================= Start Nu sectie met opvallende knop ======================= -->
     <section style="text-align:center; margin:40px 0;">
         <h2>Start uw Stamboom</h2>
         <p>Begin vandaag nog met het vastleggen en beheren van uw familiegeschiedenis – veilig, lokaal en gebruiksvriendelijk.</p>
@@ -125,15 +125,15 @@ document.addEventListener('DOMContentLoaded', () => {
         </a>
     </section>
 
-<!-- ======================= Fototjes onder Start Nu ======================= -->
-<section class="foto-rij">
-    <div>
-        <img src="img/Manage1.png" alt="Foto 3">
-    </div>
-    <div>
-        <img src="img/View1.png" alt="Foto 4">
-    </div>
-</section>
+    <!-- ======================= Foto's onder Start Nu ======================= -->
+    <section class="foto-grid">
+        <div>
+            <img src="img/Manage1.png" alt="Foto 3">
+        </div>
+        <div>
+            <img src="img/View1.png" alt="Foto 4">
+        </div>
+    </section>
 
     <!-- ======================= Nieuws & Updates ======================= -->
     <section>
@@ -141,13 +141,13 @@ document.addEventListener('DOMContentLoaded', () => {
         <p>Bekijk de laatste functies, tips en updates om uw stamboom nog beter te beheren.</p>
     </section>
 </main>
+
 <!-- ======================= Footer ======================= -->
 <div id="footer-placeholder"></div> <!-- Container voor Footer -->
-
 <script>
-fetch('/MyFamTreeCollab/Layout/Footer.html') // Haalt layout/Footer.html op
-    .then(resp => resp.text())                // Converteert response naar leesbare html
-    .then(data => {                        // werk met de opgehaalde HTML
+fetch('/MyFamTreeCollab/Layout/Footer.html')
+    .then(resp => resp.text())
+    .then(data => {
         document.getElementById('footer-placeholder').innerHTML = data; // Plaats Footer
     });
 </script>
